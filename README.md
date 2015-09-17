@@ -1,18 +1,26 @@
 # Innkeeper
 
-A route management API for [Skipper](https://github.com/zalando/skipper)
+Innkeeper is a simple route management API for [Skipper](https://github.com/zalando/skipper)
 
-When a new instance of Skipper is started, it will connect to innkeeper, ask for all the routes and initialize it's own data structures.
+When a new instance of Skipper (configured to fetch the routes from Innkeeper) is started, it will connect to Innkeeper, ask for all the routes and initialize it's own data structures.
 
 Then, at every x minutes will will ask innkeeper for the modified routes and update it's internal data structures.
 
-## Development
+## Getting started
+
+First, create your application.conf file. One way to do it is by using the sample one:
+
+    cp src/main/resources/sample.application.conf src/main/resources/application.conf
+
+Set the `oauth.url` with your OAuth provider url.
+
+Innkeeper has three different OAuth scopes, configured in the application.conf file also. For more info, see the OAuth chapter.
+
+Innkeeper requires a Postgres DB for operation. For local development, docker can be used to spawn a DB (see below the Postgres chapter).
 
 To run Innkeeper, execute `sbt run`.
 
 To run the test suite, run `sbt test`.
-
-Innkeeper requires a Postgres DB for operation. For local development, docker can be used to spawn a DB (see below).
 
 ### Inserting a new route manually
 
@@ -43,6 +51,14 @@ curl -XPOST localhost:8080/routes -d '{
 ### Getting last modified routes
 
     curl http://localhost:8080/routes?last_modified=2015-08-21T15:23:05.731 -H 'Authorization: oauth-token'
+
+# OAuth
+
+A client can have different scopes when calling Innkeeper:
+
+  - read -> the client is allowed to read the routes
+  - writeFullPath -> the client is allowed to create only routes with a full path matcher
+  - writeRegex -> the client with this scope is allowed to create routes with a regex matcher
 
 # Postgres
 

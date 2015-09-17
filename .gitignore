@@ -14,3 +14,4 @@ senza.yaml
 Dockerfile
 Makefile
 /src/main/resources/application.conf
+atlassian-ide-plugin.xml

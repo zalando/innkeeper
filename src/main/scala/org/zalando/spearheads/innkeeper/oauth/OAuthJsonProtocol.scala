@@ -7,12 +7,12 @@ import spray.json.{ DefaultJsonProtocol, JsString, JsValue, RootJsonFormat }
  */
 object OAuthJsonProtocol extends DefaultJsonProtocol {
 
-  implicit object ScopeFormat extends RootJsonFormat[Scopes.Scope] {
+  implicit object ScopeFormat extends RootJsonFormat[Scope] {
 
-    override def write(scope: Scopes.Scope) = JsString(scope.name)
+    override def write(scope: Scope) = JsString(scope.name)
 
     override def read(json: JsValue) = json match {
-      case JsString(s) => Scopes.Scope(s)
+      case JsString(s) => Scope(s)
       case _           => throw new IllegalArgumentException(s"JsString expected: $json")
     }
   }
