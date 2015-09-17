@@ -1,0 +1,16 @@
+/.idea/
+/.idea_modules/
+target
+/project/typesafe.properties
+/project/activator-*
+/logs/
+/RUNNING_PID
+*.iml
+.DS_Store
+.sbtserver*
+project/play-fork-run.sbt
+project/sbt-ui.sbt
+senza.yaml
+Dockerfile
+Makefile
+/src/main/resources/application.conf

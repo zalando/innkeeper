@@ -1,0 +1,360 @@
+swagger: '2.0'
+info:
+  title: Innkeeper (Route Manager)
+  description: |
+    API for manipulating Fashion Store routes. It allows all teams to access
+    and define non-wildcard paths to all relevant users in employee realm as
+    well as, some service realm clients (e.g. CMS). Creation of wildcard routes
+    is reserved for maintainers of this API as it requires special care.
+  version: 1.0.1
+host: innkeeper.mop-taskforce.zalan.do
+schemes:
+  - https
+basePath: /
+consumes:
+  - application/json
+produces:
+  - application/json
+securityDefinitions:
+  zalando:
+    type: oauth2
+    authorizationUrl: 'https://auth.zalando.com/z/XUI/#login/'
+    flow: implicit
+    scopes:
+      fashion_store_routes.read_all: |
+        Reading (listing) all the routes
+      fashion_store_routes.write_strict: |
+        All operations on routes with strict path matching.
+      fashion_store_routes.write_all: |
+        All operations on all routes, including ones with regex path matching.
+paths:
+  /routes:
+    x-swagger-router-controller: "routes"
+    get:
+      operationId: getRoutes
+      security:
+        - zalando:
+          - fashion_store_routes.read_all
+      summary: Returns a list of all the routes.
+      parameters:
+        - name: offset
+          in: query
+          description: Offset of the returned result set.
+          required: false
+          type: integer
+          format: int64
+          minimum: 0
+          default: 0
+        - name: limit
+          in: query
+          description: Maximum number of results to return.
+          required: false
+          type: integer
+          format: int64
+          minimum: 1
+          default: 100
+      responses:
+        '200':
+          description: An array of routes
+          headers:
+            X-Total-Count:
+              description: |
+                Total count of entries in the paginated result set.
+              type: integer
+              format: int64
+            Link:
+              description: |
+                Provides a link to prev / next pages when result is paginated.
+                Link: <http://innkeeper.shop.zalan.do/routes?offset=5&limit=10>; rel="prev"; title="..."
+              type: string
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Route'
+        default:
+          description: A processing or an unexpected error.
+          schema:
+            $ref: '#/definitions/Error'
+    post:
+      operationId: createRoute
+      security:
+        - zalando:
+          - fashion_store_routes.write_strict
+          - fashion_store_routes.write_all
+      summary: Creating a route with specified name.
+      parameters:
+        - name: route
+          in: body
+          description: Route to add.
+          required: true
+          schema:
+            $ref: '#/definitions/NewRoute'
+      responses:
+        '201':
+          description: The route is created.
+          schema:
+            $ref: '#/definitions/Route'
+          headers:
+            Location:
+              type: string
+              description: Location of the newly created route.
+        '403':
+          description: |
+            Usually happens in a case of insufficient permissions.
+          schema:
+            $ref: '#/definitions/Error'
+        default:
+          description: A processing or an unexpected error.
+          schema:
+            $ref: '#/definitions/Error'
+  '/routes/{id}':
+    get:
+      operationId: getRoute
+      security:
+        - zalando:
+          - fashion_store_routes.read_all
+      summary: Information about a single route.
+      parameters:
+        - name: id
+          in: path
+          type: string
+          required: true
+      responses:
+        '200':
+          description: A route with a given `id`.
+          schema:
+            $ref: '#/definitions/Route'
+        '404':
+          description: Happens when trying to access a non-existent Route.
+          schema:
+            $ref: '#/definitions/Error'
+        default:
+          description: A processing or an unexpected error.
+          schema:
+            $ref: '#/definitions/Error'
+    put:
+      operationId: updateRoute
+      security:
+        - zalando:
+          - fashion_store_routes.write_strict
+          - fashion_store_routes.write_all
+      summary: Update for a specific route
+      description: |
+        Modifying a route is only allowed for a client that originally defined
+        this route or with admin credentials.
+      parameters:
+        - name: id
+          in: path
+          type: string
+          required: true
+      responses:
+        '200':
+          description: Information about the updated route
+          schema:
+            $ref: '#/definitions/Route'
+        '403':
+          description: |
+            Usually happens in a case of insufficient permissions.
+          schema:
+            $ref: '#/definitions/Error'
+        '404':
+          description: Happens when trying to update a non-existent Route.
+          schema:
+            $ref: '#/definitions/Error'
+        default:
+          description: A processing or an unexpected error.
+          schema:
+            $ref: '#/definitions/Error'
+    delete:
+      operationId: deleteRoute
+      security:
+        - zalando:
+          - fashion_store_routes.write_strict
+          - fashion_store_routes.write_all
+      summary: Deletes a route
+      parameters:
+        - name: id
+          in: path
+          type: string
+          required: true
+      description: |
+        Deleting a route is only allowed for a client that originally defined
+        this route or with admin credentials.
+      responses:
+        '200':
+          description: Information about a deleted route
+          schema:
+            $ref: '#/definitions/Route'
+        '403':
+          description: |
+            Usually happens in a case of insufficient permissions.
+          schema:
+            $ref: '#/definitions/Error'
+        '404':
+          description: Happens when trying to delete a non-existent Route.
+          schema:
+            $ref: '#/definitions/Error'
+        default:
+          description: A processing or an unexpected error.
+          schema:
+            $ref: '#/definitions/Error'
+definitions:
+  Route:
+    allOf:
+      - $ref: '#/definitions/NewRoute'
+      - required:
+          - id
+        properties:
+          id:
+            type: integer
+            format: int64
+  NewRoute:
+    required:
+      - description
+      - match_path
+      - endpoint
+    properties:
+      description:
+        type: string
+        description: |
+          Human readable description of a route
+      match_method:
+        type: array
+        items:
+          enum:
+            - GET
+            - POST
+            - PUT
+            - DELETE
+            - HEAD
+            - OPTIONS
+            - PATCH
+        default: ['GET']
+        description: HTTP method to match.
+      match_headers:
+        type: array
+        items:
+          $ref: '#/definitions/Header'
+        default: []
+        description: |
+          Array of HTTP headers that are used to match the request,
+          the most common one would probable be “Host”.
+      match_path:
+        $ref: '#/definitions/PathMatcher'
+        description: HTTP method to match
+      rewrite_path:
+        $ref: '#/definitions/PathRewrite'
+        description: |
+          Definition of request to endpoint Path rewrite.
+      request_headers:
+        type: array
+        items:
+          $ref: '#/definitions/Header'
+        default: []
+        description: |
+          Array of HTTP headers that are set for the forwarded request.
+      response_headers:
+        type: array
+        items:
+          $ref: '#/definitions/Header'
+        default: []
+        description: |
+          Array of HTTP headers that are set for the response of `REVERSE_PROXY`
+          or a for `PERMANENT_REDIRECT` endpoints.
+      endpoint:
+        $ref: '#/definitions/Endpoint'
+        description: |
+          A valid http(s) endpoint that the request should be routed to
+  Endpoint:
+    required:
+      - hostname
+    properties:
+      type:
+        type: string
+        enum:
+          - REVERSE_PROXY
+          - PERMANENT_REDIRECT
+        default: REVERSE_PROXY
+      hostname:
+        type: string
+        description: Hostname or IP address of the route endpoint
+      port:
+        type: integer
+        format: int32
+        minimum: 0
+        maximum: 65535
+        default: 443
+        description: Port of the endpoint to connect to
+      protocol:
+        type: string
+        enum:
+          - HTTPS
+          - HTTP
+        default: HTTPS
+        description: Endpoint protocol, usually `HTTPS`.
+  Header:
+    required:
+      - name
+      - value
+    properties:
+      name:
+        type: string
+        pattern: \w{1,}(-\w{1,})*
+        description: HTTP header name for a match or a filter
+      value:
+        type: string
+        description: Exact value of the header
+  PathMatcher:
+    required:
+      - type
+      - match
+    properties:
+      type:
+        type: string
+        enum:
+          - STRICT
+          - REGEXP
+        default: STRICT
+        description: |
+          Defines the type of matching that will be used for a path.
+          The usage of REGEXP path is only allowed for employee realm
+          admin users.
+      match:
+        type: string
+        description: |
+          Depending on the `type`, this is either a plain string for `STRICT`
+          or ECMA-262 valid regular expression for `REGEXP`.
+  PathRewrite:
+    required:
+      - match
+      - replace
+    properties:
+      match:
+        type: string
+        default: .*
+        description: |
+          A valid ECMA-262 regular expression. If you want to completely
+          replace the path, leave it as a default value.
+      replace:
+        type: string
+        default: /
+        description: |
+          A string, optionally containing group placeholders $1, $2, etc.
+          To use a literal `$`, please use `$$`.
+  Error:
+    required:
+      - type
+      - status
+      - title
+    properties:
+      type:
+        type: string
+      status:
+        type: integer
+        format: int32
+      title:
+        type: string
+        description: Short description of an error
+      detail:
+        type: string
+        description: Detailed description of an error
