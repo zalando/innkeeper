@@ -23,7 +23,9 @@ import scala.util.{ Failure, Success, Try }
  */
 @Singleton
 class Routes @Inject() (implicit val materializer: ActorMaterializer,
-    val routesService: RoutesService, val jsonService: JsonService,
+    val routesService: RoutesService,
+    val jsonService: JsonService,
+    val scopes: Scopes,
     implicit val authService: AuthService) {
 
   private val FORMATTER = DateTimeFormatter.ISO_LOCAL_DATE_TIME
@@ -34,7 +36,7 @@ class Routes @Inject() (implicit val materializer: ActorMaterializer,
         authenticate(token, authService) { authorizedUser =>
           path("routes") {
             get {
-              hasOneOfTheScopes(authorizedUser)(Scopes.READ) {
+              hasOneOfTheScopes(authorizedUser)(scopes.READ) {
                 parameterMap { parameterMap =>
                   val lastModifiedParam = localDateTimeFromString(parameterMap.get("last_modified"))
                   val chunkedStreamSource = lastModifiedParam match {
@@ -48,13 +50,13 @@ class Routes @Inject() (implicit val materializer: ActorMaterializer,
                 }
               }
             } ~ post {
-              hasOneOfTheScopes(authorizedUser)(Scopes.WRITE_FULL_PATH, Scopes.WRITE_REGEX) {
+              hasOneOfTheScopes(authorizedUser)(scopes.WRITE_FULL_PATH, scopes.WRITE_REGEX) {
                 handleWith(saveRoute)
               }
             }
           } ~ path("routes" / LongNumber) { id =>
             get {
-              hasOneOfTheScopes(authorizedUser)(Scopes.READ) {
+              hasOneOfTheScopes(authorizedUser)(scopes.READ) {
                 onComplete(routesService.findRouteById(id)) {
                   case Success(value) => value match {
                     case Some(route) => complete(route)
@@ -65,7 +67,7 @@ class Routes @Inject() (implicit val materializer: ActorMaterializer,
                 }
               }
             } ~ delete {
-              hasOneOfTheScopes(authorizedUser)(Scopes.WRITE_FULL_PATH, Scopes.WRITE_REGEX) {
+              hasOneOfTheScopes(authorizedUser)(scopes.WRITE_FULL_PATH, scopes.WRITE_REGEX) {
                 onComplete(routesService.removeRoute(id)) {
                   case Success(RoutesService.Success)  => complete("")
                   case Success(RoutesService.NotFound) => complete(StatusCodes.NotFound)

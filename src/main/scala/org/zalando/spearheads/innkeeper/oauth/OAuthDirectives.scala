@@ -23,7 +23,7 @@ trait OAuthDirectives {
       case None           => reject(AuthenticationFailedRejection(CredentialsRejected, HttpChallenge("", "")))
     }
 
-  def hasOneOfTheScopes(authorizedUser: AuthorizedUser)(scope: Scopes.Scope*): Directive0 = {
+  def hasOneOfTheScopes(authorizedUser: AuthorizedUser)(scope: Scope*): Directive0 = {
     authorizedUser.scope.toSet.intersect(scope.toSet).isEmpty match {
       case false => pass
       case _     => reject(AuthorizationFailedRejection)

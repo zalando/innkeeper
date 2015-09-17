@@ -1,14 +1,19 @@
 package org.zalando.spearheads.innkeeper.oauth
 
+import com.google.inject.{ Singleton, Inject }
+import com.typesafe.config.Config
+
 /**
  * @author dpersa
  */
-object Scopes {
-  case class Scope(val name: String) extends AnyVal
+case class Scope(val name: String) extends AnyVal
 
-  val READ = Scope("fashion_store_route.read")
-  val WRITE_FULL_PATH = Scope("fashion_store_route.write_full_path")
-  val WRITE_REGEX = Scope("fashion_store_route.write_regex")
+@Singleton
+class Scopes @Inject() (val config: Config) {
+
+  val READ = Scope(config.getString("oauth.scope.read"))
+  val WRITE_FULL_PATH = Scope(config.getString("oauth.scope.writeFullPath"))
+  val WRITE_REGEX = Scope(config.getString("oauth.scope.writeRegex"))
 }
 
 object Realms {
@@ -18,4 +23,4 @@ object Realms {
   val SERVICES = Realm("/services")
 }
 
-case class AuthorizedUser(uid: String, scope: Seq[Scopes.Scope], realm: Realms.Realm)
+case class AuthorizedUser(uid: String, scope: Seq[Scope], realm: Realms.Realm)

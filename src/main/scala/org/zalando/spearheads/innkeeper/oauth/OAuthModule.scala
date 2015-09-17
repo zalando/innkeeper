@@ -8,6 +8,7 @@ import net.codingwell.scalaguice.ScalaModule
  */
 class OAuthModule extends AbstractModule with ScalaModule {
   override def configure() = {
+    bind[Scopes].asEagerSingleton()
     bind[AuthService].to[OAuthService].asEagerSingleton()
   }
 }
