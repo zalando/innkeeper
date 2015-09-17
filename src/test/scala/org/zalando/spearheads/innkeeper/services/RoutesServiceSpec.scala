@@ -22,7 +22,7 @@ import scala.language.postfixOps
 /**
  * @author dpersa
  */
-class RoutesServiceTest extends FunSpec with Matchers with MockFactory with ScalaFutures {
+class RoutesServiceSpec extends FunSpec with Matchers with MockFactory with ScalaFutures {
 
   implicit val executionContext = ExecutionContext.global
   implicit val actorSystem = ActorSystem()
