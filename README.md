@@ -6,6 +6,8 @@ When a new instance of Skipper (configured to fetch the routes from Innkeeper) i
 
 Then, at every x minutes will will ask innkeeper for the modified routes and update it's internal data structures.
 
+[![Build Status](https://travis-ci.org/zalando/innkeeper.svg](https://travis-ci.org/zalando/innkeeper)
+
 ## Getting started
 
 First, create your application.conf file. One way to do it is by using the sample one:
@@ -20,7 +22,10 @@ Innkeeper requires a Postgres DB for operation. For local development, docker ca
 
 To run Innkeeper, execute `sbt run`.
 
-To run the test suite, run `sbt test`.
+## Running the tests
+
+To run the unit test suite, run `sbt test`.
+To run the integration test suite, run `sbt it:test`.
 
 ### Inserting a new route manually
 
