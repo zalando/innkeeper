@@ -4,8 +4,9 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
 import org.zalando.spearheads.innkeeper.api.Endpoint._
-import org.zalando.spearheads.innkeeper.api.PathMatcher.{ MatcherType, Regex, Strict }
+import org.zalando.spearheads.innkeeper.api.PathMatcher.{ MatcherType, Strict, Regex }
 import spray.json._
+import scala.collection.immutable.Seq
 
 /**
  * @author dpersa
@@ -24,11 +25,11 @@ object JsonProtocols extends DefaultJsonProtocol {
     }
   }
 
-  implicit val errorFormat = jsonFormat(Error, "status", "title", "detail", "error_type")
+  implicit val errorFormat = jsonFormat(Error, "status", "title", "type", "detail")
 
   implicit val headerFormat = jsonFormat2(Header)
 
-  implicit val pathRewriteFormat = jsonFormat2(PathRewrite)
+  implicit val pathRewriteFormat = jsonFormat(PathRewrite, "match", "replace")
 
   implicit object EndpointProtocolFormat extends JsonFormat[Protocol] {
     val HTTP = "HTTP"
@@ -62,7 +63,22 @@ object JsonProtocols extends DefaultJsonProtocol {
     }
   }
 
-  implicit val endpointFormat = jsonFormat4(Endpoint.apply)
+  val endpointFormat = jsonFormat(Endpoint.apply, "hostname", "port", "protocol", "type")
+
+  implicit object EndpointFormat extends JsonFormat[Endpoint] {
+    override def write(obj: Endpoint): JsValue = endpointFormat.write(obj)
+
+    override def read(json: JsValue): Endpoint = {
+      val endpoint = endpointFormat.read(json)
+
+      Endpoint(
+        hostname = endpoint.hostname,
+        port = endpoint.port.orElse(Some(443)),
+        protocol = endpoint.protocol.orElse(Some(Https)),
+        endpointType = endpoint.endpointType.orElse(Some(ReverseProxy))
+      )
+    }
+  }
 
   implicit object MatcherTypeFormat extends JsonFormat[MatcherType] {
     val REGEX = "REGEX"
@@ -80,10 +96,30 @@ object JsonProtocols extends DefaultJsonProtocol {
     }
   }
 
-  implicit val pathMatcherFormat = jsonFormat(PathMatcher.apply, "matcher", "matcher_type")
+  implicit val pathMatcherFormat = jsonFormat(PathMatcher.apply, "match", "type")
 
-  implicit val newRouteFormat = jsonFormat(NewRoute.apply, "description", "path_matcher", "endpoint",
-    "header_matchers", "method_matchers", "request_headers", "response_headers", "path_rewrite")
+  val newRouteFormat = jsonFormat(NewRoute.apply, "description", "match_path", "endpoint",
+    "match_headers", "match_methods", "request_headers", "response_headers", "path_rewrite")
+
+  implicit object NewRouteFormat extends RootJsonFormat[NewRoute] {
+
+    override def write(obj: NewRoute): JsValue = newRouteFormat.write(obj)
+
+    override def read(json: JsValue): NewRoute = {
+      val newRoute = newRouteFormat.read(json)
+
+      NewRoute(
+        description = newRoute.description,
+        pathMatcher = newRoute.pathMatcher,
+        endpoint = newRoute.endpoint,
+        headerMatchers = newRoute.headerMatchers.orElse(Some(Seq.empty)),
+        methodMatchers = newRoute.methodMatchers.orElse(Some(Seq("GET"))),
+        requestHeaders = newRoute.requestHeaders.orElse(Some(Seq.empty)),
+        responseHeaders = newRoute.responseHeaders.orElse(Some(Seq.empty)),
+        pathRewrite = newRoute.pathRewrite
+      )
+    }
+  }
 
   implicit val routeFormat = jsonFormat4(Route)
 }

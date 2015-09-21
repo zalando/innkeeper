@@ -2,7 +2,7 @@ package org.zalando.spearheads.innkeeper.api
 
 import java.time.LocalDateTime
 
-import org.zalando.spearheads.innkeeper.api.Endpoint.{ EndpointType, Https, Protocol, ReverseProxy }
+import org.zalando.spearheads.innkeeper.api.Endpoint.{ ReverseProxy, Https, EndpointType, Protocol }
 import org.zalando.spearheads.innkeeper.api.PathMatcher.MatcherType
 
 import scala.collection.immutable.Seq
@@ -13,9 +13,9 @@ import scala.collection.immutable.Seq
 case class Route(id: Long, route: NewRoute, createdAt: LocalDateTime,
   deletedAt: Option[LocalDateTime] = None)
 
-case class Endpoint(hostname: String, port: Int,
-  protocol: Protocol = Https,
-  endpointType: EndpointType = ReverseProxy)
+case class Endpoint(hostname: String, port: Option[Int] = Some(443),
+  protocol: Option[Protocol] = Some(Https),
+  endpointType: Option[EndpointType] = Some(ReverseProxy))
 
 object Endpoint {
 
@@ -30,15 +30,20 @@ object Endpoint {
   case object Https extends Protocol
 }
 
-case class Error(status: Int, title: String, detail: String, errorType: String)
+case class Error(status: Int,
+  title: String,
+  errorType: String,
+  detail: Option[String] = None)
 
 case class Header(name: String, value: String)
 
 case class NewRoute(description: String,
   pathMatcher: PathMatcher,
   endpoint: Endpoint,
-  headerMatchers: Seq[Header] = Seq.empty, methodMatchers: Seq[String] = Seq.empty,
-  requestHeaders: Seq[Header] = Seq.empty, responseHeaders: Seq[Header] = Seq.empty,
+  headerMatchers: Option[Seq[Header]] = Some(Seq.empty),
+  methodMatchers: Option[Seq[String]] = Some(Seq("GET")),
+  requestHeaders: Option[Seq[Header]] = Some(Seq.empty),
+  responseHeaders: Option[Seq[Header]] = Some(Seq.empty),
   pathRewrite: Option[PathRewrite] = None)
 
 case class PathMatcher(matcher: String, matcherType: MatcherType)

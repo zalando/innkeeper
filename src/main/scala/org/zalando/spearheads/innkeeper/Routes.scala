@@ -4,20 +4,20 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
-import akka.http.scaladsl.model.{ HttpEntity, HttpResponse, MediaTypes, StatusCodes }
+import akka.http.scaladsl.model.{ HttpResponse, MediaTypes, StatusCodes, HttpEntity }
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.{ RequestContext, RouteResult }
 import akka.stream.ActorMaterializer
 import com.google.inject.{ Inject, Singleton }
 import org.zalando.spearheads.innkeeper.RouteDirectives.{ isFullTextRoute, isRegexRoute }
-import org.zalando.spearheads.innkeeper.api.JsonProtocols._
 import org.zalando.spearheads.innkeeper.api._
 import org.zalando.spearheads.innkeeper.oauth.OAuthDirectives._
 import org.zalando.spearheads.innkeeper.oauth._
 import org.zalando.spearheads.innkeeper.services.RoutesService
+import org.zalando.spearheads.innkeeper.api.JsonProtocols._
 
 import scala.concurrent.Future
-import scala.util.{ Failure, Success, Try }
+import scala.util.{ Success, Failure, Try }
 
 /**
  * @author dpersa
