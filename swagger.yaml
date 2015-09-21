@@ -218,7 +218,7 @@ definitions:
         type: string
         description: |
           Human readable description of a route
-      match_method:
+      match_methods:
         type: array
         items:
           enum:
@@ -314,7 +314,6 @@ definitions:
         enum:
           - STRICT
           - REGEXP
-        default: STRICT
         description: |
           Defines the type of matching that will be used for a path.
           The usage of REGEXP path is only allowed for employee realm
@@ -331,13 +330,11 @@ definitions:
     properties:
       match:
         type: string
-        default: .*
         description: |
           A valid ECMA-262 regular expression. If you want to completely
           replace the path, leave it as a default value.
       replace:
         type: string
-        default: /
         description: |
           A string, optionally containing group placeholders $1, $2, etc.
           To use a literal `$`, please use `$$`.

@@ -31,114 +31,112 @@ class RoutesServiceSpec extends FunSpec with Matchers with MockFactory with Scal
 
   val routesService = new RoutesService()(executionContext, routesRepo)
 
-  describe("RoutesServiceTest") {
-    describe("#createRoute") {
+  describe("#createRoute") {
 
-      it("should createRoute") {
+    it("should createRoute") {
 
-        (routesRepo.insert _).expects(routeRowWithoutId)
-          .returning(Future(routeRowWithId))
+      (routesRepo.insert _).expects(routeRowWithoutId)
+        .returning(Future(routeRowWithId))
 
-        val result = routesService.createRoute(newRoute, createdAt).futureValue
+      val result = routesService.createRoute(newRoute, createdAt).futureValue
 
-        result should be(Some(savedRoute))
+      result should be(Some(savedRoute))
+    }
+
+    it("should fail to createRoute") {
+
+      (routesRepo.insert _).expects(routeRowWithoutId)
+        .returning(Future(routeRowWithoutId))
+
+      val result = routesService.createRoute(newRoute, createdAt).futureValue
+
+      result should be(None)
+    }
+  }
+
+  describe("#removeRoute") {
+    it("should remove a route") {
+      (routesRepo.delete _).expects(routeId).returning(Future(true))
+      val result = routesService.removeRoute(routeId).futureValue
+      result should be(RoutesService.Success)
+    }
+
+    it("should not find a route") {
+      (routesRepo.delete _).expects(routeId).returning(Future(false))
+      val result = routesService.removeRoute(routeId).futureValue
+      result should be(RoutesService.NotFound)
+    }
+
+    it("should fail when trying to delete a route") {
+      (routesRepo.delete _).expects(routeId).returning {
+        Future {
+          throw new IllegalStateException()
+        }
       }
 
-      it("should fail to createRoute") {
+      whenReady(routesService.removeRoute(routeId).failed) { e =>
+        e shouldBe a[IllegalStateException]
+      }
+    }
+  }
 
-        (routesRepo.insert _).expects(routeRowWithoutId)
-          .returning(Future(routeRowWithoutId))
+  describe("#allRoutes") {
+    it("should find all routes") {
+      (routesRepo.selectAll _).expects().returning {
+        FakeDatabasePublisher[RouteRow](Seq(routeRow))
+      }
 
-        val result = routesService.createRoute(newRoute, createdAt).futureValue
+      val result = routesService.allRoutes
+      val route = result.runWith(Sink.head).futureValue
+      route.id should be(routeId)
+      route.route.description should be("The New Route")
+    }
 
-        result should be(None)
+    it("should return an empty list if there are no routes") {
+      (routesRepo.selectAll _).expects().returning {
+        FakeDatabasePublisher[RouteRow](Seq())
+      }
+
+      val result = routesService.allRoutes
+      val route = result.runWith(Sink.head)
+
+      an[NoSuchElementException] should be thrownBy {
+        Await.result(route, 100 millis)
+      }
+    }
+  }
+
+  describe("#findRouteById") {
+    describe("if the route exists") {
+      it("should find the route") {
+        (routesRepo.selectById _).expects(routeId).returning {
+          Future(Some(routeRow))
+        }
+
+        val routeOption = routesService.findRouteById(routeId).futureValue
+
+        routeOption.isDefined should be(true)
+        routeOption.get.id should be(routeId)
+        routeOption.get.route.description should be("The New Route")
       }
     }
 
-    describe("#removeRoute") {
-      it("should remove a route") {
-        (routesRepo.delete _).expects(routeId).returning(Future(true))
-        val result = routesService.removeRoute(routeId).futureValue
-        result should be(RoutesService.Success)
-      }
-
-      it("should not find a route") {
-        (routesRepo.delete _).expects(routeId).returning(Future(false))
-        val result = routesService.removeRoute(routeId).futureValue
-        result should be(RoutesService.NotFound)
-      }
-
-      it("should fail when trying to delete a route") {
-        (routesRepo.delete _).expects(routeId).returning {
-          Future {
-            throw new IllegalStateException()
-          }
+    describe("if the route does not exist") {
+      it("should return None") {
+        (routesRepo.selectById _).expects(routeId).returning {
+          Future(None)
         }
 
-        whenReady(routesService.removeRoute(routeId).failed) { e =>
-          e shouldBe a[IllegalStateException]
-        }
+        val routeOption = routesService.findRouteById(routeId).futureValue
+
+        routeOption.isDefined should be(false)
       }
     }
+  }
 
-    describe("#allRoutes") {
-      it("should find all routes") {
-        (routesRepo.selectAll _).expects().returning {
-          FakeDatabasePublisher[RouteRow](Seq(routeRow))
-        }
-
-        val result = routesService.allRoutes
-        val route = result.runWith(Sink.head).futureValue
-        route.id should be(routeId)
-        route.route.description should be("The New Route")
-      }
-
-      it("should return an empty list if there are no routes") {
-        (routesRepo.selectAll _).expects().returning {
-          FakeDatabasePublisher[RouteRow](Seq())
-        }
-
-        val result = routesService.allRoutes
-        val route = result.runWith(Sink.head)
-
-        an[NoSuchElementException] should be thrownBy {
-          Await.result(route, 100 millis)
-        }
-      }
-    }
-
-    describe("#findRouteById") {
-      describe("if the route exists") {
-        it("should find the route") {
-          (routesRepo.selectById _).expects(routeId).returning {
-            Future(Some(routeRow))
-          }
-
-          val routeOption = routesService.findRouteById(routeId).futureValue
-
-          routeOption.isDefined should be(true)
-          routeOption.get.id should be(routeId)
-          routeOption.get.route.description should be("The New Route")
-        }
-      }
-
-      describe("if the route does not exist") {
-        it("should return None") {
-          (routesRepo.selectById _).expects(routeId).returning {
-            Future(None)
-          }
-
-          val routeOption = routesService.findRouteById(routeId).futureValue
-
-          routeOption.isDefined should be(false)
-        }
-      }
-    }
-
-    describe("#findModifiedSince") {
-      it("should find the right route") {
-        pending
-      }
+  describe("#findModifiedSince") {
+    it("should find the right route") {
+      pending
     }
   }
 
@@ -146,7 +144,7 @@ class RoutesServiceSpec extends FunSpec with Matchers with MockFactory with Scal
 
   val newRoute = NewRoute(description = "The New Route",
     pathMatcher = PathMatcher("/route", Strict),
-    endpoint = Endpoint("zalando.de", 80))
+    endpoint = Endpoint("domain.eu", Some(443)))
 
   val createdAt = LocalDateTime.now()
   val savedRoute = Route(routeId, newRoute, createdAt)
@@ -155,11 +153,20 @@ class RoutesServiceSpec extends FunSpec with Matchers with MockFactory with Scal
 
   val routeRowWithId = RouteRow(Some(routeId), newRoute.toJson.prettyPrint, createdAt)
 
-  val routeRow = new RouteRow(Some(1), "{\n  \"path_matcher\": {\n    " +
-    "\"matcher\": \"/route\",\n    \"matcher_type\": \"STRICT\"\n  },\n " +
-    " \"response_headers\": [],\n  \"description\": " +
-    "\"The New Route\",\n  \"request_headers\": [],\n  \"method_matchers\": [],\n " +
-    " \"header_matchers\": [],\n  \"endpoint\": {\n    \"hostname\": \"zalando.de\"," +
-    "\n    \"port\": 80,\n    \"protocol\": \"HTTP\",\n    \"endpointType\":" +
-    " \"REVERSE_PROXY\"\n  }\n}", createdAt)
+  val newRouteString = """{
+                         |  "description": "The New Route",
+                         |  "match_path": {
+                         |    "match": "/route",
+                         |    "type": "STRICT"
+                         |  },
+                         |  "endpoint": {
+                         |    "hostname": "domain.eu",
+                         |    "port": 443,
+                         |    "protocol": "HTTPS",
+                         |    "type": "REVERSE_PROXY"
+                         |  }
+                         |}
+                       """.stripMargin
+
+  val routeRow = new RouteRow(Some(1), newRouteString, createdAt)
 }
