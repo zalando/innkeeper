@@ -6,8 +6,8 @@ import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Source
 import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.time.{Seconds, Span}
-import org.scalatest.{BeforeAndAfter, FunSpec, Matchers}
+import org.scalatest.time.{Span, Seconds}
+import org.scalatest.{FunSpec, BeforeAndAfter, Matchers}
 import org.zalando.spearheads.innkeeper.dao.MyPostgresDriver.api._
 import slick.backend.DatabasePublisher
 import slick.jdbc.meta.MTable

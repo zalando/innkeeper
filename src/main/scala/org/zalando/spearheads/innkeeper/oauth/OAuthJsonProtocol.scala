@@ -1,6 +1,6 @@
 package org.zalando.spearheads.innkeeper.oauth
 
-import spray.json.{ DefaultJsonProtocol, JsString, JsValue, RootJsonFormat }
+import spray.json.{ JsString, RootJsonFormat, JsValue, DefaultJsonProtocol }
 
 /**
  * @author dpersa

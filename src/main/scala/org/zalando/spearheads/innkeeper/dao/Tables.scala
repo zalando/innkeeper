@@ -2,12 +2,12 @@ package org.zalando.spearheads.innkeeper.dao
 
 import java.time.LocalDateTime
 
-import MyPostgresDriver.api._
+import org.zalando.spearheads.innkeeper.dao.MyPostgresDriver.api._
 
 case class RouteRow(id: Option[Long] = None,
-  routeJson: String,
-  createdAt: LocalDateTime = LocalDateTime.now(),
-  deletedAt: Option[LocalDateTime] = None)
+                    routeJson: String,
+                    createdAt: LocalDateTime = LocalDateTime.now(),
+                    deletedAt: Option[LocalDateTime] = None)
 
 // A Routes table with 4 columns: id, route_json, created_at, deleted_at
 class RoutesTable(tag: Tag)

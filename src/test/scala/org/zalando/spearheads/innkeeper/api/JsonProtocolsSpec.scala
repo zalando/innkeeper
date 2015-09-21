@@ -5,6 +5,7 @@ import org.zalando.spearheads.innkeeper.api.Endpoint.{ PermanentRedirect, Https,
 import org.zalando.spearheads.innkeeper.api.PathMatcher.{ Strict, Regex }
 import spray.json.{ DeserializationException, pimpString }
 import org.zalando.spearheads.innkeeper.api.JsonProtocols._
+
 import scala.collection.immutable.Seq
 
 /**

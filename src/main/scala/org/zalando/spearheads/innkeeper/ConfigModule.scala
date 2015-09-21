@@ -1,7 +1,7 @@
 package org.zalando.spearheads.innkeeper
 
-import com.google.inject.{ AbstractModule, Provider }
-import com.typesafe.config.{ Config, ConfigFactory }
+import com.google.inject.{ Provider, AbstractModule }
+import com.typesafe.config.{ ConfigFactory, Config }
 import net.codingwell.scalaguice.ScalaModule
 import org.zalando.spearheads.innkeeper.ConfigModule.ConfigProvider
 

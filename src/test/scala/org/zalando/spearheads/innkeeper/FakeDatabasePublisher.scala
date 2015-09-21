@@ -1,6 +1,6 @@
 package org.zalando.spearheads.innkeeper
 
-import org.reactivestreams.{ Subscription, Subscriber }
+import org.reactivestreams.{ Subscriber, Subscription }
 import slick.backend.DatabasePublisher
 
 /**

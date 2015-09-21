@@ -4,17 +4,17 @@ import java.time.LocalDateTime
 
 import com.google.inject.{ Inject, Singleton }
 import slick.backend.DatabasePublisher
-import MyPostgresDriver.api._
+import org.zalando.spearheads.innkeeper.dao.MyPostgresDriver.api._
 import slick.jdbc.meta.MTable
 
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.{ Future, ExecutionContext }
 
 /**
  * @author dpersa
  */
 @Singleton
 class RoutesPostgresRepo @Inject() (implicit val executionContext: ExecutionContext,
-    val db: Database) extends RoutesRepo {
+                                    val db: Database) extends RoutesRepo {
 
   private val routesTable = TableQuery[RoutesTable]
 

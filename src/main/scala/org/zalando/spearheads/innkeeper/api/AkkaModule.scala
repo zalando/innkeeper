@@ -3,11 +3,11 @@ package org.zalando.spearheads.innkeeper.api
 import javax.inject.Inject
 
 import akka.actor.ActorSystem
-import akka.event.{ Logging, LoggingAdapter }
-import com.google.inject.{ AbstractModule, Injector, Provider }
+import akka.event.{ LoggingAdapter, Logging }
+import com.google.inject.{ Injector, Provider, AbstractModule }
 import com.typesafe.config.Config
 import net.codingwell.scalaguice.ScalaModule
-import org.zalando.spearheads.innkeeper.api.AkkaModule.{ ExecutionContextProvider, LoggingProvider, ActorSystemProvider }
+import org.zalando.spearheads.innkeeper.api.AkkaModule.{ ActorSystemProvider, LoggingProvider, ExecutionContextProvider }
 
 import scala.concurrent.ExecutionContextExecutor
 

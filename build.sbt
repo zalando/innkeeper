@@ -1,11 +1,9 @@
-import com.typesafe.sbt.SbtScalariform.ScalariformKeys
-import com.typesafe.sbt.SbtScalariform._
+import com.typesafe.sbt.SbtScalariform.{ScalariformKeys, _}
 import com.typesafe.sbt.packager.archetypes.JavaAppPackaging
 import sbt.dsl._
 import spray.revolver.RevolverPlugin.Revolver
 
-import _root_.scalariform.formatter.preferences.AlignSingleLineCaseStatements
-import _root_.scalariform.formatter.preferences.DoubleIndentClassDeclaration
+import scalariform.formatter.preferences.{AlignSingleLineCaseStatements, DoubleIndentClassDeclaration, AlignParameters}
 
 name := """innkeeper"""
 organization  := "org.zalando.spearheads"
@@ -51,5 +49,6 @@ ScalariformKeys.preferences := ScalariformKeys.preferences.value
   .setPreference(AlignSingleLineCaseStatements, true)
   .setPreference(AlignSingleLineCaseStatements.MaxArrowIndent, 100)
   .setPreference(DoubleIndentClassDeclaration, true)
+  .setPreference(AlignParameters, true)
 
 fork in run := true
