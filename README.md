@@ -83,7 +83,7 @@ $ docker run -e POSTGRES_PASSWORD=innkeeper -e POSTGRES_USER=innkeeper -p 5432:5
 For the tests, a different DB is used:
 
 ```bash
-$ docker run -e POSTGRES_PASSWORD=innkeeper-test -e POSTGRES_USER=innkeeper-test -p 5433:5432 postgres:9.4
+$ docker run -e POSTGRES_PASSWORD= -e POSTGRES_USER=innkeepertest -p 5432:5432 postgres:9.4
 ```
 
 For users of `boot2docker` or `docker-machine` it is also necessary to create a port forwarding.
