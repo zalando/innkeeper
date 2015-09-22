@@ -1,8 +1,6 @@
 package org.zalando.spearheads.innkeeper.dao
 
-import com.github.tminglei.slickpg.{ PgDate2Support, PgDateSupport, PgArraySupport, ExPostgresDriver }
-import java.time._
-
+import com.github.tminglei.slickpg.PgDate2Support
 import slick.driver.PostgresDriver
 
 /**

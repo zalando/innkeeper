@@ -1,12 +1,12 @@
 package org.zalando.spearheads.innkeeper.dao
 
-import com.google.inject.{ Inject, Singleton, AbstractModule, Provider }
+import com.google.inject.{ Inject, Provider, Singleton, AbstractModule }
 import com.typesafe.config.Config
 import net.codingwell.scalaguice.ScalaModule
 import org.zalando.spearheads.innkeeper.api.AkkaModule
-import AkkaModule.ExecutionContextProvider
+import org.zalando.spearheads.innkeeper.api.AkkaModule.ExecutionContextProvider
 import org.zalando.spearheads.innkeeper.services.RoutesService
-import MyPostgresDriver.api._
+import org.zalando.spearheads.innkeeper.dao.MyPostgresDriver.api._
 
 import scala.concurrent.ExecutionContext
 

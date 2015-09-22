@@ -5,17 +5,18 @@ import java.time.LocalDateTime
 import akka.stream.scaladsl.Source
 import com.google.inject.Inject
 import org.zalando.spearheads.innkeeper.api.{ NewRoute, Route }
-import org.zalando.spearheads.innkeeper.dao.{ RoutesRepo, RouteRow, RoutesPostgresRepo }
+import org.zalando.spearheads.innkeeper.dao.{ RoutesRepo, RouteRow }
 import org.zalando.spearheads.innkeeper.services.RoutesService.RoutesServiceResult
 import spray.json._
 import org.zalando.spearheads.innkeeper.api.JsonProtocols._
-import scala.concurrent.{ ExecutionContext, Future }
+
+import scala.concurrent.{ Future, ExecutionContext }
 
 /**
  * @author dpersa
  */
 class RoutesService @Inject() (implicit val executionContext: ExecutionContext,
-    val routesRepo: RoutesRepo) {
+                               val routesRepo: RoutesRepo) {
 
   def createRoute(route: NewRoute, createdAt: LocalDateTime = LocalDateTime.now()): Future[Option[Route]] = {
 

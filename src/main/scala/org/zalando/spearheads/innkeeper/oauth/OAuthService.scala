@@ -8,6 +8,7 @@ import akka.stream.scaladsl.{ FlattenStrategy, Source }
 import com.google.inject.{ Inject, Singleton }
 import com.typesafe.config.Config
 import spray.json._
+
 import scala.concurrent.duration._
 import scala.concurrent.{ Await, ExecutionContext }
 import scala.util.Try
@@ -21,14 +22,14 @@ trait AuthService {
 
 @Singleton
 class OAuthService @Inject() (val config: Config,
-  implicit val actorSystem: ActorSystem,
-  implicit val materializer: ActorMaterializer,
-  implicit val executionContext: ExecutionContext)
+                              implicit val actorSystem: ActorSystem,
+                              implicit val materializer: ActorMaterializer,
+                              implicit val executionContext: ExecutionContext)
 
     extends AuthService {
 
   override def authorize(token: String): Option[AuthorizedUser] = {
-    import OAuthJsonProtocol.authorizedUserFormat
+    import org.zalando.spearheads.innkeeper.oauth.OAuthJsonProtocol.authorizedUserFormat
 
     val response = Http().singleRequest(HttpRequest(uri = Uri(url(token))))
 

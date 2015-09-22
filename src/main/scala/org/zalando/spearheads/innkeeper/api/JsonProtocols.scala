@@ -6,6 +6,7 @@ import java.time.format.DateTimeFormatter
 import org.zalando.spearheads.innkeeper.api.Endpoint._
 import org.zalando.spearheads.innkeeper.api.PathMatcher.{ MatcherType, Strict, Regex }
 import spray.json._
+
 import scala.collection.immutable.Seq
 
 /**

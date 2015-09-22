@@ -24,10 +24,10 @@ import scala.util.{ Success, Failure, Try }
  */
 @Singleton
 class Routes @Inject() (implicit val materializer: ActorMaterializer,
-    val routesService: RoutesService,
-    val jsonService: JsonService,
-    val scopes: Scopes,
-    implicit val authService: AuthService) {
+                        val routesService: RoutesService,
+                        val jsonService: JsonService,
+                        val scopes: Scopes,
+                        implicit val authService: AuthService) {
 
   private val FORMATTER = DateTimeFormatter.ISO_LOCAL_DATE_TIME
 

@@ -2,9 +2,9 @@ package org.zalando.spearheads.innkeeper
 
 import akka.http.scaladsl.server.directives.BasicDirectives.pass
 import akka.http.scaladsl.server.directives.RouteDirectives.reject
-import akka.http.scaladsl.server.{ AuthorizationFailedRejection, Directive0 }
+import akka.http.scaladsl.server.{ Directive0, AuthorizationFailedRejection }
 import org.zalando.spearheads.innkeeper.api.NewRoute
-import org.zalando.spearheads.innkeeper.api.PathMatcher.{ Regex, Strict }
+import org.zalando.spearheads.innkeeper.api.PathMatcher.{ Strict, Regex }
 
 /**
  * @author dpersa

@@ -12,11 +12,11 @@ import org.zalando.spearheads.innkeeper.FakeDatabasePublisher
 import org.zalando.spearheads.innkeeper.api.JsonProtocols._
 import org.zalando.spearheads.innkeeper.api.PathMatcher.Strict
 import org.zalando.spearheads.innkeeper.api._
-import org.zalando.spearheads.innkeeper.dao.{ RouteRow, RoutesRepo }
+import org.zalando.spearheads.innkeeper.dao.{ RoutesRepo, RouteRow }
 import spray.json._
 
 import scala.concurrent.duration._
-import scala.concurrent.{ Await, ExecutionContext, Future }
+import scala.concurrent.{ Await, Future, ExecutionContext }
 import scala.language.postfixOps
 
 /**
