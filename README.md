@@ -6,7 +6,7 @@ When a new instance of Skipper (configured to fetch the routes from Innkeeper) i
 
 Then, at every x minutes will will ask innkeeper for the modified routes and update it's internal data structures.
 
-[![Build Status](https://travis-ci.org/zalando/innkeeper.svg](https://travis-ci.org/zalando/innkeeper)
+[![Build Status](https://travis-ci.org/zalando/innkeeper.svg)](https://travis-ci.org/zalando/innkeeper)
 
 ## Getting started
 
