@@ -64,7 +64,7 @@ object JsonProtocols extends DefaultJsonProtocol {
     }
   }
 
-  val endpointFormat = jsonFormat(Endpoint.apply, "hostname", "port", "protocol", "type")
+  val endpointFormat = jsonFormat(Endpoint.apply, "hostname", "path", "port", "protocol", "type")
 
   implicit object EndpointFormat extends JsonFormat[Endpoint] {
     override def write(obj: Endpoint): JsValue = endpointFormat.write(obj)
@@ -72,8 +72,7 @@ object JsonProtocols extends DefaultJsonProtocol {
     override def read(json: JsValue): Endpoint = {
       val endpoint = endpointFormat.read(json)
 
-      Endpoint(
-        hostname = endpoint.hostname,
+      endpoint.copy(
         port = endpoint.port.orElse(Some(443)),
         protocol = endpoint.protocol.orElse(Some(Https)),
         endpointType = endpoint.endpointType.orElse(Some(ReverseProxy))
@@ -109,15 +108,11 @@ object JsonProtocols extends DefaultJsonProtocol {
     override def read(json: JsValue): NewRoute = {
       val newRoute = newRouteFormat.read(json)
 
-      NewRoute(
-        description = newRoute.description,
-        pathMatcher = newRoute.pathMatcher,
-        endpoint = newRoute.endpoint,
+      newRoute.copy(
         headerMatchers = newRoute.headerMatchers.orElse(Some(Seq.empty)),
         methodMatchers = newRoute.methodMatchers.orElse(Some(Seq("GET"))),
         requestHeaders = newRoute.requestHeaders.orElse(Some(Seq.empty)),
-        responseHeaders = newRoute.responseHeaders.orElse(Some(Seq.empty)),
-        pathRewrite = newRoute.pathRewrite
+        responseHeaders = newRoute.responseHeaders.orElse(Some(Seq.empty))
       )
     }
   }

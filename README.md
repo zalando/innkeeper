@@ -31,22 +31,18 @@ To run the integration test suite, run `sbt it:test`.
 
 ```bash    
 curl -XPOST localhost:8080/routes -d '{
-      "path_matcher": {
-        "matcher": "/route",
-        "matcher_type": "STRICT"
-      },
-      "response_headers": [],
-      "description": "The New Route",
-      "request_headers": [],
-      "method_matchers": [],
-      "header_matchers": [],
-      "endpoint": {
-        "hostname": "zalando.de",
-        "port": 80,
-        "protocol": "HTTP",
-        "endpointType": "REVERSE_PROXY"
-      }
-    }' -H 'Content-Type: application/json' -H 'Authorization: oauth-token'
+    "description": "the description",
+    "match_path": {
+      "match": "/hello",
+      "type": "STRICT"
+    },
+    "endpoint": {
+      "hostname": "domain.eu",
+      "port": 443,
+      "protocol": "HTTPS",
+      "type": "REVERSE_PROXY"
+    }
+  }' -H 'Content-Type: application/json' -H 'Authorization: oauth-token'
 ```
 
 ### Getting all routes
