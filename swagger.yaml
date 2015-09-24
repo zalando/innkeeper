@@ -241,7 +241,7 @@ definitions:
           the most common one would probable be “Host”.
       match_path:
         $ref: '#/definitions/PathMatcher'
-        description: HTTP method to match
+        description: HTTP path to match
       rewrite_path:
         $ref: '#/definitions/PathRewrite'
         description: |
