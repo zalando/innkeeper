@@ -2,9 +2,9 @@
 
 Innkeeper is a simple route management API for [Skipper](https://github.com/zalando/skipper)
 
-When a new instance of Skipper (configured to fetch the routes from Innkeeper) is started, it will connect to Innkeeper, ask for all the routes and initialize it's own data structures.
+When a new instance of Skipper (configured to fetch the routes from Innkeeper) is started, it will connect to Innkeeper, ask for all the routes and initialize its own data structures.
 
-Then, at every x minutes will will ask innkeeper for the modified routes and update it's internal data structures.
+Then, at every x minutes will ask innkeeper for the modified routes and update its internal data structures.
 
 [![Build Status](https://travis-ci.org/zalando/innkeeper.svg)](https://travis-ci.org/zalando/innkeeper)
 
