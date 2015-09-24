@@ -7,7 +7,7 @@ info:
     well as, some service realm clients (e.g. CMS). Creation of wildcard routes
     is reserved for maintainers of this API as it requires special care.
   version: 1.0.1
-host: innkeeper.mop-taskforce.zalan.do
+host: innkeeper.host.eu
 schemes:
   - https
 basePath: /
@@ -18,7 +18,7 @@ produces:
 securityDefinitions:
   zalando:
     type: oauth2
-    authorizationUrl: 'https://auth.zalando.com/z/XUI/#login/'
+    authorizationUrl: 'https://auth.provider.com/z/XUI/#login/'
     flow: implicit
     scopes:
       fashion_store_routes.read_all: |

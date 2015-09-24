@@ -144,7 +144,7 @@ class RoutesServiceSpec extends FunSpec with Matchers with MockFactory with Scal
 
   val newRoute = NewRoute(description = "The New Route",
     pathMatcher = PathMatcher("/route", Strict),
-    endpoint = Endpoint("domain.eu", Some(443)))
+    endpoint = Endpoint(hostname = "domain.eu", port = Some(443)))
 
   val createdAt = LocalDateTime.now()
   val savedRoute = Route(routeId, newRoute, createdAt)

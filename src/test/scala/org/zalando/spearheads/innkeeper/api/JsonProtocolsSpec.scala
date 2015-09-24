@@ -103,16 +103,20 @@ class JsonProtocolsSpec extends FunSpec with Matchers {
       endpoint.hostname should be("domain.eu")
       endpoint.port should be(Some(8080))
       endpoint.protocol should be(Some(Https))
+      endpoint.path should be(None)
       endpoint.endpointType should be(Some(ReverseProxy))
     }
 
     it("should unmarshall another Endpoint") {
-      val endpoint = """{ "hostname": "domain.eu", "port": 8080, "protocol": "HTTP", "type": "PERMANENT_REDIRECT" }"""
-        .parseJson.convertTo[Endpoint]
+      val endpoint =
+        """{ "hostname": "domain.eu", "port": 8080, "protocol": "HTTP",
+          |"path": "/route", "type": "PERMANENT_REDIRECT" }""".stripMargin
+          .parseJson.convertTo[Endpoint]
 
       endpoint.hostname should be("domain.eu")
       endpoint.port should be(Some(8080))
       endpoint.protocol should be(Some(Http))
+      endpoint.path should be(Some("/route"))
       endpoint.endpointType should be(Some(PermanentRedirect))
     }
 
@@ -123,14 +127,16 @@ class JsonProtocolsSpec extends FunSpec with Matchers {
       endpoint.hostname should be("domain.eu")
       endpoint.port should be(Some(8080))
       endpoint.protocol should be(Some(Https))
+      endpoint.path should be(None)
       endpoint.endpointType should be(Some(ReverseProxy))
     }
 
     it("should unmarshall a Enpoint without a port") {
-      val endpoint = """{ "hostname": "domain.eu", "protocol": "HTTP", "type": "PERMANENT_REDIRECT" }""".parseJson.convertTo[Endpoint]
+      val endpoint = """{ "hostname": "domain.eu", "protocol": "HTTP", "path": "/route", "type": "PERMANENT_REDIRECT" }""".parseJson.convertTo[Endpoint]
       endpoint.hostname should be("domain.eu")
       endpoint.port should be(Some(443))
       endpoint.protocol should be(Some(Http))
+      endpoint.path should be(Some("/route"))
       endpoint.endpointType should be(Some(PermanentRedirect))
     }
 
@@ -145,40 +151,40 @@ class JsonProtocolsSpec extends FunSpec with Matchers {
     it("should unmarshall the NewRoute") {
 
       val route = """{
-        |  "path_rewrite": {
-        |    "match": "/hello",
-        |    "replace": "/world"
-        |  },
-        |  "response_headers": [{
-        |    "name": "Some-Header",
-        |    "value": "Value"
-        |  }],
-        |  "description": "the description",
-        |  "request_headers": [{
-        |    "name": "Client-Id",
-        |    "value": "12345"
-        |  }],
-        |  "match_headers": [{
-        |    "name": "Host",
-        |    "value": "domain.eu"
-        |  }],
-        |  "match_path": {
-        |    "match": "/hello",
-        |    "type": "STRICT"
-        |  },
-        |  "endpoint": {
-        |    "hostname": "domain.eu",
-        |    "port": 443,
-        |    "protocol": "HTTPS",
-        |    "type": "REVERSE_PROXY"
-        |  },
-        |  "match_methods": ["GET", "POST"]
-        |}
-      """.stripMargin.parseJson.convertTo[NewRoute]
+                    |  "path_rewrite": {
+                    |    "match": "/hello",
+                    |    "replace": "/world"
+                    |  },
+                    |  "response_headers": [{
+                    |    "name": "Some-Header",
+                    |    "value": "Value"
+                    |  }],
+                    |  "description": "the description",
+                    |  "request_headers": [{
+                    |    "name": "Client-Id",
+                    |    "value": "12345"
+                    |  }],
+                    |  "match_headers": [{
+                    |    "name": "Host",
+                    |    "value": "domain.eu"
+                    |  }],
+                    |  "match_path": {
+                    |    "match": "/hello",
+                    |    "type": "STRICT"
+                    |  },
+                    |  "endpoint": {
+                    |    "hostname": "domain.eu",
+                    |    "port": 443,
+                    |    "protocol": "HTTPS",
+                    |    "type": "REVERSE_PROXY"
+                    |  },
+                    |  "match_methods": ["GET", "POST"]
+                    |}
+                  """.stripMargin.parseJson.convertTo[NewRoute]
 
       val expectedRoute = NewRoute(description = "the description",
         pathMatcher = PathMatcher("/hello", Strict),
-        endpoint = Endpoint("domain.eu", Some(443)),
+        endpoint = Endpoint(hostname = "domain.eu", port = Some(443)),
         headerMatchers = Some(Seq(Header("Host", "domain.eu"))),
         methodMatchers = Some(Seq("GET", "POST")),
         requestHeaders = Some(Seq(Header("Client-Id", "12345"))),
@@ -207,7 +213,7 @@ class JsonProtocolsSpec extends FunSpec with Matchers {
 
       val expectedRoute = NewRoute(description = "the description",
         pathMatcher = PathMatcher("/hello", Strict),
-        endpoint = Endpoint("domain.eu", Some(443)),
+        endpoint = Endpoint(hostname = "domain.eu", port = Some(443)),
         headerMatchers = Some(Seq.empty),
         methodMatchers = Some(Seq("GET")),
         requestHeaders = Some(Seq.empty),

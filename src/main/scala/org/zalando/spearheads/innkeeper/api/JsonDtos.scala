@@ -13,7 +13,8 @@ import scala.collection.immutable.Seq
 case class Route(id: Long, route: NewRoute, createdAt: LocalDateTime,
                  deletedAt: Option[LocalDateTime] = None)
 
-case class Endpoint(hostname: String, port: Option[Int] = Some(443),
+case class Endpoint(hostname: String, path: Option[String] = None,
+                    port: Option[Int] = Some(443),
                     protocol: Option[Protocol] = Some(Https),
                     endpointType: Option[EndpointType] = Some(ReverseProxy))
 
