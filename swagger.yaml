@@ -292,6 +292,10 @@ definitions:
           - HTTP
         default: HTTPS
         description: Endpoint protocol, usually `HTTPS`.
+      path:
+        type: string
+        default: ''
+        description: The path of the route endpoint
   Header:
     required:
       - name
