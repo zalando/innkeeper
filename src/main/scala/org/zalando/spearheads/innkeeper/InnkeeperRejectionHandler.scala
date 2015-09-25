@@ -1,34 +1,40 @@
 package org.zalando.spearheads.innkeeper
 
-import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Directives._
-import akka.http.scaladsl.server.{ MethodRejection, AuthenticationFailedRejection, AuthorizationFailedRejection, RejectionHandler }
-import spray.json.DefaultJsonProtocol
-
+import akka.http.scaladsl.server.{ AuthenticationFailedRejection, AuthorizationFailedRejection, MethodRejection, RejectionHandler }
+import org.zalando.spearheads.innkeeper.api.Error
+import org.zalando.spearheads.innkeeper.api.JsonProtocols.errorFormat
+import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 /**
  * @author dpersa
  */
-case class Error(message: String)
-
-object ErrorJsonProtocol extends DefaultJsonProtocol {
-  implicit val errorFormat = jsonFormat1(Error)
-}
 
 object InnkeeperRejectionHandler {
-
-  import ErrorJsonProtocol._
 
   implicit def rejectionHandler =
     RejectionHandler.newBuilder()
       .handle {
-        case AuthorizationFailedRejection        => complete(StatusCodes.Unauthorized, Error("Authorization failed"))
-        case AuthenticationFailedRejection(_, _) => complete(StatusCodes.Unauthorized, Error("Authentication failed"))
+        case AuthorizationFailedRejection => complete(
+          StatusCodes.Unauthorized,
+          Error(StatusCodes.Unauthorized.intValue, "Authorization failed", "AUTH1")
+        )
+        case AuthenticationFailedRejection(_, _) => complete(
+          StatusCodes.Unauthorized,
+          Error(StatusCodes.Unauthorized.intValue, "Authentication failed", "AUTH2")
+        )
       }.handleAll[MethodRejection] { methodRejections =>
         val names = methodRejections.map(_.supported.name)
-        complete(StatusCodes.MethodNotAllowed,
-          Error(s"Method not allowed! Supported: ${names mkString " or "}!"))
+        complete(
+          StatusCodes.MethodNotAllowed,
+          Error(StatusCodes.MethodNotAllowed.intValue,
+            s"Method not allowed! Supported: ${names mkString " or "}!",
+            "MNA")
+        )
       }.handleNotFound {
-        complete(StatusCodes.NotFound, Error("Resource not found"))
+        complete(
+          StatusCodes.NotFound,
+          Error(StatusCodes.NotFound.intValue, "Resource not found", "RNF")
+        )
       }.result()
 }
