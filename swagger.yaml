@@ -204,6 +204,12 @@ paths:
       security:
         - company:
           - routes.read
+      parameters:
+        - name: id
+          in: path
+          type: string
+          required: true
+          format: ISO-8601
       summary: Returns a list of updated routes.
       responses:
         '200':
