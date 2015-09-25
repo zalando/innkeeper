@@ -35,19 +35,29 @@ class Routes @Inject() (implicit val materializer: ActorMaterializer,
     handleRejections(InnkeeperRejectionHandler.rejectionHandler) {
       authenticationToken { token =>
         authenticate(token, authService) { authorizedUser =>
-          path("routes") {
+          path("updated-routes" / Rest) { lastModifiedString =>
             get {
               hasOneOfTheScopes(authorizedUser)(scopes.READ) {
-                parameterMap { parameterMap =>
-                  val lastModifiedParam = localDateTimeFromString(parameterMap.get("last_modified"))
-                  val chunkedStreamSource = lastModifiedParam match {
-                    case Some(lastModified) => jsonService.sourceToJsonSource(routesService.findModifiedSince(lastModified))
-                    case None               => jsonService.sourceToJsonSource(routesService.allRoutes)
+                val lastModified = localDateTimeFromString(lastModifiedString)
+                val chunkedStreamSource = lastModified match {
+                  case Some(lastModified) => jsonService.sourceToJsonSource {
+                    routesService.findModifiedSince(lastModified)
                   }
+                  case None => jsonService.sourceToJsonSource(routesService.allRoutes)
+                }
 
-                  complete {
-                    HttpResponse(entity = HttpEntity.Chunked(MediaTypes.`application/json`, chunkedStreamSource))
-                  }
+                complete {
+                  HttpResponse(entity = HttpEntity.Chunked(MediaTypes.`application/json`, chunkedStreamSource))
+                }
+              }
+            }
+          } ~ path("routes") {
+            get {
+              hasOneOfTheScopes(authorizedUser)(scopes.READ) {
+                val chunkedStreamSource = jsonService.sourceToJsonSource(routesService.allRoutes)
+
+                complete {
+                  HttpResponse(entity = HttpEntity.Chunked(MediaTypes.`application/json`, chunkedStreamSource))
                 }
               }
             } ~ post {
@@ -91,7 +101,7 @@ class Routes @Inject() (implicit val materializer: ActorMaterializer,
     routesService.createRoute(route)
   }
 
-  private def localDateTimeFromString(option: Option[String]): Option[LocalDateTime] = {
-    option.flatMap(s => Try(LocalDateTime.from(FORMATTER.parse(s))).toOption)
+  private def localDateTimeFromString(lastModified: String): Option[LocalDateTime] = {
+    Try(LocalDateTime.from(FORMATTER.parse(lastModified))).toOption
   }
 }
