@@ -66,7 +66,7 @@ class RoutesPostgresRepo @Inject() (implicit val executionContext: ExecutionCont
   def selectModifiedSince(localDateTime: LocalDateTime): DatabasePublisher[RouteRow] = {
     val q = for {
       routeRow <- routesTable
-      if (routeRow.createdAt >= localDateTime || routeRow.deletedAt >= localDateTime)
+      if (routeRow.createdAt > localDateTime || routeRow.deletedAt > localDateTime)
     } yield routeRow
 
     db.stream {

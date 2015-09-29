@@ -1,6 +1,7 @@
 package org.zalando.spearheads.innkeeper.dao
 
 import java.time.LocalDateTime
+import java.time.temporal.{ChronoUnit, TemporalUnit}
 
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
@@ -108,7 +109,7 @@ class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers w
             insertRoute("4", createdAt)
             routesRepo.delete(1)
 
-            val routes: List[RouteRow] = routesRepo.selectModifiedSince(createdAt)
+            val routes: List[RouteRow] = routesRepo.selectModifiedSince(createdAt.minus(1, ChronoUnit.MICROS))
             routes.size should be(3)
             routes.map(_.id.get).toSet should be(Set(1, 3, 4))
           }
