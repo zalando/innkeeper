@@ -7,11 +7,12 @@ import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.{ FlattenStrategy, Source }
 import com.google.inject.{ Inject, Singleton }
 import com.typesafe.config.Config
+import org.slf4j.LoggerFactory
 import spray.json._
 
 import scala.concurrent.duration._
 import scala.concurrent.{ Await, ExecutionContext }
-import scala.util.Try
+import scala.util.{ Failure, Success, Try }
 
 /**
  * @author dpersa
@@ -28,6 +29,8 @@ class OAuthService @Inject() (val config: Config,
 
     extends AuthService {
 
+  val logger = LoggerFactory.getLogger(this.getClass)
+
   override def authorize(token: String): Option[AuthorizedUser] = {
     import org.zalando.spearheads.innkeeper.oauth.OAuthJsonProtocol.authorizedUserFormat
 
@@ -40,7 +43,13 @@ class OAuthService @Inject() (val config: Config,
     Try {
       val json = Await.result(futureJson, 1.second)
       json.parseJson.convertTo[AuthorizedUser]
-    }.toOption
+    } match {
+      case Success(value) => Some(value)
+      case Failure(ex) => {
+        logger.warn("The OAuth exception is", ex)
+        None
+      }
+    }
   }
 
   private val OAUTH_URL = config.getString("oauth.url")
