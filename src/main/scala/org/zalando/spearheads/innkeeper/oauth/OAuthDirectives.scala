@@ -24,8 +24,8 @@ trait OAuthDirectives {
     }
 
   def hasOneOfTheScopes(authorizedUser: AuthorizedUser)(scope: Scope*): Directive0 = {
-    val configuredScopeNames: Set[String] = scope.flatMap(_.scopeNames).toSet
-    authorizedUser.scope.scopeNames.toSet.intersect(configuredScopeNames).isEmpty match {
+    val configuredScopeNames = scope.flatMap(_.scopeNames).toSet
+    authorizedUser.scope.scopeNames.intersect(configuredScopeNames).isEmpty match {
       case false => pass
       case _     => reject(AuthorizationFailedRejection)
     }

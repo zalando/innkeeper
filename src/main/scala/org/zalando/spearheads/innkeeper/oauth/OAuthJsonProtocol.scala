@@ -9,10 +9,10 @@ object OAuthJsonProtocol extends DefaultJsonProtocol {
 
   implicit object ScopeFormat extends RootJsonFormat[Scope] {
 
-    override def write(scope: Scope) = JsArray(scope.scopeNames.map(scopeName => JsString(scopeName)).toVector)
+    override def write(scope: Scope) = JsArray(scope.scopeNames.map(JsString(_)).toVector)
 
     override def read(json: JsValue) = json match {
-      case JsArray(s) => Scope(s.toList.map(_.convertTo[String]))
+      case JsArray(s) => Scope(s.map(_.convertTo[String]).toSet)
       case _          => throw new IllegalArgumentException(s"JsArray expected: $json")
     }
   }

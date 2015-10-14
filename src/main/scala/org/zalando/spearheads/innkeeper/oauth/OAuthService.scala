@@ -42,14 +42,9 @@ class OAuthService @Inject() (val config: Config,
 
     Try {
       val json = Await.result(futureJson, 1.second)
+      logger.debug(s"The OAuth says: $json")
       json.parseJson.convertTo[AuthorizedUser]
-    } match {
-      case Success(value) => Some(value)
-      case Failure(ex) => {
-        logger.warn("The OAuth exception is", ex)
-        None
-      }
-    }
+    }.toOption
   }
 
   private val OAUTH_URL = config.getString("oauth.url")
