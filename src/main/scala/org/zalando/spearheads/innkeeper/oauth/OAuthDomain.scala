@@ -8,14 +8,14 @@ import scala.collection.JavaConversions._
 /**
  * @author dpersa
  */
-case class Scope(val scopeNames: List[String]) extends AnyVal
+case class Scope(val scopeNames: Set[String]) extends AnyVal
 
 @Singleton
 class Scopes @Inject() (val config: Config) {
 
-  val READ = Scope(config.getStringList("oauth.scope.read").toList)
-  val WRITE_FULL_PATH = Scope(config.getStringList("oauth.scope.writeFullPath").toList)
-  val WRITE_REGEX = Scope(config.getStringList("oauth.scope.writeRegex").toList)
+  val READ = Scope(config.getStringList("oauth.scope.read").toSet)
+  val WRITE_FULL_PATH = Scope(config.getStringList("oauth.scope.writeFullPath").toSet)
+  val WRITE_REGEX = Scope(config.getStringList("oauth.scope.writeRegex").toSet)
 }
 
 object Realms {
