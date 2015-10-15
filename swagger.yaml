@@ -132,39 +132,6 @@ paths:
           description: A processing or an unexpected error.
           schema:
             $ref: '#/definitions/Error'
-    put:
-      operationId: updateRoute
-      security:
-        - company:
-          - routes.write_full_path
-          - routes.write_regex
-      summary: Update for a specific route
-      description: |
-        Modifying a route is only allowed for a client that originally defined
-        this route or with admin credentials.
-      parameters:
-        - name: id
-          in: path
-          type: string
-          required: true
-      responses:
-        '200':
-          description: Information about the updated route
-          schema:
-            $ref: '#/definitions/Route'
-        '403':
-          description: |
-            Usually happens in a case of insufficient permissions.
-          schema:
-            $ref: '#/definitions/Error'
-        '404':
-          description: Happens when trying to update a non-existent Route.
-          schema:
-            $ref: '#/definitions/Error'
-        default:
-          description: A processing or an unexpected error.
-          schema:
-            $ref: '#/definitions/Error'
     delete:
       operationId: deleteRoute
       security:
@@ -273,7 +240,7 @@ definitions:
       match_path:
         $ref: '#/definitions/PathMatcher'
         description: HTTP path to match
-      rewrite_path:
+      path_rewrite:
         $ref: '#/definitions/PathRewrite'
         description: |
           Definition of request to endpoint Path rewrite.
