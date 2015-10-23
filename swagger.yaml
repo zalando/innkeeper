@@ -200,10 +200,10 @@ definitions:
           id:
             type: integer
             format: int64
-          createdAt
+          createdAt:
             type: string
             description: The ISO-8601 date time when the route has been created
-          deletedAt
+          deletedAt:
             type: string
             description: The ISO-8601 date time when the route has been deleted
   NewRoute:
