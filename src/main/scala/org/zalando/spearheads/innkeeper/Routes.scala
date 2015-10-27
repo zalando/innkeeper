@@ -34,10 +34,10 @@ class Routes @Inject() (implicit val materializer: ActorMaterializer,
   val route: RequestContext => Future[RouteResult] =
     handleRejections(InnkeeperRejectionHandler.rejectionHandler) {
       authenticationToken { token =>
-        authenticate(token, authService) { authorizedUser =>
+        authenticate(token, authService) { authenticatedUser =>
           path("updated-routes" / Rest) { lastModifiedString =>
             get {
-              hasOneOfTheScopes(authorizedUser)(scopes.READ) {
+              hasOneOfTheScopes(authenticatedUser)(scopes.READ) {
                 val lastModified = localDateTimeFromString(lastModifiedString)
                 val chunkedStreamSource = lastModified match {
                   case Some(lastModified) => jsonService.sourceToJsonSource {
@@ -53,7 +53,7 @@ class Routes @Inject() (implicit val materializer: ActorMaterializer,
             }
           } ~ path("routes") {
             get {
-              hasOneOfTheScopes(authorizedUser)(scopes.READ) {
+              hasOneOfTheScopes(authenticatedUser)(scopes.READ) {
                 val chunkedStreamSource = jsonService.sourceToJsonSource(routesService.allRoutes)
 
                 complete {
@@ -62,16 +62,16 @@ class Routes @Inject() (implicit val materializer: ActorMaterializer,
               }
             } ~ post {
               entity(as[NewRoute]) { route =>
-                (hasOneOfTheScopes(authorizedUser)(scopes.WRITE_FULL_PATH) & isFullTextRoute(route)) {
+                (hasOneOfTheScopes(authenticatedUser)(scopes.WRITE_FULL_PATH) & isFullTextRoute(route)) {
                   handleWith(saveRoute)
-                } ~ (hasOneOfTheScopes(authorizedUser)(scopes.WRITE_REGEX) & isRegexRoute(route)) {
+                } ~ (hasOneOfTheScopes(authenticatedUser)(scopes.WRITE_REGEX) & isRegexRoute(route)) {
                   handleWith(saveRoute)
                 }
               }
             }
           } ~ path("routes" / LongNumber) { id =>
             get {
-              hasOneOfTheScopes(authorizedUser)(scopes.READ) {
+              hasOneOfTheScopes(authenticatedUser)(scopes.READ) {
                 onComplete(routesService.findRouteById(id)) {
                   case Success(value) => value match {
                     case Some(route) => complete(route)
@@ -82,7 +82,7 @@ class Routes @Inject() (implicit val materializer: ActorMaterializer,
                 }
               }
             } ~ delete {
-              hasOneOfTheScopes(authorizedUser)(scopes.WRITE_FULL_PATH, scopes.WRITE_REGEX) {
+              hasOneOfTheScopes(authenticatedUser)(scopes.WRITE_FULL_PATH, scopes.WRITE_REGEX) {
                 onComplete(routesService.removeRoute(id)) {
                   case Success(RoutesService.Success)  => complete("")
                   case Success(RoutesService.NotFound) => complete(StatusCodes.NotFound)
