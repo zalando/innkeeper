@@ -15,7 +15,9 @@ trait OAuthDirectives {
 
   def authenticationToken: Directive1[String] =
     headerValue(optionalValue("authorization")) |
-      reject(AuthenticationFailedRejection(CredentialsMissing, HttpChallenge("", "")))
+      reject {
+        AuthenticationFailedRejection(CredentialsMissing, HttpChallenge("", ""))
+      }
 
   def authenticate(token: String, authService: AuthService): Directive1[AuthorizedUser] =
     authService.authorize(token) match {

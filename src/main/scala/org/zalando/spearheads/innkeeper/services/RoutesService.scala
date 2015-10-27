@@ -34,14 +34,30 @@ class RoutesService @Inject() (implicit val executionContext: ExecutionContext,
   }
 
   def findModifiedSince(localDateTime: LocalDateTime): Source[Route, Unit] = {
-    Source(routesRepo.selectModifiedSince(localDateTime).mapResult { row =>
-      row.id.map(id => Route(id, row.routeJson.parseJson.convertTo[NewRoute], row.createdAt, row.deletedAt))
-    }).mapConcat(_.toList)
+    Source(
+      routesRepo.selectModifiedSince(localDateTime).mapResult { row =>
+        row.id.map { id =>
+          Route(
+            id = id,
+            route = row.routeJson.parseJson.convertTo[NewRoute],
+            row.createdAt,
+            row.deletedAt
+          )
+        }
+      }
+    ).mapConcat(_.toList)
   }
 
   def allRoutes: Source[Route, Unit] = {
     Source(routesRepo.selectAll.mapResult { row =>
-      row.id.map(id => Route(id, row.routeJson.parseJson.convertTo[NewRoute], row.createdAt, row.deletedAt))
+      row.id.map { id =>
+        Route(
+          id,
+          row.routeJson.parseJson.convertTo[NewRoute],
+          row.createdAt,
+          row.deletedAt
+        )
+      }
     }).mapConcat(_.toList)
   }
 
@@ -62,7 +78,11 @@ class RoutesService @Inject() (implicit val executionContext: ExecutionContext,
 }
 
 object RoutesService {
+
   sealed trait RoutesServiceResult
+
   case object Success extends RoutesServiceResult
+
   case object NotFound extends RoutesServiceResult
+
 }
