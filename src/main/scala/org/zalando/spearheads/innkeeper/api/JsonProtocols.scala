@@ -8,11 +8,12 @@ import org.zalando.spearheads.innkeeper.api.PathMatcher.{ MatcherType, Strict, R
 import spray.json._
 
 import scala.collection.immutable.Seq
+import spray.json.DefaultJsonProtocol._
 
 /**
  * @author dpersa
  */
-object JsonProtocols extends DefaultJsonProtocol {
+object JsonProtocols {
 
   implicit object LocalDateTimeFormat extends RootJsonFormat[LocalDateTime] {
 

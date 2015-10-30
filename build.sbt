@@ -32,6 +32,7 @@ libraryDependencies ++= List(
   "org.postgresql"           % "postgresql"                           % "9.3-1103-jdbc41",
   "com.github.tminglei"     %% "slick-pg"                             % "0.9.1",
   "com.zaxxer"               % "HikariCP"                             % "2.4.1",
+  "nl.grons"                %% "metrics-scala"                        % "3.5.2",
   "org.scalatest"           %% "scalatest"                            % scalaTestV       % "it,test",
   "org.scalamock"           %% "scalamock-scalatest-support"          % scalaMockV       % "it,test",
   "com.typesafe.akka"       %% "akka-http-testkit-experimental"       % akkaStreamV      % "it,test",
