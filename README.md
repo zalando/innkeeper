@@ -48,10 +48,14 @@ curl -XPOST localhost:8080/routes -d '{
 ### Getting all routes
 
     curl http://localhost:8080/routes -H 'Authorization: oauth-token'
+    
+To see it streaming:
+
+    curl -i --limit-rate 3000 http://localhost:8080/routes -H 'Authorization: oauth-token'
 
 ### Getting last modified routes
 
-    curl http://localhost:8080/routes?last_modified=2015-08-21T15:23:05.731 -H 'Authorization: oauth-token'
+    curl -i http://localhost:8080/updated-routes/2015-08-21T15:23:05.731 -H 'Authorization: oauth-token'
 
 # OAuth
 
