@@ -1,11 +1,13 @@
 package org.zalando.spearheads.innkeeper.api
 
 import java.time.LocalDateTime
+import org.zalando.spearheads.innkeeper.api.Endpoint.{ ReverseProxy, EndpointType, Https, Protocol }
+
 import scala.collection.immutable.Seq
 
 /**
-  * @author dpersa
-  */
+ * @author dpersa
+ */
 case class ComplexRoute(id: Long, route: NewComplexRoute,
                         createdAt: LocalDateTime,
                         deletedAt: Option[LocalDateTime] = None)
@@ -29,6 +31,10 @@ case class Filter(name: String, args: Seq[Either[Int, String]])
 
 case class HeaderMatcher(name: String, value: String, matcherType: MatcherType)
 
+case class Endpoint(hostname: String, path: Option[String] = None,
+                    port: Option[Int] = Some(443),
+                    protocol: Option[Protocol] = Some(Https),
+                    endpointType: Option[EndpointType] = Some(ReverseProxy))
 
 object Endpoint {
 

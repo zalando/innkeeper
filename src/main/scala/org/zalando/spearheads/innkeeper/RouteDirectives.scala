@@ -4,7 +4,7 @@ import akka.http.scaladsl.server.directives.BasicDirectives.pass
 import akka.http.scaladsl.server.directives.RouteDirectives.reject
 import akka.http.scaladsl.server.{ Directive0, AuthorizationFailedRejection }
 import org.zalando.spearheads.innkeeper.api.NewRoute
-import org.zalando.spearheads.innkeeper.api.{Strict, Regex }
+import org.zalando.spearheads.innkeeper.api.{ Strict, Regex }
 
 /**
  * @author dpersa

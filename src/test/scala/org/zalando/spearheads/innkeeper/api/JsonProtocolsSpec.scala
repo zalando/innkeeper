@@ -1,9 +1,10 @@
 package org.zalando.spearheads.innkeeper.api
 
-import org.scalatest.{FunSpec, Matchers}
-import org.zalando.spearheads.innkeeper.api.Endpoint.{Http, Https, PermanentRedirect, ReverseProxy}
+import org.scalatest.{ FunSpec, Matchers }
+import org.zalando.spearheads.innkeeper.api.Endpoint.{ Http, Https, PermanentRedirect, ReverseProxy }
 import org.zalando.spearheads.innkeeper.api.JsonProtocols._
-import spray.json.{DeserializationException, pimpString}
+import spray.json.{ DeserializationException, pimpString }
+import ComplexRoutesJsonProtocols.{ pathMatcherFormat, errorFormat, endpointFormat, EndpointTypeFormat, EndpointFormat, MatcherTypeFormat }
 
 import scala.collection.immutable.Seq
 

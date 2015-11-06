@@ -12,13 +12,6 @@ import scala.collection.immutable.Seq
 case class Route(id: Long, route: NewRoute, createdAt: LocalDateTime,
                  deletedAt: Option[LocalDateTime] = None)
 
-case class Endpoint(hostname: String, path: Option[String] = None,
-                    port: Option[Int] = Some(443),
-                    protocol: Option[Protocol] = Some(Https),
-                    endpointType: Option[EndpointType] = Some(ReverseProxy))
-
-
-
 case class Header(name: String, value: String)
 
 case class NewRoute(description: String,
@@ -31,9 +24,5 @@ case class NewRoute(description: String,
                     pathRewrite: Option[PathRewrite] = None)
 
 case class PathMatcher(matcher: String, matcherType: MatcherType)
-
-
-
-
 
 case class PathRewrite(matcher: String, replace: String)
