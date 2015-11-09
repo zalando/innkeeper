@@ -1,9 +1,7 @@
 package org.zalando.spearheads.innkeeper.api
 
-import org.zalando.spearheads.innkeeper.api.Endpoint._
 import spray.json.DefaultJsonProtocol._
 import spray.json._
-import ComplexRoutesJsonProtocols._
 import LocalDateTimeProtocol.LocalDateTimeFormat
 
 import scala.collection.immutable.Seq
@@ -13,76 +11,136 @@ import scala.collection.immutable.Seq
  */
 object JsonProtocols {
 
-  implicit val pathRewriteFormat = jsonFormat(PathRewrite, "match", "replace")
+  implicit val filterFormat = jsonFormat(Filter, "name", "args")
 
-  implicit val headerFormat = jsonFormat2(Header)
+  implicit val errorFormat = jsonFormat(Error, "status", "title", "type", "detail")
 
-  implicit object EndpointProtocolFormat extends JsonFormat[Protocol] {
-    val HTTP = "HTTP"
-    val HTTPS = "HTTPS"
+  implicit object RegexHeaderMatcherFormat extends RootJsonFormat[RegexHeaderMatcher] {
+    override def write(hm: RegexHeaderMatcher): JsValue =
+      JsObject(Map("name" -> JsString(hm.name),
+        "value" -> JsString(hm.value),
+        "type" -> JsString(MatcherType.REGEX)))
 
-    override def write(protocol: Protocol): JsValue = protocol match {
-      case Http  => JsString(HTTP)
-      case Https => JsString(HTTPS)
+    override def read(json: JsValue): RegexHeaderMatcher = ???
+  }
+
+  implicit object StrictHeaderMatcherFormat extends RootJsonFormat[StrictHeaderMatcher] {
+    override def write(hm: StrictHeaderMatcher): JsValue =
+      JsObject(Map("name" -> JsString(hm.name),
+        "value" -> JsString(hm.value),
+        "type" -> JsString(MatcherType.STRICT)))
+
+    override def read(json: JsValue): StrictHeaderMatcher = ???
+  }
+
+  implicit object HeaderMatcherFormat extends RootJsonFormat[HeaderMatcher] {
+    def write(headerMatcher: HeaderMatcher) = headerMatcher match {
+      case RegexHeaderMatcher(name, value) =>
+        JsObject(Map("name" -> JsString(name),
+          "value" -> JsString(value),
+          "type" -> JsString(MatcherType.REGEX)))
+      case StrictHeaderMatcher(name, value) =>
+        JsObject(Map("name" -> JsString(name),
+          "value" -> JsString(value),
+          "type" -> JsString(MatcherType.STRICT)))
     }
 
-    override def read(json: JsValue): Protocol = json match {
-      case JsString(HTTP)  => Http
-      case JsString(HTTPS) => Https
-      case _               => deserializationError("Protocol expected")
+    def read(value: JsValue) = value.asJsObject.getFields("name", "value", "type") match {
+      case Seq(JsString(name), JsString(value), JsString(MatcherType.REGEX)) =>
+        new RegexHeaderMatcher(name, value)
+      case Seq(JsString(name), JsString(value), JsString(MatcherType.STRICT)) =>
+        new StrictHeaderMatcher(name, value)
+      case _ => deserializationError("HeaderMatcher expected")
     }
   }
 
-  implicit object EndpointTypeFormat extends JsonFormat[EndpointType] {
-    val REVERSE_PROXY = "REVERSE_PROXY"
-    val PERMANENT_REDIRECT = "PERMANENT_REDIRECT"
+  implicit object RegexPathMatcherFormat extends RootJsonFormat[RegexPathMatcher] {
+    override def write(hm: RegexPathMatcher): JsValue =
+      JsObject(Map("match" -> JsString(hm.matcher),
+        "type" -> JsString(MatcherType.REGEX)))
 
-    override def write(endpointType: EndpointType): JsValue = endpointType match {
-      case ReverseProxy      => JsString(REVERSE_PROXY)
-      case PermanentRedirect => JsString(PERMANENT_REDIRECT)
+    override def read(json: JsValue): RegexPathMatcher = ???
+  }
+
+  implicit object StrictPathMatcherFormat extends RootJsonFormat[StrictPathMatcher] {
+    override def write(hm: StrictPathMatcher): JsValue =
+      JsObject(Map("match" -> JsString(hm.matcher),
+        "type" -> JsString(MatcherType.STRICT)))
+
+    override def read(json: JsValue): StrictPathMatcher = ???
+  }
+
+  implicit object PathMatcherFormat extends RootJsonFormat[PathMatcher] {
+    def write(pathMatcher: PathMatcher) = pathMatcher match {
+      case RegexPathMatcher(matcher) =>
+        JsObject(Map("match" -> JsString(matcher),
+          "type" -> JsString(MatcherType.REGEX)))
+      case StrictPathMatcher(matcher) =>
+        JsObject(Map("match" -> JsString(matcher),
+          "type" -> JsString(MatcherType.STRICT)))
     }
 
-    override def read(json: JsValue): EndpointType = json match {
-      case JsString(REVERSE_PROXY)      => ReverseProxy
-      case JsString(PERMANENT_REDIRECT) => PermanentRedirect
-      case _                            => deserializationError("EndpointType expected")
+    def read(value: JsValue) = value.asJsObject.getFields("match", "type") match {
+      case Seq(JsString(matcher), JsString(MatcherType.REGEX)) =>
+        new RegexPathMatcher(matcher)
+      case Seq(JsString(matcher), JsString(MatcherType.STRICT)) =>
+        new StrictPathMatcher(matcher)
+      case _ => deserializationError("PathMatcher expected")
     }
   }
 
-  private val endpointFormat = jsonFormat(Endpoint.apply, "hostname", "path", "port", "protocol", "type")
+  private val matcherFormat = jsonFormat(Matcher, "hostMatcher", "pathMatcher", "methodMatcher", "headerMatchers")
 
-  implicit object EndpointFormat extends JsonFormat[Endpoint] {
-    override def write(obj: Endpoint): JsValue = endpointFormat.write(obj)
+  implicit object MatcherFormat extends RootJsonFormat[Matcher] {
 
-    override def read(json: JsValue): Endpoint = {
-      val endpoint = endpointFormat.read(json)
+    private def validate(matcher: Matcher, ex: Exception) = {
+      if ((!matcher.headerMatchers.isDefined || matcher.headerMatchers.get.isEmpty) &&
+        !matcher.hostMatcher.isDefined &&
+        !matcher.methodMatcher.isDefined &&
+        !matcher.pathMatcher.isDefined) {
+        throw ex
+      }
+      matcher
+    }
 
-      endpoint.copy(
-        port = endpoint.port.orElse(Some(443)),
-        protocol = endpoint.protocol.orElse(Some(Https)),
-        endpointType = endpoint.endpointType.orElse(Some(ReverseProxy))
+    override def write(matcher: Matcher): JsValue = {
+      matcherFormat.write {
+        validate(
+          matcher,
+          new SerializationException("At least one of the fields in the matcher should be defined")
+        )
+      }
+    }
+
+    override def read(json: JsValue): Matcher = {
+      val matcher = matcherFormat.read(json)
+
+      val matcherWithDefaults = matcher.copy(
+        hostMatcher = matcher.hostMatcher.orElse(None),
+        pathMatcher = matcher.pathMatcher.orElse(None),
+        methodMatcher = matcher.methodMatcher.orElse(None),
+        headerMatchers = matcher.headerMatchers.orElse(Some(Seq.empty))
       )
+      validate(matcherWithDefaults, new DeserializationException("At least one of the fields in the matcher should be defined"))
     }
   }
 
-  private val newRouteFormat = jsonFormat(NewRoute.apply, "description", "match_path", "endpoint",
-    "match_headers", "match_methods", "request_headers", "response_headers", "path_rewrite")
+  private val newComplexRouteFormat = jsonFormat(NewRoute.apply, "matcher", "filters", "endpoint")
 
-  implicit object NewRouteFormat extends RootJsonFormat[NewRoute] {
+  implicit object NewComplexRouteFormat extends RootJsonFormat[NewRoute] {
 
-    override def write(obj: NewRoute): JsValue = newRouteFormat.write(obj)
+    override def write(obj: NewRoute): JsValue = newComplexRouteFormat.write(obj)
 
     override def read(json: JsValue): NewRoute = {
-      val newRoute = newRouteFormat.read(json)
+      val newComplexRoute = newComplexRouteFormat.read(json)
 
-      newRoute.copy(
-        headerMatchers = newRoute.headerMatchers.orElse(Some(Seq.empty)),
-        methodMatchers = newRoute.methodMatchers.orElse(Some(Seq("GET"))),
-        requestHeaders = newRoute.requestHeaders.orElse(Some(Seq.empty)),
-        responseHeaders = newRoute.responseHeaders.orElse(Some(Seq.empty))
+      newComplexRoute.copy(
+        filters = newComplexRoute.filters.orElse(Some(Seq.empty)),
+        endpoint = newComplexRoute.endpoint.orElse(None)
       )
     }
   }
 
-  implicit val routeFormat = jsonFormat4(Route)
+  implicit val routeOutFormat = jsonFormat6(RouteOut)
+  implicit val routeInFormat = jsonFormat3(RouteIn)
 }

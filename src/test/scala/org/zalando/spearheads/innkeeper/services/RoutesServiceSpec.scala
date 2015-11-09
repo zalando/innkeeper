@@ -36,9 +36,9 @@ class RoutesServiceSpec extends FunSpec with Matchers with MockFactory with Scal
     it("should createRoute") {
 
       (routesRepo.insert _).expects(routeRowWithoutId)
-        .returning(Future(routeRowWithId))
+        .returning(Future(routeOut))
 
-      val result = routesService.createRoute(newRoute, createdAt).futureValue
+      val result = routesService.createRoute(routeIn, createdAt).futureValue
 
       result should be(Some(savedRoute))
     }
@@ -48,7 +48,7 @@ class RoutesServiceSpec extends FunSpec with Matchers with MockFactory with Scal
       (routesRepo.insert _).expects(routeRowWithoutId)
         .returning(Future(routeRowWithoutId))
 
-      val result = routesService.createRoute(newRoute, createdAt).futureValue
+      val result = routesService.createRoute(routeIn, createdAt).futureValue
 
       result should be(None)
     }
@@ -89,7 +89,7 @@ class RoutesServiceSpec extends FunSpec with Matchers with MockFactory with Scal
       val result = routesService.allRoutes
       val route = result.runWith(Sink.head).futureValue
       route.id should be(routeId)
-      route.route.description should be("The New Route")
+      route.description should be(Some("The New Route"))
     }
 
     it("should return an empty list if there are no routes") {
@@ -117,7 +117,7 @@ class RoutesServiceSpec extends FunSpec with Matchers with MockFactory with Scal
 
         routeOption.isDefined should be(true)
         routeOption.get.id should be(routeId)
-        routeOption.get.route.description should be("The New Route")
+        routeOption.get.description should be(Some("The New Route"))
       }
     }
 
@@ -142,31 +142,24 @@ class RoutesServiceSpec extends FunSpec with Matchers with MockFactory with Scal
 
   val routeId: Long = 1
 
-  val newRoute = NewRoute(description = "The New Route",
-    pathMatcher = StrictPathMatcher("/route"),
-    endpoint = Endpoint(hostname = "domain.eu", port = Some(443)))
+  val description = "The New Route"
+
+  val newRoute = NewRoute(
+    matcher = Matcher(
+      pathMatcher = Some(RegexPathMatcher("/hello-*"))
+    )
+  )
+
+  val newRouteJson = newRoute.toJson.prettyPrint
 
   val createdAt = LocalDateTime.now()
-  val savedRoute = Route(routeId, newRoute, createdAt)
+  val activatedAt = LocalDateTime.now()
+  val savedRoute = RouteOut(routeId, newRoute, createdAt, Some(activatedAt), Some(description))
+  val routeIn = RouteIn(newRoute, Some(activatedAt), Some(description))
 
-  val routeRowWithoutId = RouteRow(None, newRoute.toJson.prettyPrint, createdAt)
+  val routeRowWithoutId = RouteRow(None, newRouteJson, createdAt, Some(description), activatedAt)
 
-  val routeRowWithId = RouteRow(Some(routeId), newRoute.toJson.prettyPrint, createdAt)
+  val routeOut = RouteRow(Some(routeId), newRouteJson, createdAt, Some(description), activatedAt)
 
-  val newRouteString = """{
-                         |  "description": "The New Route",
-                         |  "match_path": {
-                         |    "match": "/route",
-                         |    "type": "STRICT"
-                         |  },
-                         |  "endpoint": {
-                         |    "hostname": "domain.eu",
-                         |    "port": 443,
-                         |    "protocol": "HTTPS",
-                         |    "type": "REVERSE_PROXY"
-                         |  }
-                         |}
-                       """.stripMargin
-
-  val routeRow = new RouteRow(Some(1), newRouteString, createdAt)
+  val routeRow = new RouteRow(Some(1), newRouteJson, createdAt, Some(description), activatedAt)
 }

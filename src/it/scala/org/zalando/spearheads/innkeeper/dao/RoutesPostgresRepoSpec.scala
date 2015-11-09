@@ -17,8 +17,8 @@ import scala.concurrent.ExecutionContext
 import scala.language.implicitConversions
 
 /**
- * @author dpersa
- */
+  * @author dpersa
+  */
 class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers with ScalaFutures {
 
   implicit override val patienceConfig = PatienceConfig(timeout = Span(5, Seconds))
@@ -38,7 +38,7 @@ class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers w
 
   private def insertRoute(name: String = "", createdAt: LocalDateTime = LocalDateTime.now()) = {
     routesRepo.insert(RouteRow(routeJson = routeJson(name),
-      createdAt = createdAt)).futureValue
+      createdAt = createdAt, activateAt = createdAt.plusMinutes(5))).futureValue
   }
 
   implicit def databasePublisherToList[T](databasePublisher: DatabasePublisher[T]): List[T] = {
@@ -89,14 +89,15 @@ class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers w
         describe("#selectAll") {
           it("should select all routes") {
             val createdAt = LocalDateTime.now()
+            val activateAt = createdAt.plusMinutes(5)
             insertRoute("1", createdAt)
             insertRoute("2", createdAt)
 
             val routes: List[RouteRow] = routesRepo.selectAll
 
             routes should not be 'empty
-            routes(0) should be(RouteRow(Some(1), routeJson("1"), createdAt = createdAt))
-            routes(1) should be(RouteRow(Some(2), routeJson("2"), createdAt = createdAt))
+            routes(0) should be(RouteRow(Some(1), routeJson("1"), createdAt = createdAt, activateAt = activateAt))
+            routes(1) should be(RouteRow(Some(2), routeJson("2"), createdAt = createdAt, activateAt = activateAt))
           }
         }
 

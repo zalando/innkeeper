@@ -11,16 +11,16 @@ import org.zalando.spearheads.innkeeper.api._
 trait RouteDirectives {
 
   def isFullTextRoute(route: NewRoute): Directive0 = {
-    route.pathMatcher match {
-      case StrictPathMatcher(_) => pass
-      case _                    => reject(AuthorizationFailedRejection)
+    route.matcher.pathMatcher match {
+      case Some(StrictPathMatcher(_)) => pass
+      case _                          => reject(AuthorizationFailedRejection)
     }
   }
 
   def isRegexRoute(route: NewRoute): Directive0 = {
-    route.pathMatcher match {
-      case RegexPathMatcher(_) => pass
-      case _                   => reject(AuthorizationFailedRejection)
+    route.matcher.pathMatcher match {
+      case Some(RegexPathMatcher(_)) => pass
+      case _                         => reject(AuthorizationFailedRejection)
     }
   }
 }

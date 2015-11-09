@@ -87,7 +87,7 @@ class Routes @Inject() (implicit val materializer: ActorMaterializer,
                 metrics.getRoute.time {
                   onComplete(routesService.findRouteById(id)) {
                     case Success(value) => value match {
-                      case Some(route) => complete(route)
+                      case Some(route) => complete(route.toJson)
                       case None        => complete(StatusCodes.NotFound, "")
                     }
 
@@ -117,7 +117,7 @@ class Routes @Inject() (implicit val materializer: ActorMaterializer,
       }
     }
 
-  private def saveRoute: (NewRoute) => Future[Option[Route]] = (route: NewRoute) => {
+  private def saveRoute: (RouteIn) => Future[Option[RouteOut]] = (route: RouteIn) => {
     routesService.createRoute(route)
   }
 
