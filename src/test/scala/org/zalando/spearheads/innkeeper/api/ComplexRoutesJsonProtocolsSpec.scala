@@ -290,6 +290,7 @@ class ComplexRoutesJsonProtocolsSpec extends FunSpec with Matchers {
                            |  "activateAt": "2015-10-10T10:10:10",
                            |  "id": 1,
                            |  "createdAt": "2015-10-10T10:10:10",
+                           |  "deletedAt": "2015-10-10T10:10:10",
                            |  "route": {
                            |    "matcher": {
                            |      "pathMatcher": {
@@ -305,7 +306,7 @@ class ComplexRoutesJsonProtocolsSpec extends FunSpec with Matchers {
           newRoute,
           LocalDateTime.of(2015, 10, 10, 10, 10, 10),
           LocalDateTime.of(2015, 10, 10, 10, 10, 10),
-          None
+          Some(LocalDateTime.of(2015, 10, 10, 10, 10, 10))
         )
       }
     }
@@ -317,11 +318,12 @@ class ComplexRoutesJsonProtocolsSpec extends FunSpec with Matchers {
         newRoute,
         LocalDateTime.of(2015, 10, 10, 10, 10, 10),
         LocalDateTime.of(2015, 10, 10, 10, 10, 10),
-        None
+        Some(LocalDateTime.of(2015, 10, 10, 10, 10, 10))
       ).toJson
 
       routeJson.prettyPrint should be {
         """{
+          |  "deletedAt": "2015-10-10T10:10:10",
           |  "description": "this is a route",
           |  "activateAt": "2015-10-10T10:10:10",
           |  "id": 1,
