@@ -4,7 +4,6 @@ import org.scalatest.{ FunSpec, Matchers }
 import org.zalando.spearheads.innkeeper.api.Endpoint.{ Http, Https, PermanentRedirect, ReverseProxy }
 import org.zalando.spearheads.innkeeper.api.JsonProtocols._
 import spray.json.{ DeserializationException, pimpString }
-import ComplexRoutesJsonProtocols.{ pathMatcherFormat, errorFormat, endpointFormat, EndpointTypeFormat, EndpointFormat, MatcherTypeFormat }
 
 import scala.collection.immutable.Seq
 
@@ -12,34 +11,6 @@ import scala.collection.immutable.Seq
  * @author dpersa
  */
 class JsonProtocolsSpec extends FunSpec with Matchers {
-
-  describe("PathMatcher") {
-    it("should unmarshall the PathMatcher") {
-      val pathMatcher = """{ "match": "/hello", "type": "REGEX" }""".parseJson.convertTo[PathMatcher]
-      pathMatcher.matcher should be("/hello")
-      pathMatcher.matcherType should be(Regex)
-    }
-
-    it("should unmarshall the strict PathMatcher") {
-      val pathMatcher = """{ "match": "/hello", "type": "STRICT" }""".parseJson.convertTo[PathMatcher]
-      pathMatcher.matcher should be("/hello")
-      pathMatcher.matcherType should be(Strict)
-    }
-
-    it("should not unmarshall the PathMatcher when the matcher type is empty") {
-
-      intercept[DeserializationException] {
-        """{ "match": "/hello", "type": "" }""".parseJson.convertTo[PathMatcher]
-      }
-    }
-
-    it("should not unmarshall the PathMatcher when the matcher type is missing") {
-
-      intercept[DeserializationException] {
-        """{ "match": "/hello" }""".parseJson.convertTo[PathMatcher]
-      }
-    }
-  }
 
   describe("PathRewrite") {
     it("should unmarshall the PathRewrite") {
@@ -82,16 +53,6 @@ class JsonProtocolsSpec extends FunSpec with Matchers {
       intercept[DeserializationException] {
         """{ "value": "12345" }""".parseJson.convertTo[Header]
       }
-    }
-  }
-
-  describe("Error") {
-    it("should unmarshall the Error") {
-      val error = """{ "status": 555, "title": "Error Title", "type": "ERR", "detail": "Error Detail" }""".parseJson.convertTo[Error]
-      error.status should be(555)
-      error.title should be("Error Title")
-      error.errorType should be("ERR")
-      error.detail should be(Some("Error Detail"))
     }
   }
 
@@ -183,7 +144,7 @@ class JsonProtocolsSpec extends FunSpec with Matchers {
                   """.stripMargin.parseJson.convertTo[NewRoute]
 
       val expectedRoute = NewRoute(description = "the description",
-        pathMatcher = PathMatcher("/hello", Strict),
+        pathMatcher = StrictPathMatcher("/hello"),
         endpoint = Endpoint(hostname = "domain.eu", port = Some(443)),
         headerMatchers = Some(Seq(Header("Host", "domain.eu"))),
         methodMatchers = Some(Seq("GET", "POST")),
@@ -212,7 +173,7 @@ class JsonProtocolsSpec extends FunSpec with Matchers {
                   """.stripMargin.parseJson.convertTo[NewRoute]
 
       val expectedRoute = NewRoute(description = "the description",
-        pathMatcher = PathMatcher("/hello", Strict),
+        pathMatcher = StrictPathMatcher("/hello"),
         endpoint = Endpoint(hostname = "domain.eu", port = Some(443)),
         headerMatchers = Some(Seq.empty),
         methodMatchers = Some(Seq("GET")),

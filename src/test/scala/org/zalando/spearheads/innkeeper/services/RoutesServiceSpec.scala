@@ -3,6 +3,7 @@ package org.zalando.spearheads.innkeeper.services
 import java.time.LocalDateTime
 
 import akka.actor.ActorSystem
+import akka.http.scaladsl.server.PathMatcher
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Sink
 import org.scalamock.scalatest.MockFactory
@@ -10,7 +11,7 @@ import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.{ FunSpec, Matchers }
 import org.zalando.spearheads.innkeeper.FakeDatabasePublisher
 import org.zalando.spearheads.innkeeper.api.JsonProtocols._
-import org.zalando.spearheads.innkeeper.api.{ Strict, _ }
+import org.zalando.spearheads.innkeeper.api._
 import org.zalando.spearheads.innkeeper.dao.{ RouteRow, RoutesRepo }
 import spray.json._
 
@@ -142,7 +143,7 @@ class RoutesServiceSpec extends FunSpec with Matchers with MockFactory with Scal
   val routeId: Long = 1
 
   val newRoute = NewRoute(description = "The New Route",
-    pathMatcher = PathMatcher("/route", Strict),
+    pathMatcher = StrictPathMatcher("/route"),
     endpoint = Endpoint(hostname = "domain.eu", port = Some(443)))
 
   val createdAt = LocalDateTime.now()

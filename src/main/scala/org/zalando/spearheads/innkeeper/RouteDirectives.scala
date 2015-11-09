@@ -3,8 +3,7 @@ package org.zalando.spearheads.innkeeper
 import akka.http.scaladsl.server.directives.BasicDirectives.pass
 import akka.http.scaladsl.server.directives.RouteDirectives.reject
 import akka.http.scaladsl.server.{ Directive0, AuthorizationFailedRejection }
-import org.zalando.spearheads.innkeeper.api.NewRoute
-import org.zalando.spearheads.innkeeper.api.{ Strict, Regex }
+import org.zalando.spearheads.innkeeper.api._
 
 /**
  * @author dpersa
@@ -12,16 +11,16 @@ import org.zalando.spearheads.innkeeper.api.{ Strict, Regex }
 trait RouteDirectives {
 
   def isFullTextRoute(route: NewRoute): Directive0 = {
-    route.pathMatcher.matcherType match {
-      case Strict => pass
-      case _      => reject(AuthorizationFailedRejection)
+    route.pathMatcher match {
+      case StrictPathMatcher(_) => pass
+      case _                    => reject(AuthorizationFailedRejection)
     }
   }
 
   def isRegexRoute(route: NewRoute): Directive0 = {
-    route.pathMatcher.matcherType match {
-      case Regex => pass
-      case _     => reject(AuthorizationFailedRejection)
+    route.pathMatcher match {
+      case RegexPathMatcher(_) => pass
+      case _                   => reject(AuthorizationFailedRejection)
     }
   }
 }

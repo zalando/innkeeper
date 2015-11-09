@@ -14,6 +14,27 @@ case class Route(id: Long, route: NewRoute, createdAt: LocalDateTime,
 
 case class Header(name: String, value: String)
 
+case class Endpoint(hostname: String, path: Option[String] = None,
+                    port: Option[Int] = Some(443),
+                    protocol: Option[Protocol] = Some(Https),
+                    endpointType: Option[EndpointType] = Some(ReverseProxy))
+
+object Endpoint {
+
+  sealed trait EndpointType
+
+  case object ReverseProxy extends EndpointType
+
+  case object PermanentRedirect extends EndpointType
+
+  sealed trait Protocol
+
+  case object Http extends Protocol
+
+  case object Https extends Protocol
+
+}
+
 case class NewRoute(description: String,
                     pathMatcher: PathMatcher,
                     endpoint: Endpoint,
@@ -22,7 +43,5 @@ case class NewRoute(description: String,
                     requestHeaders: Option[Seq[Header]] = Some(Seq.empty),
                     responseHeaders: Option[Seq[Header]] = Some(Seq.empty),
                     pathRewrite: Option[PathRewrite] = None)
-
-case class PathMatcher(matcher: String, matcherType: MatcherType)
 
 case class PathRewrite(matcher: String, replace: String)

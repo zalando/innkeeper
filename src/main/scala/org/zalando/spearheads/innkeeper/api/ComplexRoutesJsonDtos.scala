@@ -8,49 +8,46 @@ import scala.collection.immutable.Seq
 /**
  * @author dpersa
  */
-case class ComplexRoute(id: Long, route: NewComplexRoute,
+case class ComplexRoute(id: Long,
+                        description: String,
+                        route: NewComplexRoute,
                         createdAt: LocalDateTime,
+                        activateAt: LocalDateTime,
                         deletedAt: Option[LocalDateTime] = None)
 
 case class NewComplexRoute(matcher: Matcher,
                            filters: Option[Seq[Filter]] = Some(Seq.empty),
-                           endpoint: Option[Endpoint] = None)
+                           endpoint: Option[String] = None)
 
 case class Matcher(hostMatcher: Option[String] = None,
                    pathMatcher: Option[PathMatcher] = None,
-                   methodMatcher: Option[String] = Some("GET"),
+                   methodMatcher: Option[String] = None,
                    headerMatchers: Option[Seq[HeaderMatcher]] = Some(Seq.empty))
 
-sealed trait MatcherType
+trait PathMatcher {
+  def matcher: String
+}
 
-case object Strict extends MatcherType
+case class RegexPathMatcher(matcher: String) extends PathMatcher
 
-case object Regex extends MatcherType
+case class StrictPathMatcher(matcher: String) extends PathMatcher
+
+object MatcherType {
+  val STRICT = "STRICT"
+  val REGEX = "REGEX"
+}
 
 case class Filter(name: String, args: Seq[Either[Int, String]])
 
-case class HeaderMatcher(name: String, value: String, matcherType: MatcherType)
+sealed trait HeaderMatcher {
+  def name(): String
 
-case class Endpoint(hostname: String, path: Option[String] = None,
-                    port: Option[Int] = Some(443),
-                    protocol: Option[Protocol] = Some(Https),
-                    endpointType: Option[EndpointType] = Some(ReverseProxy))
-
-object Endpoint {
-
-  sealed trait EndpointType
-
-  case object ReverseProxy extends EndpointType
-
-  case object PermanentRedirect extends EndpointType
-
-  sealed trait Protocol
-
-  case object Http extends Protocol
-
-  case object Https extends Protocol
-
+  def value(): String
 }
+
+case class StrictHeaderMatcher(name: String, value: String) extends HeaderMatcher
+
+case class RegexHeaderMatcher(name: String, value: String) extends HeaderMatcher
 
 case class Error(status: Int,
                  title: String,
