@@ -276,12 +276,70 @@ class JsonProtocolsSpec extends FunSpec with Matchers {
     }
   }
 
+  describe("RouteIn") {
+
+    val newRoute = NewRoute(
+      matcher = Matcher(
+        pathMatcher = Some(RegexPathMatcher("/hello-*"))
+      )
+    )
+
+    val routeIn = RouteIn(
+      newRoute,
+      Some(LocalDateTime.of(2015, 10, 10, 10, 10, 10)),
+      Some("this is a route")
+    )
+
+    it("should unmarshall the RouteIn") {
+      val route = """{
+                    |  "description": "this is a route",
+                    |  "activateAt": "2015-10-10T10:10:10",
+                    |  "route": {
+                    |    "matcher": {
+                    |      "pathMatcher": {
+                    |        "match": "/hello-*",
+                    |        "type": "REGEX"
+                    |      }
+                    |    }
+                    |  }
+                    |}""".stripMargin.parseJson.convertTo[RouteIn]
+      route should be(routeIn)
+    }
+
+    it("should marshall the RouteIn") {
+      routeIn.toJson.prettyPrint should be {
+        """{
+          |  "route": {
+          |    "matcher": {
+          |      "pathMatcher": {
+          |        "match": "/hello-*",
+          |        "type": "REGEX"
+          |      },
+          |      "headerMatchers": []
+          |    },
+          |    "filters": []
+          |  },
+          |  "activateAt": "2015-10-10T10:10:10",
+          |  "description": "this is a route"
+          |}""".stripMargin
+      }
+    }
+  }
+
   describe("RouteOut") {
 
     val newRoute = NewRoute(
       matcher = Matcher(
         pathMatcher = Some(RegexPathMatcher("/hello-*"))
       )
+    )
+
+    val routeOut = RouteOut(1,
+      newRoute,
+      LocalDateTime.of(2015, 10, 10, 10, 10, 10),
+      Some(LocalDateTime.of(2015, 10, 10, 10, 10, 10)),
+      Some("this is a route"),
+      Some(LocalDateTime.of(2015, 10, 10, 10, 10, 10))
     )
 
     it("should unmarshall the RouteOut") {
@@ -300,28 +358,12 @@ class JsonProtocolsSpec extends FunSpec with Matchers {
                     |    }
                     |  }
                     |}""".stripMargin.parseJson.convertTo[RouteOut]
-      route should be {
-        RouteOut(1,
-          newRoute,
-          LocalDateTime.of(2015, 10, 10, 10, 10, 10),
-          Some(LocalDateTime.of(2015, 10, 10, 10, 10, 10)),
-          Some("this is a route"),
-          Some(LocalDateTime.of(2015, 10, 10, 10, 10, 10))
-        )
-      }
+      route should be(routeOut)
     }
 
     it("should marshall the RouteOut") {
 
-      val routeJson = RouteOut(1,
-        newRoute,
-        LocalDateTime.of(2015, 10, 10, 10, 10, 10),
-        Some(LocalDateTime.of(2015, 10, 10, 10, 10, 10)),
-        Some("this is a route"),
-        Some(LocalDateTime.of(2015, 10, 10, 10, 10, 10))
-      ).toJson
-
-      routeJson.prettyPrint should be {
+      routeOut.toJson.prettyPrint should be {
         """{
           |  "deletedAt": "2015-10-10T10:10:10",
           |  "description": "this is a route",
@@ -341,7 +383,6 @@ class JsonProtocolsSpec extends FunSpec with Matchers {
           |}""".stripMargin
       }
     }
-
   }
 
   describe("Error") {
