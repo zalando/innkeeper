@@ -69,12 +69,12 @@ class Routes @Inject() (implicit val materializer: ActorMaterializer,
                 }
               }
             } ~ post {
-              entity(as[NewRoute]) { route =>
-                (hasOneOfTheScopes(authenticatedUser)(scopes.WRITE_FULL_PATH) & isFullTextRoute(route)) {
+              entity(as[RouteIn]) { route =>
+                (hasOneOfTheScopes(authenticatedUser)(scopes.WRITE_FULL_PATH) & isFullTextRoute(route.route)) {
                   metrics.postRoutes.time {
                     handleWith(saveRoute)
                   }
-                } ~ (hasOneOfTheScopes(authenticatedUser)(scopes.WRITE_REGEX) & isRegexRoute(route)) {
+                } ~ (hasOneOfTheScopes(authenticatedUser)(scopes.WRITE_REGEX) & isRegexRoute(route.route)) {
                   metrics.postRoutes.time {
                     handleWith(saveRoute)
                   }

@@ -25,7 +25,7 @@ object Innkeeper extends App {
     implicit val ec = ExecutionContext.Implicits.global
     val routesService = injector.instance[RoutesRepo]
     for {
-      //_ <- routesService.dropSchema
+      _ <- routesService.dropSchema
       _ <- routesService.createSchema
     } yield ()
   }
