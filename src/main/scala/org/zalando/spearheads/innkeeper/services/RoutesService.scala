@@ -4,7 +4,7 @@ import java.time.LocalDateTime
 
 import akka.stream.scaladsl.Source
 import com.google.inject.Inject
-import org.zalando.spearheads.innkeeper.api.{ RouteIn, NewRoute, RouteOut, Route }
+import org.zalando.spearheads.innkeeper.api._
 import org.zalando.spearheads.innkeeper.dao.{ RoutesRepo, RouteRow }
 import org.zalando.spearheads.innkeeper.services.RoutesService.RoutesServiceResult
 import spray.json._
@@ -21,6 +21,7 @@ class RoutesService @Inject() (implicit val executionContext: ExecutionContext,
   def createRoute(route: RouteIn, createdAt: LocalDateTime = LocalDateTime.now()): Future[Option[RouteOut]] = {
 
     val routeRow = RouteRow(id = None,
+      name = route.name.name,
       routeJson = route.route.toJson.prettyPrint,
       createdAt = createdAt,
       description = route.description,
@@ -71,6 +72,7 @@ class RoutesService @Inject() (implicit val executionContext: ExecutionContext,
   private def routeRowToRoute(id: Long, routeRow: RouteRow): RouteOut = {
     RouteOut(
       id = id,
+      name = RouteName(routeRow.name),
       route = routeRow.routeJson.parseJson.convertTo[NewRoute],
       createdAt = routeRow.createdAt,
       activateAt = Some(routeRow.activateAt),

@@ -42,7 +42,8 @@ curl -i -XPOST localhost:8080/routes -d '{
       "filters": []
     },
     "activateAt": "2015-10-10T10:10:10",
-    "description": "this is a route"
+    "description": "this is a route",
+    "name": "THE_ROUTE"
     }' -H 'Content-Type: application/json' -H 'Authorization: oauth-token'
 ```
 

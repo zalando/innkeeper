@@ -141,6 +141,24 @@ object JsonProtocols {
     }
   }
 
-  implicit val routeOutFormat = jsonFormat6(RouteOut)
-  implicit val routeInFormat = jsonFormat3(RouteIn)
+  implicit object RouteNameFormat extends RootJsonFormat[RouteName] {
+    override def write(routeName: RouteName): JsValue = routeName match {
+      case ValidRouteName(name)   => JsString(name)
+      case InvalidRouteName(name) => throw new SerializationException(s"Invalid route name: [$routeName]")
+    }
+
+    override def read(json: JsValue): RouteName = {
+      val routeName = json match {
+        case JsString(value) => RouteName(value)
+        case _               => throw new DeserializationException("Error deserializing the route name")
+      }
+      routeName match {
+        case ValidRouteName(_)   => routeName
+        case InvalidRouteName(_) => throw new DeserializationException("Error deserializing the route name! Invalid Name!")
+      }
+    }
+  }
+
+  implicit val routeOutFormat = jsonFormat7(RouteOut)
+  implicit val routeInFormat = jsonFormat4(RouteIn)
 }

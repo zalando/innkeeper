@@ -285,6 +285,7 @@ class JsonProtocolsSpec extends FunSpec with Matchers {
     )
 
     val routeIn = RouteIn(
+      RouteName("THE_ROUTE"),
       newRoute,
       Some(LocalDateTime.of(2015, 10, 10, 10, 10, 10)),
       Some("this is a route")
@@ -292,6 +293,7 @@ class JsonProtocolsSpec extends FunSpec with Matchers {
 
     it("should unmarshall the RouteIn") {
       val route = """{
+                    |  "name": "THE_ROUTE",
                     |  "description": "this is a route",
                     |  "activateAt": "2015-10-10T10:10:10",
                     |  "route": {
@@ -309,6 +311,7 @@ class JsonProtocolsSpec extends FunSpec with Matchers {
     it("should marshall the RouteIn") {
       routeIn.toJson.prettyPrint should be {
         """{
+          |  "name": "THE_ROUTE",
           |  "route": {
           |    "matcher": {
           |      "pathMatcher": {
@@ -335,6 +338,7 @@ class JsonProtocolsSpec extends FunSpec with Matchers {
     )
 
     val routeOut = RouteOut(1,
+      RouteName("THE_ROUTE"),
       newRoute,
       LocalDateTime.of(2015, 10, 10, 10, 10, 10),
       Some(LocalDateTime.of(2015, 10, 10, 10, 10, 10)),
@@ -344,6 +348,7 @@ class JsonProtocolsSpec extends FunSpec with Matchers {
 
     it("should unmarshall the RouteOut") {
       val route = """{
+                    |  "name": "THE_ROUTE",
                     |  "description": "this is a route",
                     |  "activateAt": "2015-10-10T10:10:10",
                     |  "id": 1,
@@ -366,6 +371,7 @@ class JsonProtocolsSpec extends FunSpec with Matchers {
       routeOut.toJson.prettyPrint should be {
         """{
           |  "deletedAt": "2015-10-10T10:10:10",
+          |  "name": "THE_ROUTE",
           |  "description": "this is a route",
           |  "activateAt": "2015-10-10T10:10:10",
           |  "id": 1,

@@ -89,6 +89,7 @@ class RoutesServiceSpec extends FunSpec with Matchers with MockFactory with Scal
       val result = routesService.allRoutes
       val route = result.runWith(Sink.head).futureValue
       route.id should be(routeId)
+      route.name should be(RouteName("THE_ROUTE"))
       route.description should be(Some("The New Route"))
     }
 
@@ -154,12 +155,13 @@ class RoutesServiceSpec extends FunSpec with Matchers with MockFactory with Scal
 
   val createdAt = LocalDateTime.now()
   val activatedAt = LocalDateTime.now()
-  val savedRoute = RouteOut(routeId, newRoute, createdAt, Some(activatedAt), Some(description))
-  val routeIn = RouteIn(newRoute, Some(activatedAt), Some(description))
+  val routeName = RouteName("THE_ROUTE")
+  val savedRoute = RouteOut(routeId, routeName, newRoute, createdAt, Some(activatedAt), Some(description))
+  val routeIn = RouteIn(routeName, newRoute, Some(activatedAt), Some(description))
 
-  val routeRowWithoutId = RouteRow(None, newRouteJson, createdAt, Some(description), activatedAt)
+  val routeRowWithoutId = RouteRow(None, routeName.name, newRouteJson, createdAt, Some(description), activatedAt)
 
-  val routeOut = RouteRow(Some(routeId), newRouteJson, createdAt, Some(description), activatedAt)
+  val routeOut = RouteRow(Some(routeId), routeName.name, newRouteJson, createdAt, Some(description), activatedAt)
 
-  val routeRow = new RouteRow(Some(1), newRouteJson, createdAt, Some(description), activatedAt)
+  val routeRow = new RouteRow(Some(1), routeName.name, newRouteJson, createdAt, Some(description), activatedAt)
 }

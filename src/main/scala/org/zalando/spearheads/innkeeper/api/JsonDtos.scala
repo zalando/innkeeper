@@ -7,7 +7,24 @@ import scala.collection.immutable.Seq
 /**
  * @author dpersa
  */
-trait Route {
+sealed trait RouteName {
+  def name: String
+}
+
+case class ValidRouteName private[api] (name: String) extends RouteName
+
+case class InvalidRouteName private[api] (name: String) extends RouteName
+
+object RouteName {
+  def apply(name: String) = "[A-Z][A-Z0-9_]*".r.unapplySeq(name) match {
+    case Some(n) => ValidRouteName(name)
+    case None    => InvalidRouteName(name)
+  }
+}
+
+sealed trait Route {
+  def name: RouteName
+
   def route: NewRoute
 
   def activateAt: Option[LocalDateTime]
@@ -15,11 +32,13 @@ trait Route {
   def description: Option[String]
 }
 
-case class RouteIn(route: NewRoute,
+case class RouteIn(name: RouteName,
+                   route: NewRoute,
                    activateAt: Option[LocalDateTime],
                    description: Option[String] = None) extends Route
 
 case class RouteOut(id: Long,
+                    name: RouteName,
                     route: NewRoute,
                     createdAt: LocalDateTime,
                     activateAt: Option[LocalDateTime],
@@ -35,7 +54,7 @@ case class Matcher(hostMatcher: Option[String] = None,
                    methodMatcher: Option[String] = None,
                    headerMatchers: Option[Seq[HeaderMatcher]] = Some(Seq.empty))
 
-trait PathMatcher {
+sealed trait PathMatcher {
   def matcher: String
 }
 
