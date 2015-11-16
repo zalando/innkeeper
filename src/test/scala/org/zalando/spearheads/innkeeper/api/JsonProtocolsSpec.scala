@@ -341,7 +341,7 @@ class JsonProtocolsSpec extends FunSpec with Matchers {
       RouteName("THE_ROUTE"),
       newRoute,
       LocalDateTime.of(2015, 10, 10, 10, 10, 10),
-      Some(LocalDateTime.of(2015, 10, 10, 10, 10, 10)),
+      LocalDateTime.of(2015, 10, 10, 10, 10, 10),
       Some("this is a route"),
       Some(LocalDateTime.of(2015, 10, 10, 10, 10, 10))
     )

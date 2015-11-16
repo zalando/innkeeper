@@ -75,7 +75,7 @@ class RoutesService @Inject() (implicit val executionContext: ExecutionContext,
       name = RouteName(routeRow.name),
       route = routeRow.routeJson.parseJson.convertTo[NewRoute],
       createdAt = routeRow.createdAt,
-      activateAt = Some(routeRow.activateAt),
+      activateAt = routeRow.activateAt,
       description = routeRow.description,
       deletedAt = routeRow.deletedAt)
   }

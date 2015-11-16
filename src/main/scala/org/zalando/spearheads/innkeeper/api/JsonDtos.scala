@@ -27,8 +27,6 @@ sealed trait Route {
 
   def route: NewRoute
 
-  def activateAt: Option[LocalDateTime]
-
   def description: Option[String]
 }
 
@@ -41,7 +39,7 @@ case class RouteOut(id: Long,
                     name: RouteName,
                     route: NewRoute,
                     createdAt: LocalDateTime,
-                    activateAt: Option[LocalDateTime],
+                    activateAt: LocalDateTime,
                     description: Option[String] = None,
                     deletedAt: Option[LocalDateTime] = None) extends Route
 
