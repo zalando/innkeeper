@@ -6,6 +6,7 @@ import akka.actor.ActorSystem
 import akka.http.scaladsl.server.PathMatcher
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Sink
+import com.typesafe.config.Config
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.{ FunSpec, Matchers }
@@ -28,8 +29,9 @@ class RoutesServiceSpec extends FunSpec with Matchers with MockFactory with Scal
   implicit val actorSystem = ActorSystem()
   implicit val materializer = ActorMaterializer()
   val routesRepo = mock[RoutesRepo]
+  val config = mock[Config]
 
-  val routesService = new RoutesService()(executionContext, routesRepo)
+  val routesService = new RoutesService()(executionContext, routesRepo, config)
 
   describe("#createRoute") {
 
@@ -41,6 +43,18 @@ class RoutesServiceSpec extends FunSpec with Matchers with MockFactory with Scal
       val result = routesService.createRoute(routeIn, createdAt).futureValue
 
       result should be(Some(savedRoute))
+    }
+
+    it("should createRoute without an activateAt") {
+      (config.getString _).expects("innkeeper.env").returning("test")
+      (config.getInt _).expects("test.defaultNumberOfMinutesToActivateRoute").returning(5)
+
+      (routesRepo.insert _).expects(routeRowWithoutId.copy(activateAt = createdAt.plusMinutes(5)))
+        .returning(Future(routeOut.copy(activateAt = createdAt.plusMinutes(5))))
+
+      val result = routesService.createRoute(routeInNoActivationDate, createdAt).futureValue
+
+      result should be(Some(savedRoute.copy(activateAt = createdAt.plusMinutes(5))))
     }
 
     it("should fail to createRoute") {
@@ -151,13 +165,14 @@ class RoutesServiceSpec extends FunSpec with Matchers with MockFactory with Scal
     )
   )
 
-  val newRouteJson = newRoute.toJson.prettyPrint
+  val newRouteJson = newRoute.toJson.compactPrint
 
   val createdAt = LocalDateTime.now()
   val activateAt = LocalDateTime.now()
   val routeName = RouteName("THE_ROUTE")
   val savedRoute = RouteOut(routeId, routeName, newRoute, createdAt, activateAt, Some(description))
   val routeIn = RouteIn(routeName, newRoute, Some(activateAt), Some(description))
+  val routeInNoActivationDate = RouteIn(routeName, newRoute, None, Some(description))
 
   val routeRowWithoutId = RouteRow(None, routeName.name, newRouteJson, createdAt, Some(description), activateAt)
 

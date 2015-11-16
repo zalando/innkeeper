@@ -4,6 +4,7 @@ import java.time.LocalDateTime
 
 import akka.stream.scaladsl.Source
 import com.google.inject.Inject
+import com.typesafe.config.Config
 import org.zalando.spearheads.innkeeper.api._
 import org.zalando.spearheads.innkeeper.dao.{ RoutesRepo, RouteRow }
 import org.zalando.spearheads.innkeeper.services.RoutesService.RoutesServiceResult
@@ -16,19 +17,25 @@ import scala.concurrent.{ Future, ExecutionContext }
  * @author dpersa
  */
 class RoutesService @Inject() (implicit val executionContext: ExecutionContext,
-                               val routesRepo: RoutesRepo) {
+                               val routesRepo: RoutesRepo, val config: Config) {
 
   def createRoute(route: RouteIn, createdAt: LocalDateTime = LocalDateTime.now()): Future[Option[RouteOut]] = {
 
     val routeRow = RouteRow(id = None,
       name = route.name.name,
-      routeJson = route.route.toJson.prettyPrint,
+      routeJson = route.route.toJson.compactPrint,
       createdAt = createdAt,
       description = route.description,
-      activateAt = route.activateAt.getOrElse(createdAt.plusMinutes(5))
+      activateAt = route.activateAt.getOrElse(createdAt.plusMinutes {
+        defaultNumberOfMinutesToActivateRoute()
+      })
     )
 
     routesRepo.insert(routeRow).flatMap(rowToEventualMaybeRoute)
+  }
+
+  private[services] def defaultNumberOfMinutesToActivateRoute() = {
+    config.getInt(s"${config.getString("innkeeper.env")}.defaultNumberOfMinutesToActivateRoute")
   }
 
   def removeRoute(id: Long): Future[RoutesServiceResult] = {

@@ -93,21 +93,24 @@ object JsonProtocols {
 
   implicit object MatcherFormat extends RootJsonFormat[Matcher] {
 
-    private def validate(matcher: Matcher, ex: Exception) = {
+    private def validate(matcher: Matcher, f: () => Exception) = {
       if ((!matcher.headerMatchers.isDefined || matcher.headerMatchers.get.isEmpty) &&
         !matcher.hostMatcher.isDefined &&
         !matcher.methodMatcher.isDefined &&
         !matcher.pathMatcher.isDefined) {
-        throw ex
+        throw f()
       }
       matcher
     }
+
+    private val exceptionMessage =
+      "At least one of the fields in the matcher should be defined"
 
     override def write(matcher: Matcher): JsValue = {
       matcherFormat.write {
         validate(
           matcher,
-          new SerializationException("At least one of the fields in the matcher should be defined")
+          () => new SerializationException(exceptionMessage)
         )
       }
     }
@@ -116,12 +119,9 @@ object JsonProtocols {
       val matcher = matcherFormat.read(json)
 
       val matcherWithDefaults = matcher.copy(
-        hostMatcher = matcher.hostMatcher.orElse(None),
-        pathMatcher = matcher.pathMatcher.orElse(None),
-        methodMatcher = matcher.methodMatcher.orElse(None),
         headerMatchers = matcher.headerMatchers.orElse(Some(Seq.empty))
       )
-      validate(matcherWithDefaults, new DeserializationException("At least one of the fields in the matcher should be defined"))
+      validate(matcherWithDefaults, () => new DeserializationException(exceptionMessage))
     }
   }
 
@@ -142,19 +142,13 @@ object JsonProtocols {
   }
 
   implicit object RouteNameFormat extends RootJsonFormat[RouteName] {
-    override def write(routeName: RouteName): JsValue = routeName match {
-      case ValidRouteName(name)   => JsString(name)
-      case InvalidRouteName(name) => throw new SerializationException(s"Invalid route name: [$routeName]")
-    }
+
+    override def write(routeName: RouteName): JsValue = JsString(routeName.name)
 
     override def read(json: JsValue): RouteName = {
-      val routeName = json match {
+      json match {
         case JsString(value) => RouteName(value)
         case _               => throw new DeserializationException("Error deserializing the route name")
-      }
-      routeName match {
-        case ValidRouteName(_)   => routeName
-        case InvalidRouteName(_) => throw new DeserializationException("Error deserializing the route name! Invalid Name!")
       }
     }
   }

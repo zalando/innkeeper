@@ -9,7 +9,7 @@ case class RouteRow(id: Option[Long] = None,
                     routeJson: String,
                     createdAt: LocalDateTime = LocalDateTime.now(),
                     description: Option[String] = None,
-                    activateAt: LocalDateTime = LocalDateTime.now().plusMinutes(5),
+                    activateAt: LocalDateTime,
                     deletedAt: Option[LocalDateTime] = None)
 
 // A Routes table with 4 columns: id, route_json, created_at, deleted_at
