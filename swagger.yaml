@@ -6,7 +6,7 @@ info:
     and define non-wildcard paths to all relevant users in employee realm as
     well as, some service realm clients (e.g. CMS). Creation of wildcard routes
     is reserved for maintainers of this API as it requires special care.
-  version: 1.0.1
+  version: 2.0.0
 host: innkeeper.host.eu
 schemes:
   - https
@@ -70,7 +70,7 @@ paths:
           schema:
             type: array
             items:
-              $ref: '#/definitions/Route'
+              $ref: '#/definitions/RouteOut'
         default:
           description: A processing or an unexpected error.
           schema:
@@ -93,7 +93,7 @@ paths:
         '201':
           description: The route is created.
           schema:
-            $ref: '#/definitions/Route'
+            $ref: '#/definitions/RouteIn'
           headers:
             Location:
               type: string
@@ -123,7 +123,7 @@ paths:
         '200':
           description: A route with a given `id`.
           schema:
-            $ref: '#/definitions/Route'
+            $ref: '#/definitions/RouteOut'
         '404':
           description: Happens when trying to access a non-existent Route.
           schema:
@@ -151,7 +151,7 @@ paths:
         '200':
           description: Information about a deleted route
           schema:
-            $ref: '#/definitions/Route'
+            $ref: '#/definitions/RouteOut'
         '403':
           description: |
             Usually happens in a case of insufficient permissions.
@@ -184,128 +184,70 @@ paths:
           schema:
             type: array
             items:
-              $ref: '#/definitions/Route'
+              $ref: '#/definitions/RouteOut'
         default:
           description: A processing or an unexpected error.
           schema:
             $ref: '#/definitions/Error'
 definitions:
-  Route:
-    allOf:
-      - $ref: '#/definitions/NewRoute'
-      - required:
-          - id
-          - createdAt
-        properties:
-          id:
-            type: integer
-            format: int64
-          createdAt:
-            type: string
-            description: The ISO-8601 date time when the route has been created
-          deletedAt:
-            type: string
-            description: The ISO-8601 date time when the route has been deleted
-  NewRoute:
-    required:
-      - description
-      - match_path
-      - endpoint
-    properties:
-      description:
-        type: string
-        description: |
-          Human readable description of a route
-      match_methods:
-        type: array
-        items:
-          enum:
-            - GET
-            - POST
-            - PUT
-            - DELETE
-            - HEAD
-            - OPTIONS
-            - PATCH
-        default: ['GET']
-        description: HTTP method to match.
-      match_headers:
-        type: array
-        items:
-          $ref: '#/definitions/Header'
-        default: []
-        description: |
-          Array of HTTP headers that are used to match the request,
-          the most common one would probable be “Host”.
-      match_path:
-        $ref: '#/definitions/PathMatcher'
-        description: HTTP path to match
-      path_rewrite:
-        $ref: '#/definitions/PathRewrite'
-        description: |
-          Definition of request to endpoint Path rewrite.
-      request_headers:
-        type: array
-        items:
-          $ref: '#/definitions/Header'
-        default: []
-        description: |
-          Array of HTTP headers that are set for the forwarded request.
-      response_headers:
-        type: array
-        items:
-          $ref: '#/definitions/Header'
-        default: []
-        description: |
-          Array of HTTP headers that are set for the response of `REVERSE_PROXY`
-          or a for `PERMANENT_REDIRECT` endpoints.
-      endpoint:
-        $ref: '#/definitions/Endpoint'
-        description: |
-          A valid http(s) endpoint that the request should be routed to
-  Endpoint:
-    required:
-      - hostname
-    properties:
-      type:
-        type: string
-        enum:
-          - REVERSE_PROXY
-          - PERMANENT_REDIRECT
-        default: REVERSE_PROXY
-      hostname:
-        type: string
-        description: Hostname or IP address of the route endpoint
-      port:
-        type: integer
-        format: int32
-        minimum: 0
-        maximum: 65535
-        default: 443
-        description: Port of the endpoint to connect to
-      protocol:
-        type: string
-        enum:
-          - HTTPS
-          - HTTP
-        default: HTTPS
-        description: Endpoint protocol, usually `HTTPS`.
-      path:
-        type: string
-        default: ''
-        description: The path of the route endpoint
-  Header:
+  RouteIn:
     required:
       - name
-      - value
+      - route
     properties:
       name:
         type: string
-        pattern: \w{1,}(-\w{1,})*
-        description: HTTP header name for a match or a filter
-      value:
+        pattern: /[A-Z][A-Z0-9_]*
+        description: The name of the route in the ROUTE_NAME format
+      activatedAt:
         type: string
-        description: Exact value of the header
+        description: The ISO-8601 date time when the route will be activated
+      route:
+        $ref: '#/definitions/NewRoute'
+
+  RouteOut:
+    required:
+      - id
+      - name
+      - route
+      - createdAt
+      - activatedAt
+    properties:
+      id:
+        type: integer
+        format: int64
+      name:
+        type: string
+        pattern: \[A-Z][A-Z0-9_]*
+        description: The name of the route in the ROUTE_NAME format
+      createdAt:
+        type: string
+        description: The ISO-8601 date time when the route has been created
+      activatedAt:
+        type: string
+        description: The ISO-8601 date time when the route will be activated
+      deletedAt:
+        type: string
+        description: The ISO-8601 date time when the route has been deleted
+      route:
+        $ref: '#/definitions/NewRoute'
+  NewRoute:
+    required:
+      - matcher
+      - endpoint
+    properties:
+      matcher:
+        $ref: '#/definitions/Matcher'
+        description: |
+          Definition of the matcher
+      filters:
+        $ref: '#/definitions/Filter'
+        description: |
+          Definition of filters to be applied
+      endpoint:
+        type: string
+        description: |
+          A valid http(s) endpoint that the request should be routed to
   PathMatcher:
     required:
       - type
@@ -318,28 +260,71 @@ definitions:
           - REGEXP
         description: |
           Defines the type of matching that will be used for a path.
-          The usage of REGEXP path is only allowed for employee realm
-          admin users.
+          The usage of REGEXP path is only allowed for users with the routes.write_regex scope
       match:
         type: string
         description: |
           Depending on the `type`, this is either a plain string for `STRICT`
           or ECMA-262 valid regular expression for `REGEXP`.
-  PathRewrite:
+  HeaderMatcher:
     required:
-      - match
-      - replace
+      - type
+      - name
+      - value
+    description: |
+      Array of HTTP headers that are used to match the request, the most common one would probable be “Host”.
     properties:
-      match:
+      type:
+        type: string
+        enum:
+          - STRICT
+          - REGEXP
+        description: |
+          Defines the type of matching that will be used for a header.
+          The usage of REGEXP path is only allowed for users with the routes.write_regex scope
+      name:
+        type: string
+        pattern: \w{1,}(-\w{1,})*
+        description: HTTP header name
+      value:
         type: string
         description: |
-          A valid ECMA-262 regular expression. If you want to completely
-          replace the path, leave it as a default value.
-      replace:
+          Depending on the `type`, this is either a plain string for `STRICT` or ECMA-262 valid regular expression for `REGEXP`.
+  Matcher:
+    properties:
+      hostMatcher:
+        type: string
+        description: Matches the host of a request
+      pathMatcher:
+        $ref: '#/definitions/PathMatcher'
+        description: The path matcher
+      methodMatcher:
+        type: string
+        items:
+          enum:
+            - GET
+            - POST
+            - PUT
+            - DELETE
+            - HEAD
+            - OPTIONS
+            - PATCH
+        description: HTTP method to match.
+      headerMatcher:
+        type: array
+        $ref: '#/definitions/HeaderMatcher'
+  Filter:
+    required:
+      - name
+      - args
+    properties:
+      name:
         type: string
         description: |
-          A string, optionally containing group placeholders $1, $2, etc.
-          To use a literal `$`, please use `$$`.
+          The name of the filter, as it is definined in Skipper
+      args:
+        type: array
+        description: The arguments for the filters, can be string or int32
   Error:
     required:
       - type
