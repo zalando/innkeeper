@@ -9,13 +9,20 @@ import scala.collection.immutable.Seq
  */
 
 case class RouteName(name: String) {
-  "[A-Z][A-Z0-9_]*".r.unapplySeq(name) match {
+
+  RouteName.validRouteNamePattern.r.unapplySeq(name) match {
     case None => throw InvalidRouteNameException
     case _    =>
   }
 }
 
-object InvalidRouteNameException extends RuntimeException("Invalid route name. The name should match [A-Z][A-Z0-9_]*")
+object RouteName {
+  val validRouteNamePattern = "[A-Z][A-Z0-9_]*"
+}
+
+object InvalidRouteNameException
+  extends RuntimeException(
+    s"Invalid route name. The name should match ${RouteName.validRouteNamePattern}")
 
 sealed trait Route {
   def name: RouteName
