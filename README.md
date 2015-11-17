@@ -30,19 +30,21 @@ To run the integration test suite, run `sbt it:test`.
 ### Inserting a new route manually
 
 ```bash    
-curl -XPOST localhost:8080/routes -d '{
-    "description": "the description",
-    "match_path": {
-      "match": "/hello",
-      "type": "STRICT"
+curl -i -XPOST localhost:8080/routes -d '{
+    "route": {
+      "matcher": {
+        "pathMatcher": {
+          "match": "/hello-*",
+          "type": "REGEX"
+        },
+        "headerMatchers": []
+      },
+      "filters": []
     },
-    "endpoint": {
-      "hostname": "domain.eu",
-      "port": 443,
-      "protocol": "HTTPS",
-      "type": "REVERSE_PROXY"
-    }
-  }' -H 'Content-Type: application/json' -H 'Authorization: oauth-token'
+    "activateAt": "2015-10-10T10:10:10",
+    "description": "this is a route",
+    "name": "THE_ROUTE"
+    }' -H 'Content-Type: application/json' -H 'Authorization: oauth-token'
 ```
 
 ### Getting all routes

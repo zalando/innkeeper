@@ -3,20 +3,21 @@ package org.zalando.spearheads.innkeeper.services
 import java.time.LocalDateTime
 
 import akka.actor.ActorSystem
+import akka.http.scaladsl.server.PathMatcher
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Sink
+import com.typesafe.config.Config
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.{ FunSpec, Matchers }
 import org.zalando.spearheads.innkeeper.FakeDatabasePublisher
 import org.zalando.spearheads.innkeeper.api.JsonProtocols._
-import org.zalando.spearheads.innkeeper.api.PathMatcher.Strict
 import org.zalando.spearheads.innkeeper.api._
-import org.zalando.spearheads.innkeeper.dao.{ RoutesRepo, RouteRow }
+import org.zalando.spearheads.innkeeper.dao.{ RouteRow, RoutesRepo }
 import spray.json._
 
 import scala.concurrent.duration._
-import scala.concurrent.{ Await, Future, ExecutionContext }
+import scala.concurrent.{ Await, ExecutionContext, Future }
 import scala.language.postfixOps
 
 /**
@@ -28,19 +29,32 @@ class RoutesServiceSpec extends FunSpec with Matchers with MockFactory with Scal
   implicit val actorSystem = ActorSystem()
   implicit val materializer = ActorMaterializer()
   val routesRepo = mock[RoutesRepo]
+  val config = mock[Config]
 
-  val routesService = new RoutesService()(executionContext, routesRepo)
+  val routesService = new RoutesService()(executionContext, routesRepo, config)
 
   describe("#createRoute") {
 
     it("should createRoute") {
 
       (routesRepo.insert _).expects(routeRowWithoutId)
-        .returning(Future(routeRowWithId))
+        .returning(Future(routeOut))
 
-      val result = routesService.createRoute(newRoute, createdAt).futureValue
+      val result = routesService.createRoute(routeIn, createdAt).futureValue
 
       result should be(Some(savedRoute))
+    }
+
+    it("should createRoute without an activateAt") {
+      (config.getString _).expects("innkeeper.env").returning("test")
+      (config.getInt _).expects("test.defaultNumberOfMinutesToActivateRoute").returning(5)
+
+      (routesRepo.insert _).expects(routeRowWithoutId.copy(activateAt = createdAt.plusMinutes(5)))
+        .returning(Future(routeOut.copy(activateAt = createdAt.plusMinutes(5))))
+
+      val result = routesService.createRoute(routeInNoActivationDate, createdAt).futureValue
+
+      result should be(Some(savedRoute.copy(activateAt = createdAt.plusMinutes(5))))
     }
 
     it("should fail to createRoute") {
@@ -48,7 +62,7 @@ class RoutesServiceSpec extends FunSpec with Matchers with MockFactory with Scal
       (routesRepo.insert _).expects(routeRowWithoutId)
         .returning(Future(routeRowWithoutId))
 
-      val result = routesService.createRoute(newRoute, createdAt).futureValue
+      val result = routesService.createRoute(routeIn, createdAt).futureValue
 
       result should be(None)
     }
@@ -89,7 +103,8 @@ class RoutesServiceSpec extends FunSpec with Matchers with MockFactory with Scal
       val result = routesService.allRoutes
       val route = result.runWith(Sink.head).futureValue
       route.id should be(routeId)
-      route.route.description should be("The New Route")
+      route.name should be(RouteName("THE_ROUTE"))
+      route.description should be(Some("The New Route"))
     }
 
     it("should return an empty list if there are no routes") {
@@ -117,7 +132,7 @@ class RoutesServiceSpec extends FunSpec with Matchers with MockFactory with Scal
 
         routeOption.isDefined should be(true)
         routeOption.get.id should be(routeId)
-        routeOption.get.route.description should be("The New Route")
+        routeOption.get.description should be(Some("The New Route"))
       }
     }
 
@@ -142,31 +157,26 @@ class RoutesServiceSpec extends FunSpec with Matchers with MockFactory with Scal
 
   val routeId: Long = 1
 
-  val newRoute = NewRoute(description = "The New Route",
-    pathMatcher = PathMatcher("/route", Strict),
-    endpoint = Endpoint(hostname = "domain.eu", port = Some(443)))
+  val description = "The New Route"
+
+  val newRoute = NewRoute(
+    matcher = Matcher(
+      pathMatcher = Some(RegexPathMatcher("/hello-*"))
+    )
+  )
+
+  val newRouteJson = newRoute.toJson.compactPrint
 
   val createdAt = LocalDateTime.now()
-  val savedRoute = Route(routeId, newRoute, createdAt)
+  val activateAt = LocalDateTime.now()
+  val routeName = RouteName("THE_ROUTE")
+  val savedRoute = RouteOut(routeId, routeName, newRoute, createdAt, activateAt, Some(description))
+  val routeIn = RouteIn(routeName, newRoute, Some(activateAt), Some(description))
+  val routeInNoActivationDate = RouteIn(routeName, newRoute, None, Some(description))
 
-  val routeRowWithoutId = RouteRow(None, newRoute.toJson.prettyPrint, createdAt)
+  val routeRowWithoutId = RouteRow(None, routeName.name, newRouteJson, createdAt, Some(description), activateAt)
 
-  val routeRowWithId = RouteRow(Some(routeId), newRoute.toJson.prettyPrint, createdAt)
+  val routeOut = RouteRow(Some(routeId), routeName.name, newRouteJson, createdAt, Some(description), activateAt)
 
-  val newRouteString = """{
-                         |  "description": "The New Route",
-                         |  "match_path": {
-                         |    "match": "/route",
-                         |    "type": "STRICT"
-                         |  },
-                         |  "endpoint": {
-                         |    "hostname": "domain.eu",
-                         |    "port": 443,
-                         |    "protocol": "HTTPS",
-                         |    "type": "REVERSE_PROXY"
-                         |  }
-                         |}
-                       """.stripMargin
-
-  val routeRow = new RouteRow(Some(1), newRouteString, createdAt)
+  val routeRow = new RouteRow(Some(1), routeName.name, newRouteJson, createdAt, Some(description), activateAt)
 }

@@ -1,10 +1,10 @@
 package org.zalando.spearheads.innkeeper.api
 
+import java.time.LocalDateTime
+
 import org.scalatest.{ FunSpec, Matchers }
-import org.zalando.spearheads.innkeeper.api.Endpoint.{ PermanentRedirect, Https, ReverseProxy, Http }
-import org.zalando.spearheads.innkeeper.api.PathMatcher.{ Strict, Regex }
-import spray.json.{ DeserializationException, pimpString }
-import org.zalando.spearheads.innkeeper.api.JsonProtocols._
+import spray.json.{ DeserializationException, _ }
+import JsonProtocols._
 
 import scala.collection.immutable.Seq
 
@@ -13,17 +13,91 @@ import scala.collection.immutable.Seq
  */
 class JsonProtocolsSpec extends FunSpec with Matchers {
 
-  describe("PathMatcher") {
-    it("should unmarshall the PathMatcher") {
-      val pathMatcher = """{ "match": "/hello", "type": "REGEX" }""".parseJson.convertTo[PathMatcher]
-      pathMatcher.matcher should be("/hello")
-      pathMatcher.matcherType should be(Regex)
+  describe("HeaderMatcher") {
+
+    describe("StrictHeaderMatcher") {
+      it("should unmarshall the StrictHeaderMatcher") {
+        val headerMatcher = """{"name": "someName", "value": "some value", "type": "STRICT"}""".parseJson.convertTo[HeaderMatcher]
+        headerMatcher.name should be("someName")
+        headerMatcher.value should be("some value")
+        headerMatcher.isInstanceOf[StrictHeaderMatcher] should be(true)
+      }
+
+      it("should marshall the StrictHeaderMatcher") {
+        val headerMatcherJson = StrictHeaderMatcher("someName", "some value").toJson
+        headerMatcherJson.compactPrint should be("""{"name":"someName","value":"some value","type":"STRICT"}""")
+      }
     }
 
-    it("should unmarshall the strict PathMatcher") {
-      val pathMatcher = """{ "match": "/hello", "type": "STRICT" }""".parseJson.convertTo[PathMatcher]
-      pathMatcher.matcher should be("/hello")
-      pathMatcher.matcherType should be(Strict)
+    describe("RegexHeaderMatcher") {
+      it("should unmarshall the RegexHeaderMatcher") {
+        val headerMatcher = """{"name": "someName", "value": "some value", "type": "REGEX"}""".parseJson.convertTo[HeaderMatcher]
+        headerMatcher.name should be("someName")
+        headerMatcher.value should be("some value")
+        headerMatcher.isInstanceOf[RegexHeaderMatcher] should be(true)
+      }
+
+      it("should marshall the RegexHeaderMatcher") {
+        val headerMatcherJson = RegexHeaderMatcher("someName", "some value").toJson
+        headerMatcherJson.compactPrint should be("""{"name":"someName","value":"some value","type":"REGEX"}""")
+      }
+    }
+
+    it("should not unmarshall the HeaderMatcher when the matcher type is empty") {
+
+      intercept[DeserializationException] {
+        """{"name": "someName", "value": "some value", "type": ""}""".parseJson.convertTo[HeaderMatcher]
+      }
+    }
+
+    it("should not unmarshall the HeaderMatcher when the matcher type is missing") {
+
+      intercept[DeserializationException] {
+        """{"name": "someName", "value": "some value"}""".parseJson.convertTo[HeaderMatcher]
+      }
+    }
+  }
+
+  describe("Filter") {
+    it("should unmarshall the Filter") {
+      val filter = """{"name": "someFilter", "args": ["hello", 123]}""".parseJson.convertTo[Filter]
+      filter.name should be("someFilter")
+      filter.args(0) should be(Right("hello"))
+      filter.args(1) should be(Left(123))
+    }
+
+    it("should marshall the Filter") {
+      val filterJson = Filter("someFilter", Seq(Right("Hello"), Left(123))).toJson
+      filterJson.compactPrint should be("""{"name":"someFilter","args":["Hello",123]}""")
+    }
+  }
+
+  describe("PathMatcher") {
+
+    describe("RegexPathMatcher") {
+      it("should unmarshall the RegexPathMatcher") {
+        val pathMatcher = """{ "match": "/hello", "type": "REGEX" }""".parseJson.convertTo[PathMatcher]
+        pathMatcher.matcher should be("/hello")
+        pathMatcher.isInstanceOf[RegexPathMatcher] should be(true)
+      }
+
+      it("should marshall the RegexPathMatcher") {
+        val matcherJson = RegexPathMatcher("someName").toJson
+        matcherJson.compactPrint should be("""{"match":"someName","type":"REGEX"}""")
+      }
+    }
+
+    describe("StrictPathMatcher") {
+      it("should unmarshall the StrictPathMatcher") {
+        val pathMatcher = """{ "match": "/hello", "type": "STRICT" }""".parseJson.convertTo[PathMatcher]
+        pathMatcher.matcher should be("/hello")
+        pathMatcher.isInstanceOf[StrictPathMatcher] should be(true)
+      }
+
+      it("should marshall the StrictPathMatcher") {
+        val matcherJson = StrictPathMatcher("someName").toJson
+        matcherJson.compactPrint should be("""{"match":"someName","type":"STRICT"}""")
+      }
     }
 
     it("should not unmarshall the PathMatcher when the matcher type is empty") {
@@ -41,46 +115,278 @@ class JsonProtocolsSpec extends FunSpec with Matchers {
     }
   }
 
-  describe("PathRewrite") {
-    it("should unmarshall the PathRewrite") {
-      val pathRewrite = """{ "match": "/hello", "replace": "/world" }""".parseJson.convertTo[PathRewrite]
-      pathRewrite.matcher should be("/hello")
-      pathRewrite.replace should be("/world")
+  describe("Matcher") {
+    it("should unmarshall the Matcher") {
+      val matcher = """{
+                      |  "hostMatcher": "example.com",
+                      |  "pathMatcher": {
+                      |    "match": "/hello-*",
+                      |    "type": "REGEX"
+                      |  },
+                      |  "methodMatcher": "POST",
+                      |  "headerMatchers": [{
+                      |    "name": "X-Host",
+                      |    "value": "www.*",
+                      |    "type": "REGEX"
+                      |  }, {
+                      |    "name": "X-Port",
+                      |    "value": "8080",
+                      |    "type": "STRICT"
+                      |  }]
+                      |}""".stripMargin.parseJson.convertTo[Matcher]
+
+      matcher.hostMatcher should be(Some("example.com"))
+      matcher.pathMatcher should be(Some(RegexPathMatcher("/hello-*")))
+      matcher.methodMatcher should be(Some("POST"))
+      matcher.headerMatchers should be(Some(Seq(
+        RegexHeaderMatcher("X-Host", "www.*"),
+        StrictHeaderMatcher("X-Port", "8080"))
+      ))
     }
 
-    it("should unmarshall the PathRewrite when the 'replace' is empty") {
-
-      val pathRewrite = """{ "match": "/hello", "replace": "" }""".parseJson.convertTo[PathRewrite]
-      pathRewrite.matcher should be("/hello")
-      pathRewrite.replace should be("")
-    }
-
-    it("should not unmarshall the PathRewrite when the 'replace' is missing") {
-
+    it("should not unmarshall an empty Matcher") {
       intercept[DeserializationException] {
-        """{ "match": "/hello" }""".parseJson.convertTo[PathRewrite]
+        """{}""".stripMargin.parseJson.convertTo[Matcher]
+      }
+    }
+
+    it("should marshall the Matcher") {
+      val matcherJson = Matcher(
+        hostMatcher = Some("example.com"),
+        pathMatcher = Some(RegexPathMatcher("/hello-*")),
+        methodMatcher = Some("POST"),
+        headerMatchers = Some(Seq(
+          RegexHeaderMatcher("X-Host", "www.*"),
+          StrictHeaderMatcher("X-Port", "8080"))
+        )
+      ).toJson
+
+      matcherJson.prettyPrint should be(
+        """{
+          |  "hostMatcher": "example.com",
+          |  "pathMatcher": {
+          |    "match": "/hello-*",
+          |    "type": "REGEX"
+          |  },
+          |  "methodMatcher": "POST",
+          |  "headerMatchers": [{
+          |    "name": "X-Host",
+          |    "value": "www.*",
+          |    "type": "REGEX"
+          |  }, {
+          |    "name": "X-Port",
+          |    "value": "8080",
+          |    "type": "STRICT"
+          |  }]
+          |}""".stripMargin
+      )
+    }
+
+    it("should not marshall an empty Matcher") {
+      intercept[SerializationException] {
+        Matcher().toJson
       }
     }
   }
 
-  describe("Header") {
-    it("should unmarshall the Header") {
-      val header = """{ "name": "Client-Id", "value": "12345" }""".parseJson.convertTo[Header]
-      header.name should be("Client-Id")
-      header.value should be("12345")
+  describe("New") {
+    it("should unmarshall a simple NewRoute") {
+      val route = """{
+                    |  "matcher": {
+                    |    "pathMatcher": {
+                    |      "match": "/hello-*",
+                    |      "type": "REGEX"
+                    |    }
+                    |  }
+                    |}""".stripMargin.parseJson.convertTo[NewRoute]
+      route.matcher.headerMatchers.isDefined should be(true)
+      route.matcher.headerMatchers.get should be(Seq.empty)
+      route.matcher.pathMatcher.get should be(RegexPathMatcher("/hello-*"))
+      route.filters.get should (be(Seq.empty))
     }
 
-    it("should not unmarshall the Header when the 'value' is missing") {
+    it("should marshall the NewRoute") {
+      val routeJson = NewRoute(
+        matcher = Matcher(
+          hostMatcher = Some("example.com"),
+          pathMatcher = Some(RegexPathMatcher("/hello-*")),
+          methodMatcher = Some("POST"),
+          headerMatchers = Some(Seq(
+            RegexHeaderMatcher("X-Host", "www.*"),
+            StrictHeaderMatcher("X-Port", "8080"))
+          )
+        ),
+        filters = Some(Seq(
+          Filter("someFilter", Seq(Right("Hello"), Left(123))),
+          Filter("someOtherFilter", Seq(Right("Hello"), Left(123), Right("World")))
+        )),
+        endpoint = Some("https://www.endpoint.com:8080/endpoint")
+      ).toJson
 
-      intercept[DeserializationException] {
-        """{ "name": "Client-Id" }""".parseJson.convertTo[Header]
+      routeJson.prettyPrint should be {
+        """{
+          |  "matcher": {
+          |    "hostMatcher": "example.com",
+          |    "pathMatcher": {
+          |      "match": "/hello-*",
+          |      "type": "REGEX"
+          |    },
+          |    "methodMatcher": "POST",
+          |    "headerMatchers": [{
+          |      "name": "X-Host",
+          |      "value": "www.*",
+          |      "type": "REGEX"
+          |    }, {
+          |      "name": "X-Port",
+          |      "value": "8080",
+          |      "type": "STRICT"
+          |    }]
+          |  },
+          |  "filters": [{
+          |    "name": "someFilter",
+          |    "args": ["Hello", 123]
+          |  }, {
+          |    "name": "someOtherFilter",
+          |    "args": ["Hello", 123, "World"]
+          |  }],
+          |  "endpoint": "https://www.endpoint.com:8080/endpoint"
+          |}""".stripMargin
       }
     }
 
-    it("should not unmarshall the Header when the 'name' is missing") {
+    it("should marshall a minimal NewRoute") {
+      val routeJson = NewRoute(
+        matcher = Matcher(
+          pathMatcher = Some(RegexPathMatcher("/hello-*"))
+        )
+      ).toJson
 
-      intercept[DeserializationException] {
-        """{ "value": "12345" }""".parseJson.convertTo[Header]
+      routeJson.prettyPrint should be {
+        """{
+          |  "matcher": {
+          |    "pathMatcher": {
+          |      "match": "/hello-*",
+          |      "type": "REGEX"
+          |    },
+          |    "headerMatchers": []
+          |  },
+          |  "filters": []
+          |}""".stripMargin
+      }
+    }
+  }
+
+  describe("RouteIn") {
+
+    val newRoute = NewRoute(
+      matcher = Matcher(
+        pathMatcher = Some(RegexPathMatcher("/hello-*"))
+      )
+    )
+
+    val routeIn = RouteIn(
+      RouteName("THE_ROUTE"),
+      newRoute,
+      Some(LocalDateTime.of(2015, 10, 10, 10, 10, 10)),
+      Some("this is a route")
+    )
+
+    it("should unmarshall the RouteIn") {
+      val route = """{
+                    |  "name": "THE_ROUTE",
+                    |  "description": "this is a route",
+                    |  "activateAt": "2015-10-10T10:10:10",
+                    |  "route": {
+                    |    "matcher": {
+                    |      "pathMatcher": {
+                    |        "match": "/hello-*",
+                    |        "type": "REGEX"
+                    |      }
+                    |    }
+                    |  }
+                    |}""".stripMargin.parseJson.convertTo[RouteIn]
+      route should be(routeIn)
+    }
+
+    it("should marshall the RouteIn") {
+      routeIn.toJson.prettyPrint should be {
+        """{
+          |  "name": "THE_ROUTE",
+          |  "route": {
+          |    "matcher": {
+          |      "pathMatcher": {
+          |        "match": "/hello-*",
+          |        "type": "REGEX"
+          |      },
+          |      "headerMatchers": []
+          |    },
+          |    "filters": []
+          |  },
+          |  "activateAt": "2015-10-10T10:10:10",
+          |  "description": "this is a route"
+          |}""".stripMargin
+      }
+    }
+  }
+
+  describe("RouteOut") {
+
+    val newRoute = NewRoute(
+      matcher = Matcher(
+        pathMatcher = Some(RegexPathMatcher("/hello-*"))
+      )
+    )
+
+    val routeOut = RouteOut(1,
+      RouteName("THE_ROUTE"),
+      newRoute,
+      LocalDateTime.of(2015, 10, 10, 10, 10, 10),
+      LocalDateTime.of(2015, 10, 10, 10, 10, 10),
+      Some("this is a route"),
+      Some(LocalDateTime.of(2015, 10, 10, 10, 10, 10))
+    )
+
+    it("should unmarshall the RouteOut") {
+      val route = """{
+                    |  "name": "THE_ROUTE",
+                    |  "description": "this is a route",
+                    |  "activateAt": "2015-10-10T10:10:10",
+                    |  "id": 1,
+                    |  "createdAt": "2015-10-10T10:10:10",
+                    |  "deletedAt": "2015-10-10T10:10:10",
+                    |  "route": {
+                    |    "matcher": {
+                    |      "pathMatcher": {
+                    |        "match": "/hello-*",
+                    |        "type": "REGEX"
+                    |      }
+                    |    }
+                    |  }
+                    |}""".stripMargin.parseJson.convertTo[RouteOut]
+      route should be(routeOut)
+    }
+
+    it("should marshall the RouteOut") {
+
+      routeOut.toJson.prettyPrint should be {
+        """{
+          |  "deletedAt": "2015-10-10T10:10:10",
+          |  "name": "THE_ROUTE",
+          |  "description": "this is a route",
+          |  "activateAt": "2015-10-10T10:10:10",
+          |  "id": 1,
+          |  "createdAt": "2015-10-10T10:10:10",
+          |  "route": {
+          |    "matcher": {
+          |      "pathMatcher": {
+          |        "match": "/hello-*",
+          |        "type": "REGEX"
+          |      },
+          |      "headerMatchers": []
+          |    },
+          |    "filters": []
+          |  }
+          |}""".stripMargin
       }
     }
   }
@@ -92,133 +398,6 @@ class JsonProtocolsSpec extends FunSpec with Matchers {
       error.title should be("Error Title")
       error.errorType should be("ERR")
       error.detail should be(Some("Error Detail"))
-    }
-  }
-
-  describe("Endpoint") {
-    it("should unmarshall the Endpoint") {
-      val endpoint = """{ "hostname": "domain.eu", "port": 8080, "protocol": "HTTPS", "type": "REVERSE_PROXY" }"""
-        .parseJson.convertTo[Endpoint]
-
-      endpoint.hostname should be("domain.eu")
-      endpoint.port should be(Some(8080))
-      endpoint.protocol should be(Some(Https))
-      endpoint.path should be(None)
-      endpoint.endpointType should be(Some(ReverseProxy))
-    }
-
-    it("should unmarshall another Endpoint") {
-      val endpoint =
-        """{ "hostname": "domain.eu", "port": 8080, "protocol": "HTTP",
-          |"path": "/route", "type": "PERMANENT_REDIRECT" }""".stripMargin
-          .parseJson.convertTo[Endpoint]
-
-      endpoint.hostname should be("domain.eu")
-      endpoint.port should be(Some(8080))
-      endpoint.protocol should be(Some(Http))
-      endpoint.path should be(Some("/route"))
-      endpoint.endpointType should be(Some(PermanentRedirect))
-    }
-
-    it("should unmarshall an Endpoint without protocol and endpointType") {
-      val endpoint = """{ "hostname": "domain.eu", "port": 8080 }"""
-        .parseJson.convertTo[Endpoint]
-
-      endpoint.hostname should be("domain.eu")
-      endpoint.port should be(Some(8080))
-      endpoint.protocol should be(Some(Https))
-      endpoint.path should be(None)
-      endpoint.endpointType should be(Some(ReverseProxy))
-    }
-
-    it("should unmarshall a Enpoint without a port") {
-      val endpoint = """{ "hostname": "domain.eu", "protocol": "HTTP", "path": "/route", "type": "PERMANENT_REDIRECT" }""".parseJson.convertTo[Endpoint]
-      endpoint.hostname should be("domain.eu")
-      endpoint.port should be(Some(443))
-      endpoint.protocol should be(Some(Http))
-      endpoint.path should be(Some("/route"))
-      endpoint.endpointType should be(Some(PermanentRedirect))
-    }
-
-    it("should not unmarshall an Enpoint without a hostname") {
-      intercept[DeserializationException] {
-        """{ "port": 8080, "protocol": "HTTP", "type": "PERMANENT_REDIRECT" }""".parseJson.convertTo[Endpoint]
-      }
-    }
-  }
-
-  describe("NewRoute") {
-    it("should unmarshall the NewRoute") {
-
-      val route = """{
-                    |  "path_rewrite": {
-                    |    "match": "/hello",
-                    |    "replace": "/world"
-                    |  },
-                    |  "response_headers": [{
-                    |    "name": "Some-Header",
-                    |    "value": "Value"
-                    |  }],
-                    |  "description": "the description",
-                    |  "request_headers": [{
-                    |    "name": "Client-Id",
-                    |    "value": "12345"
-                    |  }],
-                    |  "match_headers": [{
-                    |    "name": "Host",
-                    |    "value": "domain.eu"
-                    |  }],
-                    |  "match_path": {
-                    |    "match": "/hello",
-                    |    "type": "STRICT"
-                    |  },
-                    |  "endpoint": {
-                    |    "hostname": "domain.eu",
-                    |    "port": 443,
-                    |    "protocol": "HTTPS",
-                    |    "type": "REVERSE_PROXY"
-                    |  },
-                    |  "match_methods": ["GET", "POST"]
-                    |}
-                  """.stripMargin.parseJson.convertTo[NewRoute]
-
-      val expectedRoute = NewRoute(description = "the description",
-        pathMatcher = PathMatcher("/hello", Strict),
-        endpoint = Endpoint(hostname = "domain.eu", port = Some(443)),
-        headerMatchers = Some(Seq(Header("Host", "domain.eu"))),
-        methodMatchers = Some(Seq("GET", "POST")),
-        requestHeaders = Some(Seq(Header("Client-Id", "12345"))),
-        responseHeaders = Some(Seq(Header("Some-Header", "Value"))),
-        pathRewrite = Some(PathRewrite("/hello", "/world")))
-
-      route.should(be(expectedRoute))
-    }
-
-    it("should unmarshall a minimal NewRoute") {
-
-      val route = """{
-                    |  "description": "the description",
-                    |  "match_path": {
-                    |    "match": "/hello",
-                    |    "type": "STRICT"
-                    |  },
-                    |  "endpoint": {
-                    |    "hostname": "domain.eu",
-                    |    "port": 443,
-                    |    "protocol": "HTTPS",
-                    |    "type": "REVERSE_PROXY"
-                    |  }
-                    |}
-                  """.stripMargin.parseJson.convertTo[NewRoute]
-
-      val expectedRoute = NewRoute(description = "the description",
-        pathMatcher = PathMatcher("/hello", Strict),
-        endpoint = Endpoint(hostname = "domain.eu", port = Some(443)),
-        headerMatchers = Some(Seq.empty),
-        methodMatchers = Some(Seq("GET")),
-        requestHeaders = Some(Seq.empty),
-        responseHeaders = Some(Seq.empty))
-      route.should(be(expectedRoute))
     }
   }
 }

@@ -4,7 +4,8 @@ import java.time.LocalDateTime
 
 import akka.stream.scaladsl.Source
 import com.google.inject.Inject
-import org.zalando.spearheads.innkeeper.api.{ NewRoute, Route }
+import com.typesafe.config.Config
+import org.zalando.spearheads.innkeeper.api._
 import org.zalando.spearheads.innkeeper.dao.{ RoutesRepo, RouteRow }
 import org.zalando.spearheads.innkeeper.services.RoutesService.RoutesServiceResult
 import spray.json._
@@ -16,13 +17,25 @@ import scala.concurrent.{ Future, ExecutionContext }
  * @author dpersa
  */
 class RoutesService @Inject() (implicit val executionContext: ExecutionContext,
-                               val routesRepo: RoutesRepo) {
+                               val routesRepo: RoutesRepo, val config: Config) {
 
-  def createRoute(route: NewRoute, createdAt: LocalDateTime = LocalDateTime.now()): Future[Option[Route]] = {
+  def createRoute(route: RouteIn, createdAt: LocalDateTime = LocalDateTime.now()): Future[Option[RouteOut]] = {
 
-    val routeRow = RouteRow(None, route.toJson.prettyPrint, createdAt)
+    val routeRow = RouteRow(id = None,
+      name = route.name.name,
+      routeJson = route.route.toJson.compactPrint,
+      createdAt = createdAt,
+      description = route.description,
+      activateAt = route.activateAt.getOrElse(createdAt.plusMinutes {
+        defaultNumberOfMinutesToActivateRoute()
+      })
+    )
 
     routesRepo.insert(routeRow).flatMap(rowToEventualMaybeRoute)
+  }
+
+  private[services] def defaultNumberOfMinutesToActivateRoute() = {
+    config.getInt(s"${config.getString("innkeeper.env")}.defaultNumberOfMinutesToActivateRoute")
   }
 
   def removeRoute(id: Long): Future[RoutesServiceResult] = {
@@ -33,47 +46,45 @@ class RoutesService @Inject() (implicit val executionContext: ExecutionContext,
     }
   }
 
-  def findModifiedSince(localDateTime: LocalDateTime): Source[Route, Unit] = {
+  def findModifiedSince(localDateTime: LocalDateTime): Source[RouteOut, Unit] = {
     Source(
-      routesRepo.selectModifiedSince(localDateTime).mapResult { row =>
-        row.id.map { id =>
-          Route(
-            id = id,
-            route = row.routeJson.parseJson.convertTo[NewRoute],
-            row.createdAt,
-            row.deletedAt
-          )
+      routesRepo.selectModifiedSince(localDateTime).mapResult { routeRow =>
+        routeRow.id.map { id =>
+          routeRowToRoute(id, routeRow)
         }
       }
     ).mapConcat(_.toList)
   }
 
-  def allRoutes: Source[Route, Unit] = {
-    Source(routesRepo.selectAll.mapResult { row =>
-      row.id.map { id =>
-        Route(
-          id,
-          row.routeJson.parseJson.convertTo[NewRoute],
-          row.createdAt,
-          row.deletedAt
-        )
+  def allRoutes: Source[RouteOut, Unit] = {
+    Source(routesRepo.selectAll.mapResult { routeRow =>
+      routeRow.id.map { id =>
+        routeRowToRoute(id, routeRow)
       }
     }).mapConcat(_.toList)
   }
 
-  def findRouteById(id: Long): Future[Option[Route]] = {
+  def findRouteById(id: Long): Future[Option[RouteOut]] = {
     routesRepo.selectById(id).flatMap {
       case Some(routeRow) => rowToEventualMaybeRoute(routeRow)
       case None           => Future(None)
     }
   }
 
-  private def rowToEventualMaybeRoute(routeRow: RouteRow): Future[Option[Route]] = routeRow.id match {
-    case Some(id) => Future(Some(Route(id,
-      routeRow.routeJson.parseJson.convertTo[NewRoute],
-      routeRow.createdAt,
-      routeRow.deletedAt)))
-    case None => Future(None)
+  private def rowToEventualMaybeRoute(routeRow: RouteRow): Future[Option[RouteOut]] = routeRow.id match {
+    case Some(id) => Future(Some(routeRowToRoute(id, routeRow)))
+    case None     => Future(None)
+  }
+
+  private def routeRowToRoute(id: Long, routeRow: RouteRow): RouteOut = {
+    RouteOut(
+      id = id,
+      name = RouteName(routeRow.name),
+      route = routeRow.routeJson.parseJson.convertTo[NewRoute],
+      createdAt = routeRow.createdAt,
+      activateAt = routeRow.activateAt,
+      description = routeRow.description,
+      deletedAt = routeRow.deletedAt)
   }
 }
 

@@ -1,6 +1,7 @@
 package org.zalando.spearheads.innkeeper
 
 import com.google.inject.{ Injector, Guice }
+import com.typesafe.config.Config
 import net.codingwell.scalaguice.InjectorExtensions._
 import org.zalando.spearheads.innkeeper.api.{ AkkaHttpModule, AkkaModule, AkkaHttp }
 import org.zalando.spearheads.innkeeper.dao.{ RoutesRepo, DbModule }
@@ -21,11 +22,13 @@ object Innkeeper extends App {
     new AkkaHttpModule()
   )
 
-  {
+  val config = injector.instance[Config]
+
+  if (config.getBoolean(s"${config.getString("innkeeper.env")}.schema.recreate")) {
     implicit val ec = ExecutionContext.Implicits.global
     val routesService = injector.instance[RoutesRepo]
     for {
-      //_ <- routesService.dropSchema
+      _ <- routesService.dropSchema
       _ <- routesService.createSchema
     } yield ()
   }

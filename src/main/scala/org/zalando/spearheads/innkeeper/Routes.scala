@@ -69,12 +69,12 @@ class Routes @Inject() (implicit val materializer: ActorMaterializer,
                 }
               }
             } ~ post {
-              entity(as[NewRoute]) { route =>
-                (hasOneOfTheScopes(authenticatedUser)(scopes.WRITE_FULL_PATH) & isFullTextRoute(route)) {
+              entity(as[RouteIn]) { route =>
+                (hasOneOfTheScopes(authenticatedUser)(scopes.WRITE_FULL_PATH) & isFullTextRoute(route.route)) {
                   metrics.postRoutes.time {
                     handleWith(saveRoute)
                   }
-                } ~ (hasOneOfTheScopes(authenticatedUser)(scopes.WRITE_REGEX) & isRegexRoute(route)) {
+                } ~ (hasOneOfTheScopes(authenticatedUser)(scopes.WRITE_REGEX) & isRegexRoute(route.route)) {
                   metrics.postRoutes.time {
                     handleWith(saveRoute)
                   }
@@ -87,7 +87,7 @@ class Routes @Inject() (implicit val materializer: ActorMaterializer,
                 metrics.getRoute.time {
                   onComplete(routesService.findRouteById(id)) {
                     case Success(value) => value match {
-                      case Some(route) => complete(route)
+                      case Some(route) => complete(route.toJson)
                       case None        => complete(StatusCodes.NotFound, "")
                     }
 
@@ -117,7 +117,7 @@ class Routes @Inject() (implicit val materializer: ActorMaterializer,
       }
     }
 
-  private def saveRoute: (NewRoute) => Future[Option[Route]] = (route: NewRoute) => {
+  private def saveRoute: (RouteIn) => Future[Option[RouteOut]] = (route: RouteIn) => {
     routesService.createRoute(route)
   }
 

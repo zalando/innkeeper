@@ -17,8 +17,8 @@ import scala.concurrent.ExecutionContext
 import scala.language.implicitConversions
 
 /**
- * @author dpersa
- */
+  * @author dpersa
+  */
 class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers with ScalaFutures {
 
   implicit override val patienceConfig = PatienceConfig(timeout = Span(5, Seconds))
@@ -29,16 +29,16 @@ class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers w
   val db = Database.forConfig("test.innkeeperdb")
   val routesRepo = new RoutesPostgresRepo()(executionContext, db)
 
-  private def routeJson(name: String = "") = s""""{"description": "route${name}"}""""
+  private def routeJson(name: String = "") = s""""{"description": "route: ${name}"}""""
 
   private def getDeletedAtForRoute(id: Long) = {
     val routeRow = routesRepo.selectById(id).futureValue
     routeRow.get.deletedAt.get
   }
 
-  private def insertRoute(name: String = "", createdAt: LocalDateTime = LocalDateTime.now()) = {
-    routesRepo.insert(RouteRow(routeJson = routeJson(name),
-      createdAt = createdAt)).futureValue
+  private def insertRoute(name: String = "THE_ROUTE", createdAt: LocalDateTime = LocalDateTime.now()) = {
+    routesRepo.insert(RouteRow(name = name, routeJson = routeJson(name),
+      createdAt = createdAt, activateAt = createdAt.plusMinutes(5))).futureValue
   }
 
   implicit def databasePublisherToList[T](databasePublisher: DatabasePublisher[T]): List[T] = {
@@ -73,7 +73,7 @@ class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers w
         it("should insert a route") {
           val routeRow = insertRoute()
           routeRow.id.isDefined should be(true)
-          routeRow.routeJson should be(routeJson())
+          routeRow.routeJson should be(routeJson("THE_ROUTE"))
         }
 
         it("should select a route by id") {
@@ -81,7 +81,7 @@ class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers w
           val routeRow = routesRepo.selectById(1).futureValue
           routeRow.isDefined should be(true)
           routeRow.get.id.isDefined should be(true)
-          routeRow.get.routeJson should be(routeJson())
+          routeRow.get.routeJson should be(routeJson("THE_ROUTE"))
         }
       }
 
@@ -89,14 +89,15 @@ class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers w
         describe("#selectAll") {
           it("should select all routes") {
             val createdAt = LocalDateTime.now()
-            insertRoute("1", createdAt)
-            insertRoute("2", createdAt)
+            val activateAt = createdAt.plusMinutes(5)
+            insertRoute("R1", createdAt)
+            insertRoute("R2", createdAt)
 
             val routes: List[RouteRow] = routesRepo.selectAll
 
             routes should not be 'empty
-            routes(0) should be(RouteRow(Some(1), routeJson("1"), createdAt = createdAt))
-            routes(1) should be(RouteRow(Some(2), routeJson("2"), createdAt = createdAt))
+            routes(0) should be(RouteRow(Some(1), "R1", routeJson("R1"), createdAt = createdAt, activateAt = activateAt))
+            routes(1) should be(RouteRow(Some(2), "R2", routeJson("R2"), createdAt = createdAt, activateAt = activateAt))
           }
         }
 
