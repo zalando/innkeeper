@@ -9,6 +9,7 @@ import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.{ RequestContext, RouteResult }
 import akka.stream.ActorMaterializer
 import com.google.inject.{ Inject, Singleton }
+import org.slf4j.LoggerFactory
 import org.zalando.spearheads.innkeeper.RouteDirectives.{ isFullTextRoute, isRegexRoute }
 import org.zalando.spearheads.innkeeper.api.JsonProtocols._
 import org.zalando.spearheads.innkeeper.api._
@@ -32,6 +33,7 @@ class Routes @Inject() (implicit val materializer: ActorMaterializer,
                         val scopes: Scopes,
                         val metrics: RouteMetrics,
                         implicit val authService: AuthService) {
+  private val LOG = LoggerFactory.getLogger(this.getClass)
 
   private val FORMATTER = DateTimeFormatter.ISO_LOCAL_DATE_TIME
 
@@ -43,6 +45,7 @@ class Routes @Inject() (implicit val materializer: ActorMaterializer,
             get {
               hasOneOfTheScopes(authenticatedUser)(scopes.READ) {
                 metrics.getUpdatedRoutes.time {
+                  LOG.info("get /updated-routes/{}", lastModifiedString)
                   val lastModified = localDateTimeFromString(lastModifiedString)
                   val chunkedStreamSource = lastModified match {
                     case Some(lastModified) => jsonService.sourceToJsonSource {
@@ -61,6 +64,7 @@ class Routes @Inject() (implicit val materializer: ActorMaterializer,
             get {
               hasOneOfTheScopes(authenticatedUser)(scopes.READ) {
                 metrics.getRoutes.time {
+                  LOG.info("get /routes/")
                   val chunkedStreamSource = jsonService.sourceToJsonSource(routesService.allRoutes)
 
                   complete {
@@ -69,13 +73,16 @@ class Routes @Inject() (implicit val materializer: ActorMaterializer,
                 }
               }
             } ~ post {
+              LOG.info("post /routes/")
               entity(as[RouteIn]) { route =>
                 (hasOneOfTheScopes(authenticatedUser)(scopes.WRITE_FULL_PATH) & isFullTextRoute(route.route)) {
                   metrics.postRoutes.time {
+                    LOG.info("post full-text /routes/")
                     handleWith(saveRoute)
                   }
                 } ~ (hasOneOfTheScopes(authenticatedUser)(scopes.WRITE_REGEX) & isRegexRoute(route.route)) {
                   metrics.postRoutes.time {
+                    LOG.info("post regex /routes/")
                     handleWith(saveRoute)
                   }
                 }
@@ -85,6 +92,7 @@ class Routes @Inject() (implicit val materializer: ActorMaterializer,
             get {
               hasOneOfTheScopes(authenticatedUser)(scopes.READ) {
                 metrics.getRoute.time {
+                  LOG.info("get /routes/{}", id)
                   onComplete(routesService.findRouteById(id)) {
                     case Success(value) => value match {
                       case Some(route) => complete(route.toJson)
@@ -98,6 +106,7 @@ class Routes @Inject() (implicit val materializer: ActorMaterializer,
             } ~ delete {
               hasOneOfTheScopes(authenticatedUser)(scopes.WRITE_FULL_PATH, scopes.WRITE_REGEX) {
                 metrics.deleteRoute.time {
+                  LOG.info("delete /routes/{}", id)
                   onComplete(routesService.removeRoute(id)) {
                     case Success(RoutesService.Success)  => complete("")
                     case Success(RoutesService.NotFound) => complete(StatusCodes.NotFound)

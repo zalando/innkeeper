@@ -25,4 +25,4 @@ object Realms {
   val SERVICES = Realm("/services")
 }
 
-case class AuthorizedUser(uid: String, scope: Scope, realm: Realms.Realm)
+case class AuthorizedUser(scope: Scope, realm: Realms.Realm)
