@@ -33,15 +33,15 @@ To run the integration test suite, run `sbt it:test`.
 curl -i -XPOST localhost:8080/routes -d '{
     "route": {
       "matcher": {
-        "pathMatcher": {
+        "path_matcher": {
           "match": "/hello-*",
           "type": "REGEX"
         },
-        "headerMatchers": []
+        "header_matchers": []
       },
       "filters": []
     },
-    "activateAt": "2015-10-10T10:10:10",
+    "activate_at": "2015-10-10T10:10:10",
     "description": "this is a route",
     "name": "THE_ROUTE"
     }' -H 'Content-Type: application/json' -H 'Authorization: oauth-token'

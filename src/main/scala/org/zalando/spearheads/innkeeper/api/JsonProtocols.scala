@@ -1,5 +1,7 @@
 package org.zalando.spearheads.innkeeper.api
 
+import java.time.LocalDateTime
+
 import spray.json.DefaultJsonProtocol._
 import spray.json._
 import LocalDateTimeProtocol.LocalDateTimeFormat
@@ -89,7 +91,7 @@ object JsonProtocols {
     }
   }
 
-  private val matcherFormat = jsonFormat(Matcher, "hostMatcher", "pathMatcher", "methodMatcher", "headerMatchers")
+  private val matcherFormat = jsonFormat(Matcher, "host_matcher", "path_matcher", "method_matcher", "header_matchers")
 
   implicit object MatcherFormat extends RootJsonFormat[Matcher] {
 
@@ -153,6 +155,6 @@ object JsonProtocols {
     }
   }
 
-  implicit val routeOutFormat = jsonFormat7(RouteOut)
-  implicit val routeInFormat = jsonFormat4(RouteIn)
+  implicit val routeOutFormat = jsonFormat(RouteOut, "id", "name", "route", "created_at", "activate_at", "description", "deleted_at")
+  implicit val routeInFormat = jsonFormat(RouteIn, "name", "route", "activate_at", "description")
 }
