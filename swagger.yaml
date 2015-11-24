@@ -199,7 +199,7 @@ definitions:
         type: string
         pattern: /[A-Z][A-Z0-9_]*
         description: The name of the route in the ROUTE_NAME format
-      activatedAt:
+      activate_at:
         type: string
         description: The ISO-8601 date time when the route will be activated
       route:
@@ -210,8 +210,8 @@ definitions:
       - id
       - name
       - route
-      - createdAt
-      - activatedAt
+      - created_at
+      - activate_at
     properties:
       id:
         type: integer
@@ -220,13 +220,13 @@ definitions:
         type: string
         pattern: \[A-Z][A-Z0-9_]*
         description: The name of the route in the ROUTE_NAME format
-      createdAt:
+      created_at:
         type: string
         description: The ISO-8601 date time when the route has been created
-      activatedAt:
+      activate_at:
         type: string
         description: The ISO-8601 date time when the route will be activated
-      deletedAt:
+      deleted_at:
         type: string
         description: The ISO-8601 date time when the route has been deleted
       route:
@@ -292,13 +292,13 @@ definitions:
           Depending on the `type`, this is either a plain string for `STRICT` or ECMA-262 valid regular expression for `REGEXP`.
   Matcher:
     properties:
-      hostMatcher:
+      host_matcher:
         type: string
         description: Matches the host of a request
-      pathMatcher:
+      path_matcher:
         $ref: '#/definitions/PathMatcher'
         description: The path matcher
-      methodMatcher:
+      method_matcher:
         type: string
         items:
           enum:
@@ -310,7 +310,7 @@ definitions:
             - OPTIONS
             - PATCH
         description: HTTP method to match.
-      headerMatcher:
+      header_matcher:
         type: array
         $ref: '#/definitions/HeaderMatcher'
   Filter:

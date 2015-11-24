@@ -118,13 +118,13 @@ class JsonProtocolsSpec extends FunSpec with Matchers {
   describe("Matcher") {
     it("should unmarshall the Matcher") {
       val matcher = """{
-                      |  "hostMatcher": "example.com",
-                      |  "pathMatcher": {
+                      |  "host_matcher": "example.com",
+                      |  "path_matcher": {
                       |    "match": "/hello-*",
                       |    "type": "REGEX"
                       |  },
-                      |  "methodMatcher": "POST",
-                      |  "headerMatchers": [{
+                      |  "method_matcher": "POST",
+                      |  "header_matchers": [{
                       |    "name": "X-Host",
                       |    "value": "www.*",
                       |    "type": "REGEX"
@@ -163,13 +163,13 @@ class JsonProtocolsSpec extends FunSpec with Matchers {
 
       matcherJson.prettyPrint should be(
         """{
-          |  "hostMatcher": "example.com",
-          |  "pathMatcher": {
+          |  "host_matcher": "example.com",
+          |  "path_matcher": {
           |    "match": "/hello-*",
           |    "type": "REGEX"
           |  },
-          |  "methodMatcher": "POST",
-          |  "headerMatchers": [{
+          |  "method_matcher": "POST",
+          |  "header_matchers": [{
           |    "name": "X-Host",
           |    "value": "www.*",
           |    "type": "REGEX"
@@ -193,7 +193,7 @@ class JsonProtocolsSpec extends FunSpec with Matchers {
     it("should unmarshall a simple NewRoute") {
       val route = """{
                     |  "matcher": {
-                    |    "pathMatcher": {
+                    |    "path_matcher": {
                     |      "match": "/hello-*",
                     |      "type": "REGEX"
                     |    }
@@ -226,13 +226,13 @@ class JsonProtocolsSpec extends FunSpec with Matchers {
       routeJson.prettyPrint should be {
         """{
           |  "matcher": {
-          |    "hostMatcher": "example.com",
-          |    "pathMatcher": {
+          |    "host_matcher": "example.com",
+          |    "path_matcher": {
           |      "match": "/hello-*",
           |      "type": "REGEX"
           |    },
-          |    "methodMatcher": "POST",
-          |    "headerMatchers": [{
+          |    "method_matcher": "POST",
+          |    "header_matchers": [{
           |      "name": "X-Host",
           |      "value": "www.*",
           |      "type": "REGEX"
@@ -264,11 +264,11 @@ class JsonProtocolsSpec extends FunSpec with Matchers {
       routeJson.prettyPrint should be {
         """{
           |  "matcher": {
-          |    "pathMatcher": {
+          |    "path_matcher": {
           |      "match": "/hello-*",
           |      "type": "REGEX"
           |    },
-          |    "headerMatchers": []
+          |    "header_matchers": []
           |  },
           |  "filters": []
           |}""".stripMargin
@@ -295,10 +295,10 @@ class JsonProtocolsSpec extends FunSpec with Matchers {
       val route = """{
                     |  "name": "THE_ROUTE",
                     |  "description": "this is a route",
-                    |  "activateAt": "2015-10-10T10:10:10",
+                    |  "activate_at": "2015-10-10T10:10:10",
                     |  "route": {
                     |    "matcher": {
-                    |      "pathMatcher": {
+                    |      "path_matcher": {
                     |        "match": "/hello-*",
                     |        "type": "REGEX"
                     |      }
@@ -314,15 +314,15 @@ class JsonProtocolsSpec extends FunSpec with Matchers {
           |  "name": "THE_ROUTE",
           |  "route": {
           |    "matcher": {
-          |      "pathMatcher": {
+          |      "path_matcher": {
           |        "match": "/hello-*",
           |        "type": "REGEX"
           |      },
-          |      "headerMatchers": []
+          |      "header_matchers": []
           |    },
           |    "filters": []
           |  },
-          |  "activateAt": "2015-10-10T10:10:10",
+          |  "activate_at": "2015-10-10T10:10:10",
           |  "description": "this is a route"
           |}""".stripMargin
       }
@@ -350,13 +350,13 @@ class JsonProtocolsSpec extends FunSpec with Matchers {
       val route = """{
                     |  "name": "THE_ROUTE",
                     |  "description": "this is a route",
-                    |  "activateAt": "2015-10-10T10:10:10",
+                    |  "activate_at": "2015-10-10T10:10:10",
                     |  "id": 1,
-                    |  "createdAt": "2015-10-10T10:10:10",
-                    |  "deletedAt": "2015-10-10T10:10:10",
+                    |  "created_at": "2015-10-10T10:10:10",
+                    |  "deleted_at": "2015-10-10T10:10:10",
                     |  "route": {
                     |    "matcher": {
-                    |      "pathMatcher": {
+                    |      "path_matcher": {
                     |        "match": "/hello-*",
                     |        "type": "REGEX"
                     |      }
@@ -370,22 +370,22 @@ class JsonProtocolsSpec extends FunSpec with Matchers {
 
       routeOut.toJson.prettyPrint should be {
         """{
-          |  "deletedAt": "2015-10-10T10:10:10",
           |  "name": "THE_ROUTE",
           |  "description": "this is a route",
-          |  "activateAt": "2015-10-10T10:10:10",
+          |  "activate_at": "2015-10-10T10:10:10",
           |  "id": 1,
-          |  "createdAt": "2015-10-10T10:10:10",
+          |  "created_at": "2015-10-10T10:10:10",
           |  "route": {
           |    "matcher": {
-          |      "pathMatcher": {
+          |      "path_matcher": {
           |        "match": "/hello-*",
           |        "type": "REGEX"
           |      },
-          |      "headerMatchers": []
+          |      "header_matchers": []
           |    },
           |    "filters": []
-          |  }
+          |  },
+          |  "deleted_at": "2015-10-10T10:10:10"
           |}""".stripMargin
       }
     }

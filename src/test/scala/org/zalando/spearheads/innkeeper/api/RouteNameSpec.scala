@@ -13,6 +13,7 @@ class RouteNameSpec extends FunSpec with Matchers {
       RouteName("HELLO_WORLD").isInstanceOf[RouteName] should be(true)
       RouteName("SOME_ROUTE_").isInstanceOf[RouteName] should be(true)
       RouteName("ANOTHER_ROUTE").isInstanceOf[RouteName] should be(true)
+      RouteName("another_ROUTE").isInstanceOf[RouteName] should be(true)
       RouteName("A1").isInstanceOf[RouteName] should be(true)
     }
 

@@ -17,7 +17,7 @@ case class RouteName(name: String) {
 }
 
 object RouteName {
-  val validRouteNamePattern = "[A-Z][A-Z0-9_]*"
+  val validRouteNamePattern = "[a-zA-Z][a-zA-Z0-9_]*"
 }
 
 object InvalidRouteNameException
