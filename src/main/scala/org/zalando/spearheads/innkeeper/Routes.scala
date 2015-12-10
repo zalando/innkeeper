@@ -6,11 +6,11 @@ import java.time.format.DateTimeFormatter
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 import akka.http.scaladsl.model.{ HttpEntity, HttpResponse, MediaTypes, StatusCodes }
 import akka.http.scaladsl.server.Directives._
-import akka.http.scaladsl.server.{ RequestContext, RouteResult }
+import akka.http.scaladsl.server.{AuthorizationFailedRejection, RequestContext, RouteResult}
 import akka.stream.ActorMaterializer
 import com.google.inject.{ Inject, Singleton }
 import org.slf4j.LoggerFactory
-import org.zalando.spearheads.innkeeper.RouteDirectives.{ isFullTextRoute, isRegexRoute }
+import org.zalando.spearheads.innkeeper.RouteDirectives.isRegexRoute
 import org.zalando.spearheads.innkeeper.api.JsonProtocols._
 import org.zalando.spearheads.innkeeper.api._
 import org.zalando.spearheads.innkeeper.metrics.MetricRegistryJsonProtocol._
@@ -75,18 +75,19 @@ class Routes @Inject() (implicit val materializer: ActorMaterializer,
             } ~ post {
               LOG.info("post /routes/")
               entity(as[RouteIn]) { route =>
-                (hasOneOfTheScopes(authenticatedUser)(scopes.WRITE_FULL_PATH) & isFullTextRoute(route.route)) {
-                  metrics.postRoutes.time {
-                    LOG.info("post full-text /routes/")
-                    handleWith(saveRoute)
-                  }
-                } ~ (hasOneOfTheScopes(authenticatedUser)(scopes.WRITE_REGEX) & isRegexRoute(route.route)) {
+                LOG.debug(s"route ${route}")
+                (hasOneOfTheScopes(authenticatedUser)(scopes.WRITE_REGEX) & isRegexRoute(route.route)) {
                   metrics.postRoutes.time {
                     LOG.info("post regex /routes/")
                     handleWith(saveRoute)
                   }
-                }
-              }
+                } ~ (hasOneOfTheScopes(authenticatedUser)(scopes.WRITE_FULL_PATH)) {
+                  metrics.postRoutes.time {
+                    LOG.info("post full-text /routes/")
+                    handleWith(saveRoute)
+                  }
+                } ~ reject(AuthorizationFailedRejection)
+              } ~ reject(UnmarshallRejection)
             }
           } ~ path("routes" / LongNumber) { id =>
             get {
