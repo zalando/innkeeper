@@ -23,6 +23,10 @@ object InnkeeperRejectionHandler {
           StatusCodes.Unauthorized,
           Error(StatusCodes.Unauthorized.intValue, "Authentication failed", "AUTH2")
         )
+        case UnmarshallRejection => complete(
+          StatusCodes.BadRequest,
+          Error(StatusCodes.BadRequest.intValue, "Failed to unmarshall route", "UNMAR1")
+        )
       }.handleAll[MethodRejection] { methodRejections =>
         val names = methodRejections.map(_.supported.name)
         complete(
