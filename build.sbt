@@ -15,6 +15,9 @@ scalaVersion := "2.11.7"
 
 scalacOptions := Seq("-unchecked", "-feature", "-deprecation", "-encoding", "utf8")
 
+resolvers += "Whisk" at "https://dl.bintray.com/whisk/maven"
+resolvers += "softprops-maven" at "http://dl.bintray.com/content/softprops/maven"
+
 val akkaStreamV      = "1.0"
 val scalaTestV       = "3.0.0-M1"
 val scalaMockV       = "3.2.2"
@@ -36,7 +39,9 @@ libraryDependencies ++= List(
   "org.scalatest"           %% "scalatest"                            % scalaTestV       % "it,test",
   "org.scalamock"           %% "scalamock-scalatest-support"          % scalaMockV       % "it,test",
   "com.typesafe.akka"       %% "akka-http-testkit-experimental"       % akkaStreamV      % "it,test",
-  "com.typesafe.akka"       %% "akka-stream-testkit-experimental"     % akkaStreamV      % "it,test"
+  "com.typesafe.akka"       %% "akka-stream-testkit-experimental"     % akkaStreamV      % "it,test",
+  "com.whisk"               %% "docker-testkit-scalatest"             % "0.4.0"          % "it,test",
+  "com.whisk"               %% "docker-testkit-config"                % "0.4.0"          % "it,test"
 )
 
 lazy val root = project.in(file(".")).configs(IntegrationTest)

@@ -8,17 +8,14 @@ cache:
 
 language: scala
 
-script:
-  - sbt ++$TRAVIS_SCALA_VERSION test
-  - sbt ++$TRAVIS_SCALA_VERSION it:test
-
-  # Trick to avoid unnecessary cache updates
-  - find $HOME/.sbt -name "*.lock" | xargs rm
-
 scala:
   - 2.11.7
+
 jdk:
   - oraclejdk8
+
+services:
+  - docker
 
 addons:
   postgresql: "9.4"
@@ -26,6 +23,16 @@ addons:
 before_script:
   - psql -c 'CREATE ROLE innkeepertest superuser login createdb;' -U postgres
   - psql -c 'CREATE DATABASE innkeepertest;' -U postgres
+
+script:
+  - cp src/main/resources/travis.application.conf src/main/resources/application.conf
+  - sbt ++$TRAVIS_SCALA_VERSION assembly
+  - export DOCKER_HOST=tcp://127.0.0.1:2375
+  - docker build -t pierone.stups.zalan.do/pathfinder/innkeeper:latest-SNAPSHOT .
+  - sbt ++$TRAVIS_SCALA_VERSION it:test
+
+  # Trick to avoid unnecessary cache updates
+  - find $HOME/.sbt -name "*.lock" | xargs rm
 
 notifications:
   email:

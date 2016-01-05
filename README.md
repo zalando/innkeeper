@@ -94,6 +94,7 @@ Assuming the docker-machine is named `default` this can be achieved via:
 ```bash
 $ VBoxManage controlvm "default" natpf1 "tcp-port5432,tcp,,5432,,5432"
 $ VBoxManage controlvm "default" natpf1 "tcp-port5433,tcp,,5433,,5433"
+$ VBoxManage controlvm "default" natpf1 "tcp-port8080,tcp,,8080,,8080"
 ```
 
 ### License

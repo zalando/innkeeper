@@ -6,7 +6,7 @@ import java.time.format.DateTimeFormatter
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 import akka.http.scaladsl.model.{ HttpEntity, HttpResponse, MediaTypes, StatusCodes }
 import akka.http.scaladsl.server.Directives._
-import akka.http.scaladsl.server.{AuthorizationFailedRejection, RequestContext, RouteResult}
+import akka.http.scaladsl.server.{ AuthorizationFailedRejection, RequestContext, RouteResult }
 import akka.stream.ActorMaterializer
 import com.google.inject.{ Inject, Singleton }
 import org.slf4j.LoggerFactory
