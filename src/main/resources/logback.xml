@@ -5,9 +5,11 @@
         </encoder>
     </appender>
 
-    <logger name="Timing" level="info"/>
     <root level="info">
         <appender-ref ref="STDOUT"/>
     </root>
+
+    <logger name="Timing" level="info"/>
+    <logger name="org.zalando.spearheads.innkeeper.oauth" level="info"/>
 
 </configuration>
