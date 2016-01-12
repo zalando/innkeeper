@@ -1,28 +1,34 @@
 package org.zalando.spearheads.innkeeper.oauth
 
 import akka.http.scaladsl.model.HttpHeader
-import akka.http.scaladsl.model.headers.HttpChallenge
+import akka.http.scaladsl.model.headers.{ OAuth2BearerToken, GenericHttpCredentials, Authorization, HttpChallenge }
 import akka.http.scaladsl.server.AuthenticationFailedRejection.{ CredentialsMissing, CredentialsRejected }
 import akka.http.scaladsl.server._
 import akka.http.scaladsl.server.directives.BasicDirectives._
 import akka.http.scaladsl.server.directives.HeaderDirectives._
 import akka.http.scaladsl.server.directives.RouteDirectives._
+import org.slf4j.LoggerFactory
+import scala.util.{ Failure, Success }
 
 /**
  * @author dpersa
  */
 trait OAuthDirectives {
 
+  val logger = LoggerFactory.getLogger(this.getClass)
+
   def authenticationToken: Directive1[String] =
-    headerValue(optionalValue("authorization")) |
-      reject {
-        AuthenticationFailedRejection(CredentialsMissing, HttpChallenge("", ""))
-      }
+    headerValue(authorization()) | reject {
+      AuthenticationFailedRejection(CredentialsMissing, HttpChallenge("", ""))
+    }
 
   def authenticate(token: String, authService: AuthService): Directive1[AuthorizedUser] =
     authService.authorize(token) match {
-      case Some(authUser) => provide(authUser)
-      case None           => reject(AuthenticationFailedRejection(CredentialsRejected, HttpChallenge("", "")))
+      case Success(authUser) => provide(authUser)
+      case Failure(ex) => {
+        logger.error("Authentication failed with exception: ", ex)
+        reject(AuthenticationFailedRejection(CredentialsRejected, HttpChallenge("", "")))
+      }
     }
 
   def hasOneOfTheScopes(authorizedUser: AuthorizedUser)(scope: Scope*): Directive0 = {
@@ -33,9 +39,9 @@ trait OAuthDirectives {
     }
   }
 
-  private def optionalValue(lowerCaseName: String): HttpHeader ⇒ Option[String] = {
-    case HttpHeader(`lowerCaseName`, value) ⇒ Some(value)
-    case _                                  ⇒ None
+  private def authorization(): HttpHeader ⇒ Option[String] = {
+    case Authorization(OAuth2BearerToken(token)) ⇒ Some(token)
+    case _                                       ⇒ None
   }
 }
 

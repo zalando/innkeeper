@@ -12,13 +12,13 @@ import spray.json._
 
 import scala.concurrent.duration._
 import scala.concurrent.{ Await, ExecutionContext }
-import scala.util.{ Failure, Success, Try }
+import scala.util.Try
 
 /**
  * @author dpersa
  */
 trait AuthService {
-  def authorize(token: String): Option[AuthorizedUser]
+  def authorize(token: String): Try[AuthorizedUser]
 }
 
 @Singleton
@@ -31,7 +31,7 @@ class OAuthService @Inject() (val config: Config,
 
   val logger = LoggerFactory.getLogger(this.getClass)
 
-  override def authorize(token: String): Option[AuthorizedUser] = {
+  override def authorize(token: String): Try[AuthorizedUser] = {
     import org.zalando.spearheads.innkeeper.oauth.OAuthJsonProtocol.authorizedUserFormat
 
     val response = Http().singleRequest(HttpRequest(uri = Uri(url(token))))
@@ -40,11 +40,16 @@ class OAuthService @Inject() (val config: Config,
       _.entity.dataBytes.map(bs => bs.utf8String)
     }).flatten(FlattenStrategy.concat).runFold("")(_ + _)
 
-    Try {
-      val json = Await.result(futureJson, 1.second)
-      logger.debug(s"The OAuth says: $json")
-      json.parseJson.convertTo[AuthorizedUser]
-    }.toOption
+    for {
+      json <- Try {
+        logger.debug(s"We call the OAuth Token Info Service with the url: ${url(token)}")
+        Await.result(futureJson, 1.second)
+      }
+      authorizedUserTry <- Try {
+        logger.debug(s"The OAuth Token Info Service says: $json")
+        json.parseJson.convertTo[AuthorizedUser]
+      }
+    } yield authorizedUserTry;
   }
 
   private val OAUTH_URL = config.getString("oauth.url")
