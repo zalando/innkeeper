@@ -25,15 +25,13 @@ before_script:
   - psql -c 'CREATE DATABASE innkeepertest;' -U postgres
 
 script:
-  - cp src/main/resources/travis.application.conf src/main/resources/application.conf
-  - sbt ++$TRAVIS_SCALA_VERSION assembly
   - export DOCKER_HOST=tcp://127.0.0.1:2375
-  - docker build -t pierone.stups.zalan.do/pathfinder/innkeeper:latest-SNAPSHOT .
-  - sbt ++$TRAVIS_SCALA_VERSION it:test
+  - cp src/main/resources/travis.application.conf src/main/resources/application.conf
+  - ./acceptance-tests.sh
 
   # Trick to avoid unnecessary cache updates
   - find $HOME/.sbt -name "*.lock" | xargs rm
 
 notifications:
   email:
-    - team-spearheads@zalando.de
+    - team-pathfinder@zalando.de
