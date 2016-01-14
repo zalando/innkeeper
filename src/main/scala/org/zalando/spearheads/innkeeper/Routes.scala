@@ -81,7 +81,7 @@ class Routes @Inject() (implicit val materializer: ActorMaterializer,
                     LOG.info("post regex /routes/")
                     handleWith(saveRoute)
                   }
-                } ~ (hasOneOfTheScopes(authenticatedUser)(scopes.WRITE_FULL_PATH)) {
+                } ~ (hasOneOfTheScopes(authenticatedUser)(scopes.WRITE_STRICT)) {
                   metrics.postRoutes.time {
                     LOG.info("post full-text /routes/")
                     handleWith(saveRoute)
@@ -105,7 +105,7 @@ class Routes @Inject() (implicit val materializer: ActorMaterializer,
                 }
               }
             } ~ delete {
-              hasOneOfTheScopes(authenticatedUser)(scopes.WRITE_FULL_PATH, scopes.WRITE_REGEX) {
+              hasOneOfTheScopes(authenticatedUser)(scopes.WRITE_STRICT, scopes.WRITE_REGEX) {
                 metrics.deleteRoute.time {
                   LOG.info("delete /routes/{}", id)
                   onComplete(routesService.removeRoute(id)) {
