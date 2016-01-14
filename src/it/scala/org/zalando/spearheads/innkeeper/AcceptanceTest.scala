@@ -37,13 +37,42 @@ class AcceptanceTest extends FunSpec with Matchers with ScalaFutures {
     entity.shouldBe("Ok")
   }
 
+  describe("get /routes") {
+    val uri = "http://localhost:8080/routes"
 
-  it("should get the routes") {
-    val futureResponse: Future[HttpResponse] = Http().singleRequest(HttpRequest(uri = "http://localhost:8080/routes",
-      headers = Seq[HttpHeader](Authorization(OAuth2BearerToken("token-employees-uid-route.read")))))
-    val response = futureResponse.futureValue
-    response.status.shouldBe(StatusCodes.OK)
-    val entity = response.entity.dataBytes.map(bs => bs.utf8String).runFold("")((a, b) => a + b).futureValue
-    entity.shouldBe("[]")
+    describe("success") {
+      val token = "token-employees-uid-route.read"
+
+      it("should get the routes") {
+        val response = callRoute(token)
+        response.status.shouldBe(StatusCodes.OK)
+        val entity = response.entity.dataBytes.map(bs => bs.utf8String).runFold("")((a, b) => a + b).futureValue
+        entity.shouldBe("[]")
+      }
+    }
+
+    describe("with an incorrect token") {
+      val token = "invalid"
+
+      it("should have the 401 Unauthorized status") {
+        val response = callRoute(token)
+        response.status.shouldBe(StatusCodes.Unauthorized)
+      }
+    }
+
+    describe("with a token without the READ scope") {
+      val token = "token-employees-route.write"
+
+      it("should have the 401 Unauthorized status") {
+        val response = callRoute(token)
+        response.status.shouldBe(StatusCodes.Unauthorized)
+      }
+    }
+
+    def callRoute(token: String): HttpResponse = {
+      val futureResponse = Http().singleRequest(HttpRequest(uri = uri,
+        headers = Seq[HttpHeader](Authorization(OAuth2BearerToken(token)))))
+      futureResponse.futureValue
+    }
   }
 }
