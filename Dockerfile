@@ -9,4 +9,6 @@ ADD target/scala-2.11/innkeeper-assembly-0.0.1.jar /opt/innkeeper/
 
 WORKDIR /opt/innkeeper
 
-ENTRYPOINT java $(java-dynamic-memory-opts) -Dinnkeeper.env=$INNKEEPER_ENV -D$(INNKEEPER_ENV).schema.recreate=$SCHEMA_RECREATE -server -jar innkeeper-assembly-0.0.1.jar
+ENTRYPOINT java $(java-dynamic-memory-opts) \
+                -Dinnkeeper.env=$INNKEEPER_ENV -D$INNKEEPER_ENV.schema.recreate=$SCHEMA_RECREATE \
+                -server -jar innkeeper-assembly-0.0.1.jar
