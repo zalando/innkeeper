@@ -26,7 +26,7 @@ trait OAuthDirectives {
     authService.authorize(token) match {
       case Success(authUser) => provide(authUser)
       case Failure(ex) => {
-        logger.error("Authentication failed with exception: ", ex)
+        logger.error(s"Authentication failed with exception: ${ex.getMessage}")
         reject(AuthenticationFailedRejection(CredentialsRejected, HttpChallenge("", "")))
       }
     }

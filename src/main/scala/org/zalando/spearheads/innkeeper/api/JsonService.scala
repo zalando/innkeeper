@@ -11,7 +11,7 @@ import spray.json._
 @Singleton
 class JsonService {
 
-  def sourceToJsonSource[T](source: Source[T, Unit])(implicit writer: JsonWriter[T]): Source[ChunkStreamPart, ((Unit, Unit), Unit)] = {
+  def sourceToJsonSource[T](source: Source[T, Unit])(implicit writer: JsonWriter[T]): Source[ChunkStreamPart, Unit] = {
 
     val commaSeparatedRoutes: Source[ChunkStreamPart, Unit] =
       source

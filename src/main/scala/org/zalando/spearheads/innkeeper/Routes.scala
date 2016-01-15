@@ -11,6 +11,7 @@ import akka.stream.ActorMaterializer
 import com.google.inject.{ Inject, Singleton }
 import org.slf4j.LoggerFactory
 import org.zalando.spearheads.innkeeper.RouteDirectives.isRegexRoute
+import org.zalando.spearheads.innkeeper.RouteDirectives.isStrictRoute
 import org.zalando.spearheads.innkeeper.api.JsonProtocols._
 import org.zalando.spearheads.innkeeper.api._
 import org.zalando.spearheads.innkeeper.metrics.MetricRegistryJsonProtocol._
@@ -81,7 +82,7 @@ class Routes @Inject() (implicit val materializer: ActorMaterializer,
                     LOG.info("post regex /routes/")
                     handleWith(saveRoute)
                   }
-                } ~ (hasOneOfTheScopes(authenticatedUser)(scopes.WRITE_STRICT)) {
+                } ~ (hasOneOfTheScopes(authenticatedUser)(scopes.WRITE_STRICT, scopes.WRITE_REGEX) & isStrictRoute(route.route)) {
                   metrics.postRoutes.time {
                     LOG.info("post full-text /routes/")
                     handleWith(saveRoute)

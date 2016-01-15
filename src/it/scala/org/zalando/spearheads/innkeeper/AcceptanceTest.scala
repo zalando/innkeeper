@@ -1,13 +1,12 @@
 package org.zalando.spearheads.innkeeper
 
 import akka.actor.ActorSystem
-import akka.http.javadsl.model.RequestEntity
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.headers.{Authorization, OAuth2BearerToken}
 import akka.http.scaladsl.model._
 import akka.stream.ActorMaterializer
 import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.time.{Second, Seconds, Span}
+import org.scalatest.time.{Second, Millis, Seconds, Span}
 import org.scalatest.{FunSpec, Matchers}
 import org.slf4j.LoggerFactory
 import org.zalando.spearheads.innkeeper.api.RouteOut
@@ -30,7 +29,8 @@ class AcceptanceTest extends FunSpec with Matchers with ScalaFutures {
 
   val LOG = LoggerFactory.getLogger(this.getClass)
 
-  implicit val pc = PatienceConfig(Span(20, Seconds), Span(1, Second))
+  implicit val defaultPatience =
+    PatienceConfig(timeout = Span(60, Seconds), interval = Span(1, Second))
   implicit val system = ActorSystem("main-actor-system")
   implicit val materializer = ActorMaterializer()
 
@@ -174,7 +174,7 @@ class AcceptanceTest extends FunSpec with Matchers with ScalaFutures {
         }
 
         describe("when a token with the write_strict scope is provided") {
-          val token = WRITE_REGEX_TOKEN
+          val token = WRITE_STRICT_TOKEN
 
           it("should return the 401 Unauthorized status") {
             val response = postSlashRoutesRegex(token)

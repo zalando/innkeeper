@@ -18,7 +18,7 @@ scalacOptions := Seq("-unchecked", "-feature", "-deprecation", "-encoding", "utf
 resolvers += "Whisk" at "https://dl.bintray.com/whisk/maven"
 resolvers += "softprops-maven" at "http://dl.bintray.com/content/softprops/maven"
 
-val akkaStreamV      = "1.0"
+val akkaStreamV      = "2.0"
 val scalaTestV       = "3.0.0-M15"
 val scalaMockV       = "3.2.2"
 

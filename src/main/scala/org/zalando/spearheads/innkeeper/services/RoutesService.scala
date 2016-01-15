@@ -47,7 +47,7 @@ class RoutesService @Inject() (implicit val executionContext: ExecutionContext,
   }
 
   def findModifiedSince(localDateTime: LocalDateTime): Source[RouteOut, Unit] = {
-    Source(
+    Source.fromPublisher(
       routesRepo.selectModifiedSince(localDateTime).mapResult { routeRow =>
         routeRow.id.map { id =>
           routeRowToRoute(id, routeRow)
@@ -57,7 +57,7 @@ class RoutesService @Inject() (implicit val executionContext: ExecutionContext,
   }
 
   def allRoutes: Source[RouteOut, Unit] = {
-    Source(routesRepo.selectAll.mapResult { routeRow =>
+    Source.fromPublisher(routesRepo.selectAll.mapResult { routeRow =>
       routeRow.id.map { id =>
         routeRowToRoute(id, routeRow)
       }

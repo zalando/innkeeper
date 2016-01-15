@@ -16,6 +16,13 @@ trait RouteDirectives {
       case _                         => reject(AuthorizationFailedRejection)
     }
   }
+
+  def isStrictRoute(route: NewRoute): Directive0 = {
+    route.matcher.pathMatcher match {
+      case Some(StrictPathMatcher(_)) => pass
+      case _                          => reject(AuthorizationFailedRejection)
+    }
+  }
 }
 
 case object UnmarshallRejection extends Rejection
