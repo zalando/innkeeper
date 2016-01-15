@@ -44,10 +44,10 @@ class OAuthService @Inject() (val config: Config,
     for {
       futureJson <- Try {
         logger.debug(s"We call the OAuth Token Info Service with the url: ${url(token)}")
-        Await.result(futureFutureJson, 1.second)
+        Await.result(futureFutureJson, 60.second)
       }
       json <- Try {
-        Await.result(futureJson, 1.second)
+        Await.result(futureJson, 60.second)
       }
       authorizedUserTry <- Try {
         logger.debug(s"The OAuth Token Info Service says: $json")

@@ -13,7 +13,7 @@ import org.zalando.spearheads.innkeeper.api.JsonProtocols._
 /**
   * @author dpersa
   */
-class PostStrictRoutesSpec extends FunSpec with Matchers with ScalaFutures {
+class PostStrictRoutesSpec extends FunSpec with Matchers {
 
   describe("post strict /routes") {
     describe("success") {
@@ -25,7 +25,7 @@ class PostStrictRoutesSpec extends FunSpec with Matchers with ScalaFutures {
           response.status.shouldBe(StatusCodes.OK)
           val entity = entityString(response)
           val route = entity.parseJson.convertTo[RouteOut]
-          route.id.shouldBe(1)
+          route.id.shouldBe(2)
         }
       }
 
@@ -37,7 +37,7 @@ class PostStrictRoutesSpec extends FunSpec with Matchers with ScalaFutures {
           response.status.shouldBe(StatusCodes.OK)
           val entity = entityString(response)
           val route = entity.parseJson.convertTo[RouteOut]
-          route.id.shouldBe(2)
+          route.id.shouldBe(3)
         }
       }
     }

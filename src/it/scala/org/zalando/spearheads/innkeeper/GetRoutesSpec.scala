@@ -9,7 +9,7 @@ import org.zalando.spearheads.innkeeper.AcceptanceSpecsHelper.{entityString, get
 /**
   * @author dpersa
   */
-class GetRoutesSpec extends FunSpec with Matchers with ScalaFutures {
+class GetRoutesSpec extends FunSpec with Matchers {
 
   describe("get /routes") {
     describe("success") {

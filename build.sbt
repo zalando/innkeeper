@@ -55,4 +55,6 @@ ScalariformKeys.preferences := ScalariformKeys.preferences.value
   .setPreference(DoubleIndentClassDeclaration, true)
   .setPreference(AlignParameters, true)
 
+parallelExecution in IntegrationTest := false
+
 fork in run := true

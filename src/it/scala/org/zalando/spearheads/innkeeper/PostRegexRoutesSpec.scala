@@ -13,7 +13,7 @@ import org.zalando.spearheads.innkeeper.api.JsonProtocols._
 /**
   * @author dpersa
   */
-class PostRegexRoutesSpec extends FunSpec with Matchers with ScalaFutures {
+class PostRegexRoutesSpec extends FunSpec with Matchers {
 
   describe("post regex /routes") {
     describe("success") {
@@ -25,7 +25,7 @@ class PostRegexRoutesSpec extends FunSpec with Matchers with ScalaFutures {
           response.status.shouldBe(StatusCodes.OK)
           val entity = entityString(response)
           val route = entity.parseJson.convertTo[RouteOut]
-          route.id.shouldBe(3)
+          route.id.shouldBe(1)
         }
       }
     }

@@ -6,7 +6,7 @@ import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.headers.{OAuth2BearerToken, Authorization}
 import akka.stream.ActorMaterializer
 import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.time.{Millis, Seconds, Span}
+import org.scalatest.time.{Second, Millis, Seconds, Span}
 import scala.collection.immutable.Seq
 
 /**
@@ -15,8 +15,8 @@ import scala.collection.immutable.Seq
 object AcceptanceSpecsHelper extends ScalaFutures {
 
   val uri = "http://localhost:8080/routes"
-  implicit val defaultPatience =
-    PatienceConfig(timeout = Span(2, Seconds), interval = Span(500, Millis))
+  override implicit val patienceConfig =
+    PatienceConfig(timeout = Span(60, Seconds), interval = Span(1, Second))
   implicit val system = ActorSystem("main-actor-system")
   implicit val materializer = ActorMaterializer()
 
