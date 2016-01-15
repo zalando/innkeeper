@@ -1,0 +1,25 @@
+package org.zalando.spearheads.innkeeper
+
+import akka.http.scaladsl.Http
+import akka.http.scaladsl.model.{HttpRequest, HttpResponse, StatusCodes}
+import org.scalatest.concurrent.ScalaFutures
+import org.scalatest.{FunSpec, Matchers}
+import scala.concurrent.Future
+import AcceptanceSpecsHelper._
+
+/**
+  * @author dpersa
+  */
+class GetStatusSpec extends FunSpec with Matchers with ScalaFutures {
+
+  describe("get /status") {
+    it("should return the OK status code") {
+      val futureResponse: Future[HttpResponse] = Http().singleRequest(HttpRequest(uri = "http://localhost:8080/status"))
+      val response = futureResponse.futureValue
+      response.status.shouldBe(StatusCodes.OK)
+      val entity = response.entity.dataBytes.map(bs => bs.utf8String).runFold("")((a, b) => a + b).futureValue
+      entity.shouldBe("Ok")
+    }
+  }
+}
+
