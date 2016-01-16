@@ -15,17 +15,21 @@ import org.zalando.spearheads.innkeeper.api.JsonProtocols._
   */
 class PostStrictRoutesSpec extends FunSpec with Matchers {
 
+  val routeName = "random-strict-name"
+
   describe("post strict /routes") {
     describe("success") {
       describe("when a token with the write_strict scope is provided") {
         val token = WRITE_STRICT_TOKEN
 
         it("should create the new route") {
-          val response = postSlashRoutesStrict(token)
+          val routeName = "strict-route-1"
+          val response = postSlashRoutesStrict(token, routeName)
           response.status.shouldBe(StatusCodes.OK)
           val entity = entityString(response)
           val route = entity.parseJson.convertTo[RouteOut]
-          route.id.shouldBe(2)
+          route.id should not be(0)
+          route.id should be(routeName)
         }
       }
 
@@ -33,7 +37,7 @@ class PostStrictRoutesSpec extends FunSpec with Matchers {
         val token = WRITE_REGEX_TOKEN
 
         it("should create the new route") {
-          val response = postSlashRoutesStrict(token)
+          val response = postSlashRoutesStrict(token, routeName)
           response.status.shouldBe(StatusCodes.OK)
           val entity = entityString(response)
           val route = entity.parseJson.convertTo[RouteOut]
@@ -46,7 +50,7 @@ class PostStrictRoutesSpec extends FunSpec with Matchers {
       val token = INVALID_TOKEN
 
       it("should return the 401 Unauthorized status") {
-        val response = postSlashRoutesStrict(token)
+        val response = postSlashRoutesStrict(token, routeName)
         response.status.shouldBe(StatusCodes.Unauthorized)
       }
     }
@@ -55,7 +59,7 @@ class PostStrictRoutesSpec extends FunSpec with Matchers {
       val token = READ_TOKEN
 
       it("should return the 401 Unauthorized status") {
-        val response = postSlashRoutesStrict(token)
+        val response = postSlashRoutesStrict(token, routeName)
         response.status.shouldBe(StatusCodes.Unauthorized)
       }
     }

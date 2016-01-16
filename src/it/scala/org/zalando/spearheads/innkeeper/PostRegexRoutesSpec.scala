@@ -15,17 +15,21 @@ import org.zalando.spearheads.innkeeper.api.JsonProtocols._
   */
 class PostRegexRoutesSpec extends FunSpec with Matchers {
 
+  val routeName = "random-regex-name"
+
   describe("post regex /routes") {
     describe("success") {
       describe("when a token with the write_regex scope is provided") {
         val token = WRITE_REGEX_TOKEN
 
         it("should create the new route") {
-          val response = postSlashRoutesRegex(token)
+          val routeName = "route-regex-1"
+          val response = postSlashRoutesRegex(token, routeName)
           response.status.shouldBe(StatusCodes.OK)
           val entity = entityString(response)
           val route = entity.parseJson.convertTo[RouteOut]
-          route.id.shouldBe(1)
+          route.id should not be(0)
+          route.name should be(routeName)
         }
       }
     }
@@ -34,7 +38,7 @@ class PostRegexRoutesSpec extends FunSpec with Matchers {
       val token = INVALID_TOKEN
 
       it("should return the 401 Unauthorized status") {
-        val response = postSlashRoutesRegex(token)
+        val response = postSlashRoutesRegex(token, routeName)
         response.status.shouldBe(StatusCodes.Unauthorized)
       }
     }
@@ -43,7 +47,7 @@ class PostRegexRoutesSpec extends FunSpec with Matchers {
       val token = READ_TOKEN
 
       it("should return the 401 Unauthorized status") {
-        val response = postSlashRoutesRegex(token)
+        val response = postSlashRoutesRegex(token, routeName)
         response.status.shouldBe(StatusCodes.Unauthorized)
       }
     }
@@ -52,7 +56,7 @@ class PostRegexRoutesSpec extends FunSpec with Matchers {
       val token = WRITE_STRICT_TOKEN
 
       it("should return the 401 Unauthorized status") {
-        val response = postSlashRoutesRegex(token)
+        val response = postSlashRoutesRegex(token, routeName)
         response.status.shouldBe(StatusCodes.Unauthorized)
       }
     }

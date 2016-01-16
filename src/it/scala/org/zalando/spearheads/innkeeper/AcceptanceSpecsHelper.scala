@@ -27,10 +27,10 @@ object AcceptanceSpecsHelper extends ScalaFutures {
       .futureValue
   }
 
-  def postSlashRoutes(routeType: String)(token: String): HttpResponse = {
+  def postSlashRoutes(routeType: String)(token: String, routeName: String): HttpResponse = {
     val route =
       s"""{
-          |  "name": "THE_ROUTE",
+          |  "name": "${routeName}",
           |  "description": "this is a route",
           |  "activate_at": "2015-10-10T10:10:10",
           |  "route": {
