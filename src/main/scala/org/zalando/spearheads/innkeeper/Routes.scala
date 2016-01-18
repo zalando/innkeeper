@@ -10,7 +10,7 @@ import akka.http.scaladsl.server.{ AuthorizationFailedRejection, RequestContext,
 import akka.stream.ActorMaterializer
 import com.google.inject.{ Inject, Singleton }
 import org.slf4j.LoggerFactory
-import org.zalando.spearheads.innkeeper.RouteDirectives.isRegexRoute
+import org.zalando.spearheads.innkeeper.RouteDirectives.{ isRegexRoute, isStrictRoute, findRoute }
 import org.zalando.spearheads.innkeeper.api.JsonProtocols._
 import org.zalando.spearheads.innkeeper.api._
 import org.zalando.spearheads.innkeeper.metrics.MetricRegistryJsonProtocol._
@@ -20,7 +20,7 @@ import org.zalando.spearheads.innkeeper.oauth._
 import org.zalando.spearheads.innkeeper.services.RoutesService
 import spray.json._
 
-import scala.concurrent.Future
+import scala.concurrent.{ ExecutionContext, Future }
 import scala.util.{ Failure, Success, Try }
 
 /**
@@ -32,7 +32,8 @@ class Routes @Inject() (implicit val materializer: ActorMaterializer,
                         val jsonService: JsonService,
                         val scopes: Scopes,
                         val metrics: RouteMetrics,
-                        implicit val authService: AuthService) {
+                        implicit val authService: AuthService,
+                        implicit val executionContext: ExecutionContext) {
   private val LOG = LoggerFactory.getLogger(this.getClass)
 
   private val FORMATTER = DateTimeFormatter.ISO_LOCAL_DATE_TIME
@@ -76,12 +77,12 @@ class Routes @Inject() (implicit val materializer: ActorMaterializer,
               LOG.info("post /routes/")
               entity(as[RouteIn]) { route =>
                 LOG.debug(s"route ${route}")
-                (hasOneOfTheScopes(authenticatedUser)(scopes.WRITE_REGEX) & isRegexRoute(route.route)) {
+                (isRegexRoute(route.route) & hasOneOfTheScopes(authenticatedUser)(scopes.WRITE_REGEX)) {
                   metrics.postRoutes.time {
                     LOG.info("post regex /routes/")
                     handleWith(saveRoute)
                   }
-                } ~ (hasOneOfTheScopes(authenticatedUser)(scopes.WRITE_FULL_PATH)) {
+                } ~ (isStrictRoute(route.route) & hasOneOfTheScopes(authenticatedUser)(scopes.WRITE_STRICT, scopes.WRITE_REGEX)) {
                   metrics.postRoutes.time {
                     LOG.info("post full-text /routes/")
                     handleWith(saveRoute)
@@ -94,25 +95,25 @@ class Routes @Inject() (implicit val materializer: ActorMaterializer,
               hasOneOfTheScopes(authenticatedUser)(scopes.READ) {
                 metrics.getRoute.time {
                   LOG.info("get /routes/{}", id)
-                  onComplete(routesService.findRouteById(id)) {
-                    case Success(value) => value match {
-                      case Some(route) => complete(route.toJson)
-                      case None        => complete(StatusCodes.NotFound, "")
-                    }
-
-                    case Failure(_) => complete(StatusCodes.InternalServerError)
+                  findRoute(id, routesService)(executionContext) { route =>
+                    complete(route.toJson)
                   }
                 }
               }
             } ~ delete {
-              hasOneOfTheScopes(authenticatedUser)(scopes.WRITE_FULL_PATH, scopes.WRITE_REGEX) {
-                metrics.deleteRoute.time {
-                  LOG.info("delete /routes/{}", id)
-                  onComplete(routesService.removeRoute(id)) {
-                    case Success(RoutesService.Success)  => complete("")
-                    case Success(RoutesService.NotFound) => complete(StatusCodes.NotFound)
-                    case Failure(_)                      => complete(StatusCodes.InternalServerError)
-                  }
+              hasOneOfTheScopes(authenticatedUser)(scopes.WRITE_STRICT, scopes.WRITE_REGEX) {
+                findRoute(id, routesService)(executionContext) { route =>
+                  (isRegexRoute(route.route) & hasOneOfTheScopes(authenticatedUser)(scopes.WRITE_REGEX)) {
+                    metrics.deleteRoute.time {
+                      LOG.info("delete regex /routes/{}", id)
+                      deleteRoute(route.id)
+                    }
+                  } ~ (isStrictRoute(route.route) & hasOneOfTheScopes(authenticatedUser)(scopes.WRITE_STRICT, scopes.WRITE_REGEX)) {
+                    metrics.deleteRoute.time {
+                      LOG.info("delete strict /routes/{}", id)
+                      deleteRoute(route.id)
+                    }
+                  } ~ reject(AuthorizationFailedRejection)
                 }
               }
             }
@@ -128,7 +129,19 @@ class Routes @Inject() (implicit val materializer: ActorMaterializer,
     }
 
   private def saveRoute: (RouteIn) => Future[Option[RouteOut]] = (route: RouteIn) => {
-    routesService.createRoute(route)
+    routesService.createRoute(route).flatMap {
+      case RoutesService.Success(route) => Future(Some(route))
+      case _                            => Future(None)
+    }
+  }
+
+  private def deleteRoute(id: Long) = {
+    onComplete(routesService.removeRoute(id)) {
+      case Success(RoutesService.Success)  => complete("")
+      case Success(RoutesService.NotFound) => complete(StatusCodes.NotFound)
+      case Success(_)                      => complete(StatusCodes.NotFound)
+      case Failure(_)                      => complete(StatusCodes.InternalServerError)
+    }
   }
 
   private def localDateTimeFromString(lastModified: String): Option[LocalDateTime] = {

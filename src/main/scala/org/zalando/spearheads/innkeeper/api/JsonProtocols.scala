@@ -1,10 +1,8 @@
 package org.zalando.spearheads.innkeeper.api
 
-import java.time.LocalDateTime
-
+import org.zalando.spearheads.innkeeper.api.LocalDateTimeProtocol.LocalDateTimeFormat
 import spray.json.DefaultJsonProtocol._
 import spray.json._
-import LocalDateTimeProtocol.LocalDateTimeFormat
 
 import scala.collection.immutable.Seq
 

@@ -64,7 +64,7 @@ To see it streaming:
 A client can have different scopes when calling Innkeeper:
 
   - read -> the client is allowed to read the routes
-  - writeFullPath -> the client is allowed to create only routes with a full path matcher
+  - writeStrict -> the client is allowed to create only routes with a full path matcher
   - writeRegex -> the client with this scope is allowed to create routes with a regex matcher
 
 # Postgres

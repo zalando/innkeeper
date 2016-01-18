@@ -18,13 +18,12 @@ scalacOptions := Seq("-unchecked", "-feature", "-deprecation", "-encoding", "utf
 resolvers += "Whisk" at "https://dl.bintray.com/whisk/maven"
 resolvers += "softprops-maven" at "http://dl.bintray.com/content/softprops/maven"
 
-val akkaStreamV      = "1.0"
+val akkaStreamV      = "2.0"
 val scalaTestV       = "3.0.0-M15"
 val scalaMockV       = "3.2.2"
 
 libraryDependencies ++= List(
   "com.typesafe.slick"      %% "slick"                                % "3.0.1",
-  "com.h2database"           % "h2"                                   % "1.3.175",
   "com.typesafe.akka"       %% "akka-stream-experimental"             % akkaStreamV,
   "com.typesafe.akka"       %% "akka-http-core-experimental"          % akkaStreamV,
   "com.typesafe.akka"       %% "akka-http-spray-json-experimental"    % akkaStreamV,
@@ -54,5 +53,7 @@ ScalariformKeys.preferences := ScalariformKeys.preferences.value
   .setPreference(AlignSingleLineCaseStatements.MaxArrowIndent, 100)
   .setPreference(DoubleIndentClassDeclaration, true)
   .setPreference(AlignParameters, true)
+
+parallelExecution in IntegrationTest := false
 
 fork in run := true

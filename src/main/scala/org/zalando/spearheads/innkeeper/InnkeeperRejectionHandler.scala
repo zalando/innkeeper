@@ -23,6 +23,11 @@ object InnkeeperRejectionHandler {
           StatusCodes.Unauthorized,
           Error(StatusCodes.Unauthorized.intValue, "Authentication failed", "AUTH2")
         )
+        case RouteNotFoundRejection =>
+          complete(
+            StatusCodes.NotFound,
+            Error(StatusCodes.NotFound.intValue, "Resource not found", "RNF")
+          )
         case UnmarshallRejection => complete(
           StatusCodes.BadRequest,
           Error(StatusCodes.BadRequest.intValue, "Failed to unmarshall route", "UNMAR1")

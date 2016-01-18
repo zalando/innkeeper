@@ -14,7 +14,7 @@ case class Scope(val scopeNames: Set[String]) extends AnyVal
 class Scopes @Inject() (val config: Config) {
 
   val READ = Scope(config.getStringList("oauth.scope.read").toSet)
-  val WRITE_FULL_PATH = Scope(config.getStringList("oauth.scope.writeFullPath").toSet)
+  val WRITE_STRICT = Scope(config.getStringList("oauth.scope.writeStrict").toSet)
   val WRITE_REGEX = Scope(config.getStringList("oauth.scope.writeRegex").toSet)
 }
 

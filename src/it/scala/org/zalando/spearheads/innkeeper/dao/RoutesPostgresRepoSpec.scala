@@ -1,19 +1,19 @@
 package org.zalando.spearheads.innkeeper.dao
 
 import java.time.LocalDateTime
-import java.time.temporal.{ChronoUnit, TemporalUnit}
+import java.time.temporal.ChronoUnit
 
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Source
 import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.time.{Span, Seconds}
-import org.scalatest.{FunSpec, BeforeAndAfter, Matchers}
-import org.zalando.spearheads.innkeeper.dao.MyPostgresDriver.api._
+import org.scalatest.time.{Seconds, Span}
+import org.scalatest.{BeforeAndAfter, FunSpec, Matchers}
+import org.zalando.spearheads.innkeeper.RoutesRepoHelper
+import org.zalando.spearheads.innkeeper.RoutesRepoHelper.{insertRoute, routeJson}
 import slick.backend.DatabasePublisher
 import slick.jdbc.meta.MTable
 
-import scala.concurrent.ExecutionContext
 import scala.language.implicitConversions
 
 /**
@@ -25,29 +25,20 @@ class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers w
   implicit val actorSystem = ActorSystem()
   implicit val materializer = ActorMaterializer()
 
-  val executionContext = ExecutionContext.global
-  val db = Database.forConfig("test.innkeeperdb")
-  val routesRepo = new RoutesPostgresRepo()(executionContext, db)
-
-  private def routeJson(name: String = "") = s""""{"description": "route: ${name}"}""""
+  val routesRepo = RoutesRepoHelper.routesRepo
 
   private def getDeletedAtForRoute(id: Long) = {
     val routeRow = routesRepo.selectById(id).futureValue
     routeRow.get.deletedAt.get
   }
 
-  private def insertRoute(name: String = "THE_ROUTE", createdAt: LocalDateTime = LocalDateTime.now()) = {
-    routesRepo.insert(RouteRow(name = name, routeJson = routeJson(name),
-      createdAt = createdAt, activateAt = createdAt.plusMinutes(5))).futureValue
-  }
-
   implicit def databasePublisherToList[T](databasePublisher: DatabasePublisher[T]): List[T] = {
-    Source(databasePublisher).runFold(Seq.empty[T]) {
+    Source.fromPublisher(databasePublisher).runFold(Seq.empty[T]) {
       case (seq, item) => seq :+ item
     }.futureValue.toList
   }
 
-  describe("RoutesRpoTest") {
+  describe("RoutesPostgresRepoSpec") {
 
     before {
       routesRepo.dropSchema.futureValue
@@ -55,6 +46,8 @@ class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers w
     }
 
     describe("schema") {
+      val db = RoutesRepoHelper.db
+
       it("should createSchema") {
         val tables = db.run(MTable.getTables).futureValue
         tables.count(_.name.name.equalsIgnoreCase("ROUTES")) should be(1)
@@ -73,7 +66,7 @@ class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers w
         it("should insert a route") {
           val routeRow = insertRoute()
           routeRow.id.isDefined should be(true)
-          routeRow.routeJson should be(routeJson("THE_ROUTE"))
+          routeRow.routeJson should be(routeJson("/hello"))
         }
 
         it("should select a route by id") {
@@ -81,7 +74,7 @@ class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers w
           val routeRow = routesRepo.selectById(1).futureValue
           routeRow.isDefined should be(true)
           routeRow.get.id.isDefined should be(true)
-          routeRow.get.routeJson should be(routeJson("THE_ROUTE"))
+          routeRow.get.routeJson should be(routeJson("/hello"))
         }
       }
 
@@ -90,14 +83,14 @@ class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers w
           it("should select all routes") {
             val createdAt = LocalDateTime.now()
             val activateAt = createdAt.plusMinutes(5)
-            insertRoute("R1", createdAt)
-            insertRoute("R2", createdAt)
+            insertRoute("R1", "/hello1", createdAt = createdAt)
+            insertRoute("R2", "/hello2", createdAt = createdAt)
 
             val routes: List[RouteRow] = routesRepo.selectAll
 
             routes should not be 'empty
-            routes(0) should be(RouteRow(Some(1), "R1", routeJson("R1"), createdAt = createdAt, activateAt = activateAt))
-            routes(1) should be(RouteRow(Some(2), "R2", routeJson("R2"), createdAt = createdAt, activateAt = activateAt))
+            routes(0) should be(RouteRow(Some(1), "R1", routeJson("/hello1"), createdAt = createdAt, activateAt = activateAt))
+            routes(1) should be(RouteRow(Some(2), "R2", routeJson("/hello2"), createdAt = createdAt, activateAt = activateAt))
           }
         }
 
@@ -106,8 +99,8 @@ class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers w
             insertRoute("1")
             insertRoute("2")
             val createdAt = LocalDateTime.now()
-            insertRoute("3", createdAt)
-            insertRoute("4", createdAt)
+            insertRoute("3", createdAt = createdAt)
+            insertRoute("4", createdAt = createdAt)
             routesRepo.delete(1)
 
             val routes: List[RouteRow] = routesRepo.selectModifiedSince(createdAt.minus(1, ChronoUnit.MICROS))
@@ -119,8 +112,8 @@ class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers w
 
       describe("delete") {
         it("should delete a route by marking as deleted") {
-          insertRoute("1")
-          insertRoute("2")
+          insertRoute("1", "/hello1")
+          insertRoute("2", "/hello2")
 
           val result = routesRepo.delete(1).futureValue
 
@@ -131,7 +124,7 @@ class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers w
           routeRow.isDefined should be(true)
           routeRow.get.id.isDefined should be(true)
           routeRow.get.deletedAt.isDefined should be(true)
-          routeRow.get.routeJson should be(routeJson("1"))
+          routeRow.get.routeJson should be(routeJson("/hello1"))
         }
 
         it("should not delete a route that does not exist") {
