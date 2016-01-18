@@ -24,7 +24,7 @@ object AcceptanceSpecsHelper extends ScalaFutures {
   def entityString(response: HttpResponse): String = {
     response.entity.dataBytes
       .map(bs => bs.utf8String)
-      .runFold("")((a, b) => a + b)
+      .runFold("")(_ + _)
       .futureValue
   }
 
