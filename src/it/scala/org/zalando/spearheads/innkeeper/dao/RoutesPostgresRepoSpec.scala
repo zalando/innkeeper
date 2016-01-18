@@ -47,7 +47,7 @@ class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers w
     }.futureValue.toList
   }
 
-  describe("RoutesRpoTest") {
+  describe("RoutesPostgresRepoSpec") {
 
     before {
       routesRepo.dropSchema.futureValue
