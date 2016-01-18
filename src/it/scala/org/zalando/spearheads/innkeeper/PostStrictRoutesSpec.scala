@@ -1,10 +1,10 @@
 package org.zalando.spearheads.innkeeper
 
 import akka.http.scaladsl.model.StatusCodes
-import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.{FunSpec, Matchers}
+import org.scalatest.{BeforeAndAfter, FunSpec, Matchers}
 import org.zalando.spearheads.innkeeper.AcceptanceSpecTokens._
 import org.zalando.spearheads.innkeeper.AcceptanceSpecsHelper._
+import org.zalando.spearheads.innkeeper.RoutesRepoHelper._
 import org.zalando.spearheads.innkeeper.api.{RouteName, RouteOut}
 import spray.json._
 import spray.json.DefaultJsonProtocol._
@@ -13,13 +13,17 @@ import org.zalando.spearheads.innkeeper.api.JsonProtocols._
 /**
   * @author dpersa
   */
-class PostStrictRoutesSpec extends FunSpec with Matchers {
+class PostStrictRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
 
   val routeName = "random_strict_name"
 
   describe("post strict /routes") {
 
     describe("success") {
+
+      before {
+        recreateSchema
+      }
 
       describe("when a token with the write_strict scope is provided") {
         val token = WRITE_STRICT_TOKEN
@@ -30,7 +34,7 @@ class PostStrictRoutesSpec extends FunSpec with Matchers {
           response.status should be(StatusCodes.OK)
           val entity = entityString(response)
           val route = entity.parseJson.convertTo[RouteOut]
-          route.id should not be (0)
+          route.id should be (1)
           route.name should be(RouteName(routeName))
         }
 
@@ -43,7 +47,7 @@ class PostStrictRoutesSpec extends FunSpec with Matchers {
             response.status should be(StatusCodes.OK)
             val entity = entityString(response)
             val route = entity.parseJson.convertTo[RouteOut]
-            route.id should not be (0)
+            route.id should be (1)
             route.name should be(RouteName(routeName))
           }
         }

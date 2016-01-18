@@ -15,8 +15,7 @@ import scala.collection.immutable.Seq
 object AcceptanceSpecsHelper extends ScalaFutures {
 
   val uri = "http://localhost:8080/routes"
-  override implicit val patienceConfig =
-    PatienceConfig(timeout = Span(60, Seconds), interval = Span(1, Second))
+  override implicit val patienceConfig = PatienceConfig(timeout = Span(5, Seconds))
   implicit val system = ActorSystem("main-actor-system")
   implicit val materializer = ActorMaterializer()
 

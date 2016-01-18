@@ -25,6 +25,11 @@ object RoutesRepoHelper extends ScalaFutures {
       createdAt = createdAt, activateAt = createdAt.plusMinutes(5))).futureValue
   }
 
+  def recreateSchema = {
+    routesRepo.dropSchema.futureValue
+    routesRepo.createSchema.futureValue
+  }
+
   def routeJson(matcher: String = "/hello", routeType: String = "STRICT") =
     s"""{
         |  "matcher": {
