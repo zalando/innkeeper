@@ -39,7 +39,7 @@ class GetRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
     }
 
     describe("failure") {
-      describe("with an invalid token") {
+      describe("when an invalid token is provided") {
         val token = INVALID_TOKEN
 
         it("should return the 401 Unauthorized status") {
@@ -48,7 +48,7 @@ class GetRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
         }
       }
 
-      describe("with a token without the READ scope") {
+      describe("when a token without the read scope is provided") {
         val token = WRITE_STRICT_TOKEN
 
         it("should return the 401 Unauthorized status") {

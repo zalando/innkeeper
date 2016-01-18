@@ -42,7 +42,7 @@ class PostRegexRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
 
     describe("failure") {
 
-      describe("when an invalid name is provided") {
+      describe("when an invalid route name is provided") {
         val token = WRITE_REGEX_TOKEN
 
         it("should return the 400 Bad Request status") {

@@ -14,10 +14,12 @@ import scala.collection.immutable.Seq
   */
 object AcceptanceSpecsHelper extends ScalaFutures {
 
-  val uri = "http://localhost:8080/routes"
+  private val routesUri = "http://localhost:8080/routes"
   override implicit val patienceConfig = PatienceConfig(timeout = Span(5, Seconds))
   implicit val system = ActorSystem("main-actor-system")
   implicit val materializer = ActorMaterializer()
+
+  def routeUri(id: Long) = s"$routesUri/$id"
 
   def entityString(response: HttpResponse): String = {
     response.entity.dataBytes
@@ -47,7 +49,7 @@ object AcceptanceSpecsHelper extends ScalaFutures {
     val headers = Seq[HttpHeader](Authorization(OAuth2BearerToken(token)))
 
     val request = HttpRequest(method = HttpMethods.POST,
-      uri = uri,
+      uri = routesUri,
       entity = entity,
       headers = headers)
 
@@ -56,7 +58,21 @@ object AcceptanceSpecsHelper extends ScalaFutures {
   }
 
   def getSlashRoutes(token: String): HttpResponse = {
-    val futureResponse = Http().singleRequest(HttpRequest(uri = uri,
+    val futureResponse = Http().singleRequest(HttpRequest(uri = routesUri,
+      headers = Seq[HttpHeader](Authorization(OAuth2BearerToken(token)))))
+    futureResponse.futureValue
+  }
+
+  def getSlashRoute(token: String, id: Long): HttpResponse = {
+    slashRoute(token, id)
+  }
+
+  def deleteSlashRoute(token: String, id: Long): HttpResponse = {
+    slashRoute(token, id, HttpMethods.DELETE)
+  }
+
+  private def slashRoute(token: String, id: Long, method: HttpMethod = HttpMethods.GET): HttpResponse = {
+    val futureResponse = Http().singleRequest(HttpRequest(uri = routeUri(id), method = method,
       headers = Seq[HttpHeader](Authorization(OAuth2BearerToken(token)))))
     futureResponse.futureValue
   }

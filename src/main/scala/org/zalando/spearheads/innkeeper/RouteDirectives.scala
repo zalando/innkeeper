@@ -1,9 +1,17 @@
 package org.zalando.spearheads.innkeeper
 
 import akka.http.scaladsl.server.directives.BasicDirectives.pass
-import akka.http.scaladsl.server.directives.RouteDirectives.reject
-import akka.http.scaladsl.server.{ Rejection, Directive0, AuthorizationFailedRejection }
+import akka.http.scaladsl.server.directives.RouteDirectives._
+import akka.http.scaladsl.server._
 import org.zalando.spearheads.innkeeper.api._
+import org.zalando.spearheads.innkeeper.services.RoutesService
+import org.zalando.spearheads.innkeeper.api.JsonProtocols._
+
+import scala.concurrent.ExecutionContext
+import scala.util.{ Success }
+
+import spray.json._
+import akka.http.scaladsl.util.FastFuture._
 
 /**
  * @author dpersa
@@ -23,7 +31,22 @@ trait RouteDirectives {
       case _                          => reject(AuthorizationFailedRejection)
     }
   }
+
+  def findRoute(id: Long, routesService: RoutesService)(implicit executionContext: ExecutionContext): Directive1[RouteOut] =
+    Directive[Tuple1[RouteOut]] { inner =>
+      ctx => {
+        routesService.findRouteById(id).fast.transformWith {
+          case Success(RoutesService.Success(routeOut)) => inner(Tuple1(routeOut))(ctx)
+          case Success(RoutesService.NotFound)          => reject(RouteNotFoundRejection)(ctx)
+          case _                                        => reject(InternalServerErrorRejection)(ctx)
+        }
+      }
+    }
 }
+
+case object RouteNotFoundRejection extends Rejection
+
+case object InternalServerErrorRejection extends Rejection
 
 case object UnmarshallRejection extends Rejection
 

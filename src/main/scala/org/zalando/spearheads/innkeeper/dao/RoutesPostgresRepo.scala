@@ -78,7 +78,7 @@ class RoutesPostgresRepo @Inject() (implicit val executionContext: ExecutionCont
     db.run {
       val deletedAt = for {
         routeRow <- routesTable
-        if routeRow.id === id && !routeRow.deletedAt.isDefined
+        if routeRow.id === id && routeRow.deletedAt.isEmpty
       } yield routeRow.deletedAt
 
       deletedAt.update(Some(LocalDateTime.now())).map(_ > 0)

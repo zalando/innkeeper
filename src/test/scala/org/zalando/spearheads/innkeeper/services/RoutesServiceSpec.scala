@@ -42,7 +42,7 @@ class RoutesServiceSpec extends FunSpec with Matchers with MockFactory with Scal
 
       val result = routesService.createRoute(routeIn, createdAt).futureValue
 
-      result should be(Some(savedRoute))
+      result should be(RoutesService.Success(savedRoute))
     }
 
     it("should createRoute without an activateAt") {
@@ -54,7 +54,7 @@ class RoutesServiceSpec extends FunSpec with Matchers with MockFactory with Scal
 
       val result = routesService.createRoute(routeInNoActivationDate, createdAt).futureValue
 
-      result should be(Some(savedRoute.copy(activateAt = createdAt.plusMinutes(5))))
+      result should be(RoutesService.Success(savedRoute.copy(activateAt = createdAt.plusMinutes(5))))
     }
 
     it("should fail to createRoute") {
@@ -64,7 +64,7 @@ class RoutesServiceSpec extends FunSpec with Matchers with MockFactory with Scal
 
       val result = routesService.createRoute(routeIn, createdAt).futureValue
 
-      result should be(None)
+      result should be(RoutesService.NotFound)
     }
   }
 
@@ -122,29 +122,51 @@ class RoutesServiceSpec extends FunSpec with Matchers with MockFactory with Scal
   }
 
   describe("#findRouteById") {
-    describe("if the route exists") {
+    describe("when the route exists") {
       it("should find the route") {
         (routesRepo.selectById _).expects(routeId).returning {
           Future(Some(routeRow))
         }
 
-        val routeOption = routesService.findRouteById(routeId).futureValue
+        val routeServiceResult = routesService.findRouteById(routeId).futureValue
 
-        routeOption.isDefined should be(true)
-        routeOption.get.id should be(routeId)
-        routeOption.get.description should be(Some("The New Route"))
+        routeServiceResult match {
+          case RoutesService.Success(route) => {
+            route.id should be(routeId)
+            route.description should be(Some("The New Route"))
+          }
+          case _ => fail()
+        }
       }
     }
 
-    describe("if the route does not exist") {
-      it("should return None") {
+    describe("when the route does not exist") {
+      it("should return NotFound") {
         (routesRepo.selectById _).expects(routeId).returning {
           Future(None)
         }
 
-        val routeOption = routesService.findRouteById(routeId).futureValue
+        val routeServiceResult = routesService.findRouteById(routeId).futureValue
 
-        routeOption.isDefined should be(false)
+        routeServiceResult match {
+          case RoutesService.NotFound =>
+          case _                      => fail()
+        }
+      }
+    }
+
+    describe("when the route is a deleted one") {
+      it("should return NotFound") {
+        (routesRepo.selectById _).expects(routeId).returning {
+          Future(Some(routeRow.copy(deletedAt = Some(LocalDateTime.now()))))
+        }
+
+        val routeServiceResult = routesService.findRouteById(routeId).futureValue
+
+        routeServiceResult match {
+          case RoutesService.NotFound =>
+          case _                      => fail()
+        }
       }
     }
   }
