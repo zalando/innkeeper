@@ -24,7 +24,6 @@ val scalaMockV       = "3.2.2"
 
 libraryDependencies ++= List(
   "com.typesafe.slick"      %% "slick"                                % "3.0.1",
-  "com.h2database"           % "h2"                                   % "1.3.175",
   "com.typesafe.akka"       %% "akka-stream-experimental"             % akkaStreamV,
   "com.typesafe.akka"       %% "akka-http-core-experimental"          % akkaStreamV,
   "com.typesafe.akka"       %% "akka-http-spray-json-experimental"    % akkaStreamV,
