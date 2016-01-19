@@ -193,12 +193,16 @@ definitions:
   RouteIn:
     required:
       - name
+      - description
       - route
     properties:
       name:
         type: string
         pattern: /[A-Z][A-Z0-9_]*
         description: The name of the route in the ROUTE_NAME format
+      description:
+        type: string
+        description: Human readable description for the route
       activate_at:
         type: string
         description: The ISO-8601 date time when the route will be activated
@@ -210,6 +214,7 @@ definitions:
       - id
       - name
       - route
+      - description
       - created_at
       - activate_at
     properties:
@@ -220,6 +225,9 @@ definitions:
         type: string
         pattern: \[A-Z][A-Z0-9_]*
         description: The name of the route in the ROUTE_NAME format
+      description:
+        type: string
+        description: Human readable description for the route
       created_at:
         type: string
         description: The ISO-8601 date time when the route has been created
