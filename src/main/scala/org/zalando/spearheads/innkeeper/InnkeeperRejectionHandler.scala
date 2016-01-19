@@ -28,6 +28,12 @@ object InnkeeperRejectionHandler {
             StatusCodes.NotFound,
             Error(StatusCodes.NotFound.intValue, "Resource not found", "RNF")
           )
+
+        case InvalidRouteNameRejection =>
+          complete(
+            StatusCodes.BadRequest,
+            Error(StatusCodes.BadRequest.intValue, """"Invalid route name. Route names follow the pattern: "[a-zA-Z][a-zA-Z0-9_]*"""", "IRN")
+          )
         case UnmarshallRejection => complete(
           StatusCodes.BadRequest,
           Error(StatusCodes.BadRequest.intValue, "Failed to unmarshall route", "UNMAR1")

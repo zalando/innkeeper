@@ -121,14 +121,14 @@ class RoutesServiceSpec extends FunSpec with Matchers with MockFactory with Scal
     }
   }
 
-  describe("#findRouteById") {
+  describe("#findById") {
     describe("when the route exists") {
       it("should find the route") {
         (routesRepo.selectById _).expects(routeId).returning {
           Future(Some(routeRow))
         }
 
-        val routeServiceResult = routesService.findRouteById(routeId).futureValue
+        val routeServiceResult = routesService.findById(routeId).futureValue
 
         routeServiceResult match {
           case RoutesService.Success(route) => {
@@ -146,7 +146,7 @@ class RoutesServiceSpec extends FunSpec with Matchers with MockFactory with Scal
           Future(None)
         }
 
-        val routeServiceResult = routesService.findRouteById(routeId).futureValue
+        val routeServiceResult = routesService.findById(routeId).futureValue
 
         routeServiceResult match {
           case RoutesService.NotFound =>
@@ -161,7 +161,7 @@ class RoutesServiceSpec extends FunSpec with Matchers with MockFactory with Scal
           Future(Some(routeRow.copy(deletedAt = Some(LocalDateTime.now()))))
         }
 
-        val routeServiceResult = routesService.findRouteById(routeId).futureValue
+        val routeServiceResult = routesService.findById(routeId).futureValue
 
         routeServiceResult match {
           case RoutesService.NotFound =>
@@ -171,9 +171,49 @@ class RoutesServiceSpec extends FunSpec with Matchers with MockFactory with Scal
     }
   }
 
+  describe("#findByName") {
+    describe("when the route exists") {
+      it("should find the route") {
+        (routesRepo.selectByName _).expects(routeName.name).returning {
+          FakeDatabasePublisher[RouteRow](Seq(routeRow))
+        }
+
+        val result = routesService.findByName(routeName)
+        val firstRoute = result.runWith(Sink.head).futureValue
+
+        firstRoute.id should be(routeId)
+        firstRoute.name should be(RouteName("THE_ROUTE"))
+        firstRoute.description should be(Some("The New Route"))
+      }
+    }
+
+    describe("when the route with the specified name does not exist") {
+      it("should return an empty collection") {
+        (routesRepo.selectByName _).expects(routeName.name).returning {
+          FakeDatabasePublisher[RouteRow](Seq())
+        }
+
+        val result = routesService.findByName(routeName)
+        val firstRoute = result.runWith(Sink.headOption).futureValue
+
+        firstRoute should not be 'defined
+      }
+    }
+  }
+
   describe("#findModifiedSince") {
     it("should find the right route") {
-      pending
+
+      (routesRepo.selectModifiedSince _).expects(createdAt).returning {
+        FakeDatabasePublisher[RouteRow](Seq(routeRow))
+      }
+
+      val result = routesService.findModifiedSince(createdAt)
+      val firstRoute = result.runWith(Sink.head).futureValue
+
+      firstRoute.id should be(routeId)
+      firstRoute.name should be(RouteName("THE_ROUTE"))
+      firstRoute.description should be(Some("The New Route"))
     }
   }
 

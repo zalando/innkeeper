@@ -66,10 +66,29 @@ class Routes @Inject() (implicit val materializer: ActorMaterializer,
               hasOneOfTheScopes(authenticatedUser)(scopes.READ) {
                 metrics.getRoutes.time {
                   LOG.info("get /routes/")
-                  val chunkedStreamSource = jsonService.sourceToJsonSource(routesService.allRoutes)
+                  parameterMap { parameterMap =>
+                    parameterMap.get("name") match {
+                      case Some(name) => {
 
-                  complete {
-                    HttpResponse(entity = HttpEntity.Chunked(MediaTypes.`application/json`, chunkedStreamSource))
+                        Try(RouteName(name)) match {
+                          case Success(routeName) => {
+                            val chunkedStreamSource = jsonService.sourceToJsonSource(routesService.findByName(routeName))
+
+                            complete {
+                              HttpResponse(entity = HttpEntity.Chunked(MediaTypes.`application/json`, chunkedStreamSource))
+                            }
+                          }
+                          case _ => reject(InvalidRouteNameRejection)
+                        }
+                      }
+                      case None => {
+                        val chunkedStreamSource = jsonService.sourceToJsonSource(routesService.allRoutes)
+
+                        complete {
+                          HttpResponse(entity = HttpEntity.Chunked(MediaTypes.`application/json`, chunkedStreamSource))
+                        }
+                      }
+                    }
                   }
                 }
               }

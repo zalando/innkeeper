@@ -4,7 +4,7 @@ import akka.http.scaladsl.model.StatusCodes
 import org.scalatest.{BeforeAndAfter, FunSpec, Matchers}
 import org.zalando.spearheads.innkeeper.AcceptanceSpecTokens.{INVALID_TOKEN, READ_TOKEN, WRITE_STRICT_TOKEN}
 import org.zalando.spearheads.innkeeper.AcceptanceSpecsHelper._
-import org.zalando.spearheads.innkeeper.RoutesRepoHelper.{insertRoute, recreateSchema}
+import org.zalando.spearheads.innkeeper.RoutesRepoHelper.{insertRoute, recreateSchema, deleteRoute}
 import org.zalando.spearheads.innkeeper.api.{RouteName, RouteOut}
 import spray.json._
 import spray.json.DefaultJsonProtocol._
@@ -53,8 +53,7 @@ class GetRouteSpec extends FunSpec with BeforeAndAfter with Matchers {
         it("should return the 404 Not Found status code") {
           recreateSchema
           insertRoute()
-          val delRes = deleteSlashRoute(WRITE_STRICT_TOKEN, 1)
-          delRes.status should be(StatusCodes.OK)
+          deleteRoute(1)
           val response = getSlashRoute(token, 1)
           response.status should be(StatusCodes.NotFound)
         }

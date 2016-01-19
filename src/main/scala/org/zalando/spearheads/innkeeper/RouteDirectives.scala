@@ -35,7 +35,7 @@ trait RouteDirectives {
   def findRoute(id: Long, routesService: RoutesService)(implicit executionContext: ExecutionContext): Directive1[RouteOut] =
     Directive[Tuple1[RouteOut]] { inner =>
       ctx => {
-        routesService.findRouteById(id).fast.transformWith {
+        routesService.findById(id).fast.transformWith {
           case Success(RoutesService.Success(routeOut)) => inner(Tuple1(routeOut))(ctx)
           case Success(RoutesService.NotFound)          => reject(RouteNotFoundRejection)(ctx)
           case _                                        => reject(InternalServerErrorRejection)(ctx)
@@ -45,6 +45,8 @@ trait RouteDirectives {
 }
 
 case object RouteNotFoundRejection extends Rejection
+
+case object InvalidRouteNameRejection extends Rejection
 
 case object InternalServerErrorRejection extends Rejection
 

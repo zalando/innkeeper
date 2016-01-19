@@ -58,8 +58,13 @@ class RoutesPostgresRepo @Inject() (implicit val executionContext: ExecutionCont
   }
 
   def selectAll: DatabasePublisher[RouteRow] = {
+    val q = for {
+      routeRow <- routesTable
+      if routeRow.deletedAt.isEmpty
+    } yield routeRow
+
     db.stream {
-      routesTable.result
+      q.result
     }
   }
 
@@ -67,6 +72,17 @@ class RoutesPostgresRepo @Inject() (implicit val executionContext: ExecutionCont
     val q = for {
       routeRow <- routesTable
       if (routeRow.createdAt > localDateTime || routeRow.deletedAt > localDateTime)
+    } yield routeRow
+
+    db.stream {
+      q.result
+    }
+  }
+
+  def selectByName(name: String): DatabasePublisher[RouteRow] = {
+    val q = for {
+      routeRow <- routesTable
+      if routeRow.name === name && routeRow.deletedAt.isEmpty
     } yield routeRow
 
     db.stream {

@@ -20,6 +20,7 @@ object AcceptanceSpecsHelper extends ScalaFutures {
   implicit val materializer = ActorMaterializer()
 
   def routeUri(id: Long) = s"$routesUri/$id"
+  def routeByNameUri(name: String) = s"$routesUri?name=$name"
 
   def entityString(response: HttpResponse): String = {
     response.entity.dataBytes
@@ -59,6 +60,12 @@ object AcceptanceSpecsHelper extends ScalaFutures {
 
   def getSlashRoutes(token: String): HttpResponse = {
     val futureResponse = Http().singleRequest(HttpRequest(uri = routesUri,
+      headers = Seq[HttpHeader](Authorization(OAuth2BearerToken(token)))))
+    futureResponse.futureValue
+  }
+
+  def getSlashRoutesByName(token: String, name: String): HttpResponse = {
+    val futureResponse = Http().singleRequest(HttpRequest(uri = routeByNameUri(name),
       headers = Seq[HttpHeader](Authorization(OAuth2BearerToken(token)))))
     futureResponse.futureValue
   }

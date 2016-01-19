@@ -17,5 +17,6 @@ trait RoutesRepo {
   def selectById(id: Long): Future[Option[RouteRow]]
   def selectAll: DatabasePublisher[RouteRow]
   def selectModifiedSince(localDateTime: LocalDateTime): DatabasePublisher[RouteRow]
+  def selectByName(name: String): DatabasePublisher[RouteRow]
   def delete(id: Long): Future[Boolean]
 }

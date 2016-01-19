@@ -25,6 +25,10 @@ object RoutesRepoHelper extends ScalaFutures {
       createdAt = createdAt, activateAt = createdAt.plusMinutes(5))).futureValue
   }
 
+  def deleteRoute(id: Long) = {
+    routesRepo.delete(id)
+  }
+
   def recreateSchema = {
     routesRepo.dropSchema.futureValue
     routesRepo.createSchema.futureValue
