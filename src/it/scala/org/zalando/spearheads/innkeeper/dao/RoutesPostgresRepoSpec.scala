@@ -92,6 +92,21 @@ class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers w
             routes(0) should be(RouteRow(Some(1), "R1", routeJson("/hello1"), createdAt = createdAt, activateAt = activateAt))
             routes(1) should be(RouteRow(Some(2), "R2", routeJson("/hello2"), createdAt = createdAt, activateAt = activateAt))
           }
+
+          it("should not select the deleted routes") {
+            insertRoute("R1")
+            insertRoute("R2")
+            val createdAt = LocalDateTime.now()
+            insertRoute("R3", createdAt = createdAt)
+            insertRoute("R4", createdAt = createdAt)
+            routesRepo.delete(2)
+
+            val routes: List[RouteRow] = routesRepo.selectAll
+
+            routes should not be 'empty
+            routes.size should be(3)
+            routes.map(_.id.get).toSet should be(Set(1, 3, 4))
+          }
         }
 
         describe("#selectModifiedSince") {
@@ -106,6 +121,34 @@ class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers w
             val routes: List[RouteRow] = routesRepo.selectModifiedSince(createdAt.minus(1, ChronoUnit.MICROS))
             routes.size should be(3)
             routes.map(_.id.get).toSet should be(Set(1, 3, 4))
+          }
+        }
+
+        describe("#selectByName") {
+          it("should select the right routes") {
+            insertRoute("R1")
+            insertRoute("R2")
+            insertRoute("R3")
+            insertRoute("R2")
+
+            val routes: List[RouteRow] = routesRepo.selectByName("R2")
+            routes.size should be(2)
+            routes.map(_.id.get).toSet should be(Set(2, 4))
+          }
+
+          it("should not select the deleted routes") {
+            insertRoute("R1")
+            insertRoute("R2")
+            val createdAt = LocalDateTime.now()
+            insertRoute("R2", createdAt = createdAt)
+            insertRoute("R4", createdAt = createdAt)
+            routesRepo.delete(2)
+
+            val routes: List[RouteRow] = routesRepo.selectByName("R2")
+
+            routes should not be 'empty
+            routes.size should be(1)
+            routes.map(_.id.get).toSet should be(Set(3))
           }
         }
       }

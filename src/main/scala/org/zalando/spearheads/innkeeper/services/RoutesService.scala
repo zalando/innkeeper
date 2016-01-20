@@ -46,6 +46,16 @@ class RoutesService @Inject() (implicit val executionContext: ExecutionContext,
     }
   }
 
+  def findByName(name: RouteName): Source[RouteOut, Unit] = {
+    Source.fromPublisher(
+      routesRepo.selectByName(name.name).mapResult { routeRow =>
+        routeRow.id.map { id =>
+          routeRowToRoute(id, routeRow)
+        }
+      }
+    ).mapConcat(_.toList)
+  }
+
   def findModifiedSince(localDateTime: LocalDateTime): Source[RouteOut, Unit] = {
     Source.fromPublisher(
       routesRepo.selectModifiedSince(localDateTime).mapResult { routeRow =>
@@ -64,7 +74,7 @@ class RoutesService @Inject() (implicit val executionContext: ExecutionContext,
     }).mapConcat(_.toList)
   }
 
-  def findRouteById(id: Long): Future[RoutesServiceResult] = {
+  def findById(id: Long): Future[RoutesServiceResult] = {
     routesRepo.selectById(id).flatMap {
       case Some(routeRow) if routeRow.deletedAt.isEmpty => rowToEventualMaybeRoute(routeRow)
       case _                                            => Future(NotFound)
