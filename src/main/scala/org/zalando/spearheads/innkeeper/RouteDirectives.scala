@@ -1,8 +1,10 @@
 package org.zalando.spearheads.innkeeper
 
+import akka.http.scaladsl.model.{ MediaTypes, HttpEntity, HttpResponse }
 import akka.http.scaladsl.server.directives.BasicDirectives.pass
 import akka.http.scaladsl.server.directives.RouteDirectives._
 import akka.http.scaladsl.server._
+import akka.stream.scaladsl.Source
 import org.zalando.spearheads.innkeeper.api._
 import org.zalando.spearheads.innkeeper.services.RoutesService
 import org.zalando.spearheads.innkeeper.api.JsonProtocols._
@@ -42,6 +44,13 @@ trait RouteDirectives {
         }
       }
     }
+
+  def chunkedResponseOfRoutes(jsonService: JsonService)(routeSource: Source[RouteOut, Unit]) = {
+    val chunkedStreamSource = jsonService.sourceToJsonSource(routeSource)
+    complete {
+      HttpResponse(entity = HttpEntity.Chunked(MediaTypes.`application/json`, chunkedStreamSource))
+    }
+  }
 }
 
 case object RouteNotFoundRejection extends Rejection

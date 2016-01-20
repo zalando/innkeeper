@@ -10,7 +10,7 @@ import akka.http.scaladsl.server.{ AuthorizationFailedRejection, RequestContext,
 import akka.stream.ActorMaterializer
 import com.google.inject.{ Inject, Singleton }
 import org.slf4j.LoggerFactory
-import org.zalando.spearheads.innkeeper.RouteDirectives.{ isRegexRoute, isStrictRoute, findRoute }
+import org.zalando.spearheads.innkeeper.RouteDirectives.{ isRegexRoute, isStrictRoute, findRoute, chunkedResponseOfRoutes }
 import org.zalando.spearheads.innkeeper.api.JsonProtocols._
 import org.zalando.spearheads.innkeeper.api._
 import org.zalando.spearheads.innkeeper.metrics.MetricRegistryJsonProtocol._
@@ -68,26 +68,18 @@ class Routes @Inject() (implicit val materializer: ActorMaterializer,
                   LOG.info("get /routes/")
                   parameterMap { parameterMap =>
                     parameterMap.get("name") match {
-                      case Some(name) => {
-
+                      case Some(name) =>
                         Try(RouteName(name)) match {
-                          case Success(routeName) => {
-                            val chunkedStreamSource = jsonService.sourceToJsonSource(routesService.findByName(routeName))
-
-                            complete {
-                              HttpResponse(entity = HttpEntity.Chunked(MediaTypes.`application/json`, chunkedStreamSource))
+                          case Success(routeName) =>
+                            chunkedResponseOfRoutes(jsonService) {
+                              routesService.findByName(routeName)
                             }
-                          }
                           case _ => reject(InvalidRouteNameRejection)
                         }
-                      }
-                      case None => {
-                        val chunkedStreamSource = jsonService.sourceToJsonSource(routesService.allRoutes)
-
-                        complete {
-                          HttpResponse(entity = HttpEntity.Chunked(MediaTypes.`application/json`, chunkedStreamSource))
+                      case None =>
+                        chunkedResponseOfRoutes(jsonService) {
+                          routesService.allRoutes
                         }
-                      }
                     }
                   }
                 }

@@ -26,7 +26,7 @@ class GetRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
         recreateSchema
       }
 
-      it("should get the routes") {
+      it("should return the correct routes") {
         insertRoute("R1")
         insertRoute("R2")
 
@@ -39,7 +39,7 @@ class GetRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
 
       describe("when filtering the routes by name") {
 
-        it("should get the correct routes") {
+        it("should return the correct routes") {
           insertRoute("R1")
           insertRoute("R2")
           insertRoute("R1")
@@ -52,7 +52,7 @@ class GetRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
           routes.map(_.id).toSet should be(Set(1, 3))
         }
 
-        it("should get not return the deleted routes") {
+        it("should not return the deleted routes") {
           insertRoute("R1")
           insertRoute("R2")
           insertRoute("R1")

@@ -26,7 +26,7 @@ class GetRouteSpec extends FunSpec with BeforeAndAfter with Matchers {
         recreateSchema
       }
 
-      it("should get the route with the specified id") {
+      it("should return the route with the specified id") {
         insertRoute("R1")
         insertRoute("R2")
 
