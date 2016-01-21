@@ -72,21 +72,29 @@ class GetRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
 
     describe("failure") {
       describe("all routes") {
+        describe("when no token is provided") {
+
+          it("should return the 401 Unauthorized status") {
+            val response = getSlashRoutes()
+            response.status.shouldBe(StatusCodes.Unauthorized)
+          }
+        }
+
         describe("when an invalid token is provided") {
           val token = INVALID_TOKEN
 
-          it("should return the 401 Unauthorized status") {
+          it("should return the 403 Forbidden status") {
             val response = getSlashRoutes(token)
-            response.status.shouldBe(StatusCodes.Unauthorized)
+            response.status.shouldBe(StatusCodes.Forbidden)
           }
         }
 
         describe("when a token without the read scope is provided") {
           val token = WRITE_STRICT_TOKEN
 
-          it("should return the 401 Unauthorized status") {
+          it("should return the 403 Forbidden status") {
             val response = getSlashRoutes(token)
-            response.status.shouldBe(StatusCodes.Unauthorized)
+            response.status.shouldBe(StatusCodes.Forbidden)
           }
         }
       }

@@ -55,6 +55,8 @@ trait RouteDirectives {
 
 case object RouteNotFoundRejection extends Rejection
 
+case object IncorrectTeamRejection extends Rejection
+
 case object InvalidRouteNameRejection extends Rejection
 
 case object InternalServerErrorRejection extends Rejection

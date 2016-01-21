@@ -27,5 +27,5 @@ object OAuthJsonProtocol extends DefaultJsonProtocol {
     }
   }
 
-  implicit val authorizedUserFormat = jsonFormat2(AuthorizedUser)
+  implicit val authorizedUserFormat = jsonFormat2(AuthenticatedUser)
 }

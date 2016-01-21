@@ -1,8 +1,10 @@
 package org.zalando.spearheads.innkeeper
 
 import akka.http.scaladsl.model.StatusCodes
+import akka.http.scaladsl.server.AuthenticationFailedRejection.{ CredentialsRejected, CredentialsMissing }
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.{ AuthenticationFailedRejection, AuthorizationFailedRejection, MethodRejection, RejectionHandler }
+import org.zalando.spearheads.innkeeper.IncorrectTeamRejection
 import org.zalando.spearheads.innkeeper.api.Error
 import org.zalando.spearheads.innkeeper.api.JsonProtocols.errorFormat
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
@@ -16,12 +18,20 @@ object InnkeeperRejectionHandler {
     RejectionHandler.newBuilder()
       .handle {
         case AuthorizationFailedRejection => complete(
-          StatusCodes.Unauthorized,
-          Error(StatusCodes.Unauthorized.intValue, "Authorization failed", "AUTH1")
+          StatusCodes.Forbidden,
+          Error(StatusCodes.Forbidden.intValue, "Authorization failed", "AUTH1")
         )
-        case AuthenticationFailedRejection(_, _) => complete(
+        case AuthenticationFailedRejection(CredentialsMissing, _) => complete(
           StatusCodes.Unauthorized,
-          Error(StatusCodes.Unauthorized.intValue, "Authentication failed", "AUTH2")
+          Error(StatusCodes.Unauthorized.intValue, "Credentials missing", "AUTH2")
+        )
+        case AuthenticationFailedRejection(CredentialsRejected, _) => complete(
+          StatusCodes.Forbidden,
+          Error(StatusCodes.Forbidden.intValue, "Authentication failed", "AUTH3")
+        )
+        case IncorrectTeamRejection => complete(
+          StatusCodes.Forbidden,
+          Error(StatusCodes.Forbidden.intValue, "You are member of a team which is not allowed to do this call", "ITE")
         )
         case RouteNotFoundRejection =>
           complete(

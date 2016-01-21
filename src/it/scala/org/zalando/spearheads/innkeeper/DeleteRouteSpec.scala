@@ -31,7 +31,7 @@ class DeleteRouteSpec extends FunSpec with BeforeAndAfter with Matchers {
             insertRoute("R1")
             insertRoute("R2")
 
-            val response = deleteSlashRoute(token, 2)
+            val response = deleteSlashRoute(2, token)
             response.status.shouldBe(StatusCodes.OK)
           }
         }
@@ -43,7 +43,7 @@ class DeleteRouteSpec extends FunSpec with BeforeAndAfter with Matchers {
             insertRoute("R1")
             insertRoute("R2")
 
-            val response = deleteSlashRoute(token, 2)
+            val response = deleteSlashRoute(2, token)
             response.status.shouldBe(StatusCodes.OK)
           }
         }
@@ -57,7 +57,7 @@ class DeleteRouteSpec extends FunSpec with BeforeAndAfter with Matchers {
             insertRoute("R1", routeType = "REGEX")
             insertRoute("R2", routeType = "REGEX")
 
-            val response = deleteSlashRoute(token, 2)
+            val response = deleteSlashRoute(2, token)
             response.status.shouldBe(StatusCodes.OK)
           }
         }
@@ -70,7 +70,7 @@ class DeleteRouteSpec extends FunSpec with BeforeAndAfter with Matchers {
       describe("when a non existing id is provided") {
 
         it("should return the 404 Not Found status code") {
-          val response = deleteSlashRoute(token, 1)
+          val response = deleteSlashRoute(1, token)
           response.status.shouldBe(StatusCodes.NotFound)
         }
       }
@@ -80,18 +80,26 @@ class DeleteRouteSpec extends FunSpec with BeforeAndAfter with Matchers {
         it("should return the 404 Not Found status code") {
           recreateSchema
           insertRoute("R1")
-          deleteSlashRoute(token, 1)
-          val response = deleteSlashRoute(token, 1)
+          deleteSlashRoute(1, token)
+          val response = deleteSlashRoute(1, token)
           response.status.shouldBe(StatusCodes.NotFound)
+        }
+      }
+
+      describe("when no token is provided") {
+
+        it("should return the 401 Unauthorized status") {
+          val response = deleteSlashRoute(2)
+          response.status.shouldBe(StatusCodes.Unauthorized)
         }
       }
 
       describe("when an invalid token is provided") {
         val token = INVALID_TOKEN
 
-        it("should return the 401 Unauthorized status") {
-          val response = deleteSlashRoute(token, 2)
-          response.status.shouldBe(StatusCodes.Unauthorized)
+        it("should return the 403 Forbidden status") {
+          val response = deleteSlashRoute(2, token)
+          response.status.shouldBe(StatusCodes.Forbidden)
         }
       }
 
@@ -99,11 +107,11 @@ class DeleteRouteSpec extends FunSpec with BeforeAndAfter with Matchers {
         describe("when a token without the write_strict scope is provided") {
           val token = WRITE_STRICT_TOKEN
 
-          it("should return the 401 Unauthorized status") {
+          it("should return the 403 Forbidden status") {
             recreateSchema
             insertRoute(routeType = "REGEX")
-            val response = deleteSlashRoute(token, 1)
-            response.status.shouldBe(StatusCodes.Unauthorized)
+            val response = deleteSlashRoute(1, token)
+            response.status.shouldBe(StatusCodes.Forbidden)
           }
         }
       }
@@ -112,9 +120,9 @@ class DeleteRouteSpec extends FunSpec with BeforeAndAfter with Matchers {
         describe("when a token without one the write_strict or write_regex scopes is provided") {
           val token = READ_TOKEN
 
-          it("should return the 401 Unauthorized status") {
-            val response = deleteSlashRoute(token, 2)
-            response.status.shouldBe(StatusCodes.Unauthorized)
+          it("should return the 403 Forbidden status") {
+            val response = deleteSlashRoute(2, token)
+            response.status.shouldBe(StatusCodes.Forbidden)
           }
         }
       }

@@ -17,7 +17,7 @@ import scala.util.Try
  * @author dpersa
  */
 trait AuthService {
-  def authorize(token: String): Try[AuthorizedUser]
+  def authenticate(token: String): Try[AuthenticatedUser]
 }
 
 @Singleton
@@ -30,7 +30,7 @@ class OAuthService @Inject() (val config: Config,
 
   val logger = LoggerFactory.getLogger(this.getClass)
 
-  override def authorize(token: String): Try[AuthorizedUser] = {
+  override def authenticate(token: String): Try[AuthenticatedUser] = {
     import org.zalando.spearheads.innkeeper.oauth.OAuthJsonProtocol.authorizedUserFormat
 
     val responseFuture = Http().singleRequest(HttpRequest(uri = Uri(url(token))))
@@ -49,7 +49,7 @@ class OAuthService @Inject() (val config: Config,
       }
       authorizedUserTry <- Try {
         logger.debug(s"The OAuth Token Info Service says: $json")
-        json.parseJson.convertTo[AuthorizedUser]
+        json.parseJson.convertTo[AuthenticatedUser]
       }
     } yield authorizedUserTry
   }

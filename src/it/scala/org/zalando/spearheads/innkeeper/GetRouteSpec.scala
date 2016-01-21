@@ -30,7 +30,7 @@ class GetRouteSpec extends FunSpec with BeforeAndAfter with Matchers {
         insertRoute("R1")
         insertRoute("R2")
 
-        val response = getSlashRoute(token, 2)
+        val response = getSlashRoute(2, token)
         response.status.shouldBe(StatusCodes.OK)
         val entity = entityString(response)
         val route = entity.parseJson.convertTo[RouteOut]
@@ -44,7 +44,7 @@ class GetRouteSpec extends FunSpec with BeforeAndAfter with Matchers {
       describe("when a non existing id is provided") {
         it("should return the 404 Not Found status code") {
           recreateSchema
-          val response = getSlashRoute(token, 1)
+          val response = getSlashRoute(1, token)
           response.status should be(StatusCodes.NotFound)
         }
       }
@@ -54,26 +54,33 @@ class GetRouteSpec extends FunSpec with BeforeAndAfter with Matchers {
           recreateSchema
           insertRoute()
           deleteRoute(1)
-          val response = getSlashRoute(token, 1)
+          val response = getSlashRoute(1, token)
           response.status should be(StatusCodes.NotFound)
+        }
+      }
+
+      describe("when an no token is provided") {
+        it("should return the 401 Unauthorized status") {
+          val response = getSlashRoute(2)
+          response.status should be(StatusCodes.Unauthorized)
         }
       }
 
       describe("when an invalid token is provided") {
         val token = INVALID_TOKEN
 
-        it("should return the 401 Unauthorized status") {
-          val response = getSlashRoute(token, 2)
-          response.status should be(StatusCodes.Unauthorized)
+        it("should return the 403 Forbidden status") {
+          val response = getSlashRoute(2, token)
+          response.status should be(StatusCodes.Forbidden)
         }
       }
 
       describe("when a token without the read scope is provided") {
         val token = WRITE_STRICT_TOKEN
 
-        it("should return the 401 Unauthorized status") {
-          val response = getSlashRoute(token, 2)
-          response.status should be(StatusCodes.Unauthorized)
+        it("should return the 403 Forbidden status") {
+          val response = getSlashRoute(2, token)
+          response.status should be(StatusCodes.Forbidden)
         }
       }
     }

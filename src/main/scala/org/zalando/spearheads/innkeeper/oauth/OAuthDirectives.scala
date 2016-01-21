@@ -8,6 +8,9 @@ import akka.http.scaladsl.server.directives.BasicDirectives._
 import akka.http.scaladsl.server.directives.HeaderDirectives._
 import akka.http.scaladsl.server.directives.RouteDirectives._
 import org.slf4j.LoggerFactory
+import org.zalando.spearheads.innkeeper.IncorrectTeamRejection
+import org.zalando.spearheads.innkeeper.api.RouteOut
+import org.zalando.spearheads.innkeeper.team.TeamService
 import scala.util.{ Failure, Success }
 
 /**
@@ -22,8 +25,8 @@ trait OAuthDirectives {
       AuthenticationFailedRejection(CredentialsMissing, HttpChallenge("", ""))
     }
 
-  def authenticate(token: String, authService: AuthService): Directive1[AuthorizedUser] =
-    authService.authorize(token) match {
+  def authenticate(token: String, authService: AuthService): Directive1[AuthenticatedUser] =
+    authService.authenticate(token) match {
       case Success(authUser) => provide(authUser)
       case Failure(ex) => {
         logger.error(s"Authentication failed with exception: ${ex.getMessage}")
@@ -31,7 +34,15 @@ trait OAuthDirectives {
       }
     }
 
-  def hasOneOfTheScopes(authorizedUser: AuthorizedUser)(scope: Scope*): Directive0 = {
+  def hasSameTeamAsRoute(token: String, authenticatedUser: AuthenticatedUser, route: RouteOut)(implicit teamService: TeamService): Directive0 = {
+    if (teamService.hasSameTeamAsRoute(token, authenticatedUser, route)) {
+      pass
+    } else {
+      reject(IncorrectTeamRejection)
+    }
+  }
+
+  def hasOneOfTheScopes(authorizedUser: AuthenticatedUser)(scope: Scope*): Directive0 = {
     val configuredScopeNames = scope.flatMap(_.scopeNames).toSet
     authorizedUser.scope.scopeNames.intersect(configuredScopeNames).isEmpty match {
       case false => pass
