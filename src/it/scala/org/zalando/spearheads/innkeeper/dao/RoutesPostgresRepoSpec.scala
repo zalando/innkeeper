@@ -10,7 +10,7 @@ import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.time.{Seconds, Span}
 import org.scalatest.{BeforeAndAfter, FunSpec, Matchers}
 import org.zalando.spearheads.innkeeper.RoutesRepoHelper
-import org.zalando.spearheads.innkeeper.RoutesRepoHelper.{insertRoute, routeJson}
+import org.zalando.spearheads.innkeeper.RoutesRepoHelper.{insertRoute, routeJson, sampleRoute}
 import slick.backend.DatabasePublisher
 import slick.jdbc.meta.MTable
 
@@ -79,7 +79,8 @@ class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers w
       }
 
       describe("select") {
-        describe("#selectAll") {
+        describe("selectAll") {
+
           it("should select all routes") {
             val createdAt = LocalDateTime.now()
             val activateAt = createdAt.plusMinutes(5)
@@ -89,8 +90,8 @@ class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers w
             val routes: List[RouteRow] = routesRepo.selectAll
 
             routes should not be 'empty
-            routes(0) should be(RouteRow(Some(1), "R1", routeJson("/hello1"), createdAt = createdAt, activateAt = activateAt))
-            routes(1) should be(RouteRow(Some(2), "R2", routeJson("/hello2"), createdAt = createdAt, activateAt = activateAt))
+            routes(0) should be(sampleRoute(id = 1, name = "R1", matcher = "/hello1", createdAt = createdAt, activateAt = activateAt))
+            routes(1) should be(sampleRoute(id = 2, name = "R2", matcher = "/hello2", createdAt = createdAt, activateAt = activateAt))
           }
 
           it("should not select the deleted routes") {

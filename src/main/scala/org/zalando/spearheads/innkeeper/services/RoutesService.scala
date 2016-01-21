@@ -19,16 +19,21 @@ import scala.concurrent.{ Future, ExecutionContext }
 class RoutesService @Inject() (implicit val executionContext: ExecutionContext,
                                val routesRepo: RoutesRepo, val config: Config) {
 
-  def createRoute(route: RouteIn, createdAt: LocalDateTime = LocalDateTime.now()): Future[RoutesServiceResult] = {
+  def createRoute(route: RouteIn,
+                  ownedByTeam: String,
+                  createdBy: String,
+                  createdAt: LocalDateTime = LocalDateTime.now()): Future[RoutesServiceResult] = {
 
     val routeRow = RouteRow(id = None,
       name = route.name.name,
       routeJson = route.route.toJson.compactPrint,
-      createdAt = createdAt,
-      description = route.description,
       activateAt = route.activateAt.getOrElse(createdAt.plusMinutes {
         defaultNumberOfMinutesToActivateRoute()
-      })
+      }),
+      ownedByTeam = ownedByTeam,
+      createdBy = createdBy,
+      createdAt = createdAt,
+      description = route.description
     )
 
     routesRepo.insert(routeRow).flatMap(rowToEventualMaybeRoute)
