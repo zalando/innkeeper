@@ -18,6 +18,8 @@ trait ServiceResult {
   trait FailureReason
 
   case object NotFound extends FailureReason
+
+  case class Ex(throwable: Throwable) extends FailureReason
 }
 
 object ServiceResult extends ServiceResult
