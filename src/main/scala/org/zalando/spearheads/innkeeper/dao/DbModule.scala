@@ -1,12 +1,11 @@
 package org.zalando.spearheads.innkeeper.dao
 
-import com.google.inject.{ Inject, Provider, Singleton, AbstractModule }
+import com.google.inject.{ AbstractModule, Inject, Provider, Singleton }
 import com.typesafe.config.Config
 import net.codingwell.scalaguice.ScalaModule
-import org.zalando.spearheads.innkeeper.api.AkkaModule
 import org.zalando.spearheads.innkeeper.api.AkkaModule.ExecutionContextProvider
-import org.zalando.spearheads.innkeeper.services.RoutesService
 import org.zalando.spearheads.innkeeper.dao.MyPostgresDriver.api._
+import org.zalando.spearheads.innkeeper.services.RoutesService
 
 import scala.concurrent.ExecutionContext
 
@@ -28,6 +27,5 @@ class DbModule extends AbstractModule with ScalaModule {
     bind[Database].toProvider[DbProvider].asEagerSingleton()
     bind[ExecutionContext].toProvider[ExecutionContextProvider].asEagerSingleton()
     bind[RoutesRepo].to[RoutesPostgresRepo].asEagerSingleton()
-    bind[RoutesService].asEagerSingleton()
   }
 }
