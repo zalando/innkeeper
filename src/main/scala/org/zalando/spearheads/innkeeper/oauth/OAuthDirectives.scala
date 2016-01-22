@@ -10,7 +10,7 @@ import akka.http.scaladsl.server.directives.RouteDirectives._
 import org.slf4j.LoggerFactory
 import org.zalando.spearheads.innkeeper.IncorrectTeamRejection
 import org.zalando.spearheads.innkeeper.api.RouteOut
-import org.zalando.spearheads.innkeeper.team.TeamService
+import org.zalando.spearheads.innkeeper.services.team.TeamService
 import scala.util.{ Failure, Success }
 
 /**

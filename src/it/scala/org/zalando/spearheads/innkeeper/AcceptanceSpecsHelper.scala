@@ -3,13 +3,13 @@ package org.zalando.spearheads.innkeeper
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model._
-import akka.http.scaladsl.model.headers.{OAuth2BearerToken, Authorization}
+import akka.http.scaladsl.model.headers.{Authorization, OAuth2BearerToken}
 import akka.stream.ActorMaterializer
-import akka.stream.scaladsl.Source
 import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.time.{Second, Millis, Seconds, Span}
-import slick.backend.DatabasePublisher
+import org.scalatest.time.{Seconds, Span}
+
 import scala.collection.immutable.Seq
+import scala.language.implicitConversions
 
 /**
   * @author dpersa
@@ -66,7 +66,7 @@ object AcceptanceSpecsHelper extends ScalaFutures {
     futureResponse.futureValue
   }
 
-  def getSlashRoutesByName(token: String, name: String): HttpResponse = {
+  def getSlashRoutesByName(name: String, token: String): HttpResponse = {
     val futureResponse = Http().singleRequest(HttpRequest(uri = routeByNameUri(name),
       headers = headersForToken(token)))
     futureResponse.futureValue

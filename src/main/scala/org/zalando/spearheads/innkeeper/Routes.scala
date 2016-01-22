@@ -17,7 +17,8 @@ import org.zalando.spearheads.innkeeper.metrics.MetricRegistryJsonProtocol._
 import org.zalando.spearheads.innkeeper.metrics.RouteMetrics
 import org.zalando.spearheads.innkeeper.oauth.OAuthDirectives._
 import org.zalando.spearheads.innkeeper.oauth._
-import org.zalando.spearheads.innkeeper.services.RoutesService
+import org.zalando.spearheads.innkeeper.services.ServiceResult.NotFound
+import org.zalando.spearheads.innkeeper.services.{ ServiceResult, RoutesService }
 import spray.json._
 
 import scala.concurrent.{ ExecutionContext, Future }
@@ -141,18 +142,18 @@ class Routes @Inject() (implicit val materializer: ActorMaterializer,
 
   private def saveRoute: (RouteIn) => Future[Option[RouteOut]] = (route: RouteIn) => {
     // TODO use the right parameters
-    routesService.createRoute(route, "", "").flatMap {
-      case RoutesService.Success(route) => Future(Some(route))
-      case _                            => Future(None)
+    routesService.create(route, "", "").map {
+      case ServiceResult.Success(route) => Some(route)
+      case _                            => None
     }
   }
 
   private def deleteRoute(id: Long) = {
-    onComplete(routesService.removeRoute(id)) {
-      case Success(RoutesService.Success)  => complete("")
-      case Success(RoutesService.NotFound) => complete(StatusCodes.NotFound)
-      case Success(_)                      => complete(StatusCodes.NotFound)
-      case Failure(_)                      => complete(StatusCodes.InternalServerError)
+    onComplete(routesService.remove(id)) {
+      case Success(ServiceResult.Success)           => complete("")
+      case Success(ServiceResult.Failure(NotFound)) => complete(StatusCodes.NotFound)
+      case Success(_)                               => complete(StatusCodes.NotFound)
+      case Failure(_)                               => complete(StatusCodes.InternalServerError)
     }
   }
 
