@@ -35,7 +35,7 @@ trait OAuthDirectives {
     }
 
   def hasSameTeamAsRoute(token: String, authenticatedUser: AuthenticatedUser, route: RouteOut)(implicit teamService: TeamService): Directive0 = {
-    if (teamService.hasSameTeamAsRoute(token, authenticatedUser, route)) {
+    if (teamService.hasSameTeamAsRoute(authenticatedUser, route, token)) {
       pass
     } else {
       reject(IncorrectTeamRejection)

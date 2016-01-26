@@ -112,6 +112,7 @@ class DefaultRoutesService @Inject() (implicit val executionContext: ExecutionCo
       route = routeRow.routeJson.parseJson.convertTo[NewRoute],
       createdAt = routeRow.createdAt,
       activateAt = routeRow.activateAt,
+      ownedByTeam = TeamName(routeRow.ownedByTeam),
       description = routeRow.description,
       deletedAt = routeRow.deletedAt)
   }

@@ -16,11 +16,14 @@ import scala.concurrent.ExecutionContext
  */
 object Innkeeper extends App {
 
+  import org.zalando.spearheads.innkeeper.utils.UtilsModule
+
   private val LOG = LoggerFactory.getLogger(this.getClass)
 
   private val injector: Injector = Guice.createInjector(
     new ConfigModule(),
     new DbModule(),
+    new UtilsModule(),
     new ServicesModule(),
     new OAuthModule(),
     new AkkaModule(),

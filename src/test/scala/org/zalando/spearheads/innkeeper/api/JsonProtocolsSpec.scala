@@ -342,6 +342,7 @@ class JsonProtocolsSpec extends FunSpec with Matchers {
       newRoute,
       LocalDateTime.of(2015, 10, 10, 10, 10, 10),
       LocalDateTime.of(2015, 10, 10, 10, 10, 10),
+      TeamName("team"),
       Some("this is a route"),
       Some(LocalDateTime.of(2015, 10, 10, 10, 10, 10))
     )
@@ -354,6 +355,7 @@ class JsonProtocolsSpec extends FunSpec with Matchers {
                     |  "id": 1,
                     |  "created_at": "2015-10-10T10:10:10",
                     |  "deleted_at": "2015-10-10T10:10:10",
+                    |  "owned_by_team": "team",
                     |  "route": {
                     |    "matcher": {
                     |      "path_matcher": {
@@ -371,6 +373,7 @@ class JsonProtocolsSpec extends FunSpec with Matchers {
       routeOut.toJson.prettyPrint should be {
         """{
           |  "name": "THE_ROUTE",
+          |  "owned_by_team": "team",
           |  "description": "this is a route",
           |  "activate_at": "2015-10-10T10:10:10",
           |  "id": 1,

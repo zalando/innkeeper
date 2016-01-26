@@ -20,6 +20,8 @@ object RouteName {
   val validRouteNamePattern = "[a-zA-Z][a-zA-Z0-9_]*"
 }
 
+case class TeamName(name: String) extends AnyRef
+
 object InvalidRouteNameException
   extends RuntimeException(
     s"Invalid route name. The name should match ${RouteName.validRouteNamePattern}")
@@ -42,6 +44,7 @@ case class RouteOut(id: Long,
                     route: NewRoute,
                     createdAt: LocalDateTime,
                     activateAt: LocalDateTime,
+                    ownedByTeam: TeamName,
                     description: Option[String] = None,
                     deletedAt: Option[LocalDateTime] = None) extends Route
 
