@@ -3,7 +3,7 @@ package org.zalando.spearheads.innkeeper.services.team
 import akka.http.scaladsl.model.HttpMethods
 import com.typesafe.config.Config
 import org.scalamock.scalatest.MockFactory
-import org.scalatest.{FunSpec, Matchers}
+import org.scalatest.{ FunSpec, Matchers }
 import org.zalando.spearheads.innkeeper.services.ServiceResult
 import org.zalando.spearheads.innkeeper.services.ServiceResult.NotFound
 import org.zalando.spearheads.innkeeper.utils.HttpClient

@@ -41,6 +41,14 @@ class ZalandoTeamService @Inject() (val config: Config,
     }
   }
 
+  override def hasSameTeamAsRoute(token: String,
+                                  authenticatedUser: AuthenticatedUser,
+                                  route: RouteOut): Boolean = {
+    //getForUsername(authenticatedUser.username.get)
+
+    route.ownedByTeam.name == authenticatedUser
+  }
+
   private lazy val TEAM_MEMBER_SERVICE_URL = config.getString("team.member.service.url")
 
   private def url(username: String) = TEAM_MEMBER_SERVICE_URL + username
