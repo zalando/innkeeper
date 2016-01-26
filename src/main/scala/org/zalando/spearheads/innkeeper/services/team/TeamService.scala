@@ -1,5 +1,6 @@
 package org.zalando.spearheads.innkeeper.services.team
 
+import java.util.NoSuchElementException
 import com.google.inject.Inject
 import com.typesafe.config.Config
 import org.slf4j.LoggerFactory
@@ -9,10 +10,8 @@ import org.zalando.spearheads.innkeeper.services.ServiceResult
 import org.zalando.spearheads.innkeeper.services.ServiceResult.{ Ex, NotFound, Result }
 import org.zalando.spearheads.innkeeper.services.team.TeamJsonProtocol._
 import org.zalando.spearheads.innkeeper.utils.HttpClient
-
 import scala.collection.immutable.Seq
-import scala.concurrent.ExecutionContext
-import scala.util.{ Failure, Success }
+import scala.util.{ Try, Failure, Success }
 
 /**
  * @author dpersa
@@ -25,21 +24,20 @@ trait TeamService {
 }
 
 class ZalandoTeamService @Inject() (val config: Config,
-                                    val httpClient: HttpClient,
-                                    implicit val executionContext: ExecutionContext) extends TeamService {
+                                    val httpClient: HttpClient) extends TeamService {
 
   val logger = LoggerFactory.getLogger(this.getClass)
 
-  override def getForUsername(token: String, username: String): Result[Team] = {
+  override def getForUsername(username: String, token: String): Result[Team] = {
 
-    val teams = httpClient.callJson(url(token), Some(token)) match {
-      case Success(json) => json.convertTo[Seq[Team]]
-      case Failure(ex)   => return ServiceResult.Failure(Ex(ex))
-    }
-
-    teams.filter(_.teamType == Official).headOption match {
-      case Some(team) => ServiceResult.Success(team)
-      case _          => ServiceResult.Failure(NotFound)
+    (for {
+      json <- httpClient.callJson(url(username), Some(token))
+      teams <- Try { json.convertTo[Seq[Team]] }
+      officialTeam <- Try { teams.filter(_.teamType == Official).head }
+    } yield officialTeam) match {
+      case Success(officialTeam)               => ServiceResult.Success(officialTeam)
+      case Failure(ex: NoSuchElementException) => ServiceResult.Failure(NotFound)
+      case Failure(ex)                         => ServiceResult.Failure(Ex(ex))
     }
   }
 
