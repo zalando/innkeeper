@@ -8,9 +8,11 @@ import akka.http.scaladsl.server.directives.BasicDirectives._
 import akka.http.scaladsl.server.directives.HeaderDirectives._
 import akka.http.scaladsl.server.directives.RouteDirectives._
 import org.slf4j.LoggerFactory
-import org.zalando.spearheads.innkeeper.IncorrectTeamRejection
-import org.zalando.spearheads.innkeeper.api.RouteOut
-import org.zalando.spearheads.innkeeper.services.team.TeamService
+import org.zalando.spearheads.innkeeper.{ TeamNotFoundRejection, IncorrectTeamRejection }
+import org.zalando.spearheads.innkeeper.api.{ TeamName, RouteOut }
+import org.zalando.spearheads.innkeeper.services.ServiceResult
+import org.zalando.spearheads.innkeeper.services.ServiceResult.NotFound
+import org.zalando.spearheads.innkeeper.services.team.{ Team, TeamService }
 import scala.util.{ Failure, Success }
 
 /**
@@ -34,8 +36,20 @@ trait OAuthDirectives {
       }
     }
 
-  def hasSameTeamAsRoute(token: String, authenticatedUser: AuthenticatedUser, route: RouteOut)(implicit teamService: TeamService): Directive0 = {
-    if (teamService.hasSameTeamAsRoute(authenticatedUser, route, token)) {
+  def team(authenticatedUser: AuthenticatedUser, token: String)(implicit teamService: TeamService): Directive1[Team] = {
+    authenticatedUser.username match {
+      case Some(username) =>
+        teamService.getForUsername(username, token) match {
+          case ServiceResult.Success(team) => provide(team)
+          case ServiceResult.Failure(_)    => reject(TeamNotFoundRejection)
+        }
+      case None => reject(TeamNotFoundRejection)
+    }
+  }
+
+  def teamAuthorization(team: Team, route: RouteOut)(implicit teamService: TeamService): Directive0 = {
+    // TODO make it configurable
+    if (team.name == "pathfinder" || teamService.routeHasTeam(route, team)) {
       pass
     } else {
       reject(IncorrectTeamRejection)
