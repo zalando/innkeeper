@@ -72,7 +72,7 @@ class RoutesServiceSpec extends FunSpec with Matchers with MockFactory with Scal
     it("should remove a route") {
       (routesRepo.delete _).expects(routeId).returning(Future(true))
       val result = routesService.remove(routeId).futureValue
-      result should be(ServiceResult.Success)
+      result should be(ServiceResult.Success(true))
     }
 
     it("should not find a route") {

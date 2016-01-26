@@ -44,9 +44,26 @@ class ZalandoTeamService @Inject() (val config: Config,
   override def hasSameTeamAsRoute(authenticatedUser: AuthenticatedUser,
                                   route: RouteOut,
                                   token: String): Boolean = {
-    //getForUsername(authenticatedUser.username.get)
 
-    route.ownedByTeam.name == authenticatedUser
+    authenticatedUser.username match {
+      case Some(username) => {
+        this.getForUsername(username, token) match {
+          case ServiceResult.Success(team) => {
+            val result = team.name == route.ownedByTeam.name
+            logger.debug("hasSameTeamAsRoute: result {}", result)
+            result
+          }
+          case ServiceResult.Failure(ex) => {
+            logger.debug("hasSameTeamAsRoute: failed with exception {}", ex)
+            false
+          }
+        }
+      }
+      case None => {
+        logger.debug("hasSameTeamAsRoute: No uid for this token")
+        false
+      }
+    }
   }
 
   private lazy val TEAM_MEMBER_SERVICE_URL = config.getString("team.member.service.url")

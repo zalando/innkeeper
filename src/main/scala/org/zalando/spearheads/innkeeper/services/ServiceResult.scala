@@ -7,11 +7,20 @@ import org.zalando.spearheads.innkeeper.api.RouteOut
  */
 trait ServiceResult {
 
-  sealed trait Result[+T]
+  sealed trait Result[+T] {
+
+    def map[G](f: T => G): Result[G] = this match {
+      case Success(result) => Success(f(result))
+      case Failure(r)      => Failure(r)
+    }
+
+    def flatMap[G](f: T => Result[G]): Result[G] = this match {
+      case Success(result) => f(result)
+      case Failure(r)      => Failure(r)
+    }
+  }
 
   case class Success[+T](result: T) extends Result[T]
-
-  case object Success extends Result[Nothing]
 
   case class Failure(reason: FailureReason) extends Result[Nothing]
 

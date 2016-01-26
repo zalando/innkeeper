@@ -150,7 +150,7 @@ class Routes @Inject() (implicit val materializer: ActorMaterializer,
 
   private def deleteRoute(id: Long) = {
     onComplete(routesService.remove(id)) {
-      case Success(ServiceResult.Success)           => complete("")
+      case Success(ServiceResult.Success(_))        => complete("")
       case Success(ServiceResult.Failure(NotFound)) => complete(StatusCodes.NotFound)
       case Success(_)                               => complete(StatusCodes.NotFound)
       case Failure(_)                               => complete(StatusCodes.InternalServerError)
