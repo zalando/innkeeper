@@ -18,9 +18,9 @@ import scala.util.{ Try, Failure, Success }
  */
 trait TeamService {
 
-  def hasSameTeamAsRoute(token: String, authenticatedUser: AuthenticatedUser, route: RouteOut): Boolean = true
+  def hasSameTeamAsRoute(authenticatedUser: AuthenticatedUser, route: RouteOut, token: String): Boolean = true
 
-  def getForUsername(token: String, username: String): Result[Team]
+  def getForUsername(username: String, token: String): Result[Team]
 }
 
 class ZalandoTeamService @Inject() (val config: Config,
@@ -41,9 +41,9 @@ class ZalandoTeamService @Inject() (val config: Config,
     }
   }
 
-  override def hasSameTeamAsRoute(token: String,
-                                  authenticatedUser: AuthenticatedUser,
-                                  route: RouteOut): Boolean = {
+  override def hasSameTeamAsRoute(authenticatedUser: AuthenticatedUser,
+                                  route: RouteOut,
+                                  token: String): Boolean = {
     //getForUsername(authenticatedUser.username.get)
 
     route.ownedByTeam.name == authenticatedUser
