@@ -17,7 +17,7 @@ class TeamJsonProtocolSpec extends FunSpec with Matchers {
       val team =
         """{"id":"pathfinder","id_name":"ignore","team_id":"ignore","type":"virtual","name":"ignore","mail":["ignore"]}"""
           .stripMargin.parseJson.convertTo[Team]
-      team.id should be("pathfinder")
+      team.name should be("pathfinder")
       team.teamType should be(Virtual)
     }
 
@@ -28,7 +28,7 @@ class TeamJsonProtocolSpec extends FunSpec with Matchers {
           |{"id":"thirdteam","id_name":"ignore","team_id":"ignore","type":"virtual","name":"ignore","mail":["ignore"]}]"""
           .stripMargin.parseJson.convertTo[Seq[Team]]
       val team = teams(1)
-      team.id should be("secondteam")
+      team.name should be("secondteam")
       team.teamType should be(Official)
     }
   }

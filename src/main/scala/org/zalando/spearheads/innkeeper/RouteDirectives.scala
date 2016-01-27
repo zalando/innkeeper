@@ -55,6 +55,10 @@ case object RouteNotFoundRejection extends Rejection
 
 case object IncorrectTeamRejection extends Rejection
 
+case object TeamNotFoundRejection extends Rejection
+
+case object NoUidRejection extends Rejection
+
 case object InvalidRouteNameRejection extends Rejection
 
 case object InternalServerErrorRejection extends Rejection

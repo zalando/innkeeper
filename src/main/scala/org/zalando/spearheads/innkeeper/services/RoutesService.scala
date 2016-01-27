@@ -19,7 +19,7 @@ trait RoutesService {
              createdBy: String,
              createdAt: LocalDateTime = LocalDateTime.now()): Future[Result[RouteOut]]
 
-  def remove(id: Long): Future[Result[RouteOut]]
+  def remove(id: Long): Future[Result[Boolean]]
 
   def findByName(name: RouteName): Source[RouteOut, Unit]
 
@@ -57,11 +57,11 @@ class DefaultRoutesService @Inject() (implicit val executionContext: ExecutionCo
     config.getInt(s"${config.getString("innkeeper.env")}.defaultNumberOfMinutesToActivateRoute")
   }
 
-  override def remove(id: Long): Future[Result[RouteOut]] = {
+  override def remove(id: Long): Future[Result[Boolean]] = {
 
     routesRepo.delete(id).map {
       case false => Failure(NotFound)
-      case _     => Success
+      case _     => Success(true)
     }
   }
 

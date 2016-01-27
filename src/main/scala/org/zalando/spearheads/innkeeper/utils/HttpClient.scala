@@ -7,7 +7,7 @@ import akka.http.scaladsl.model.{ HttpHeader, HttpMethod, HttpMethods, HttpReque
 import akka.stream.ActorMaterializer
 import com.google.inject.Inject
 import org.slf4j.LoggerFactory
-import spray.json._
+import spray.json.{ JsValue, pimpString }
 
 import scala.collection.immutable.Seq
 import scala.concurrent.{ Await, ExecutionContext }
@@ -25,8 +25,6 @@ class AkkaHttpClient @Inject() (implicit val actorSystem: ActorSystem,
                                 implicit val materializer: ActorMaterializer,
                                 implicit val executionContext: ExecutionContext) extends HttpClient {
 
-  import scala.util.Try
-
   val logger = LoggerFactory.getLogger(this.getClass)
 
   override def callJson(uri: String,
@@ -41,9 +39,9 @@ class AkkaHttpClient @Inject() (implicit val actorSystem: ActorSystem,
       )
     )
 
-    val futureJsonString = futureResponse.map { res =>
+    val futureJsonString = futureResponse.flatMap { res =>
       res.entity.dataBytes.map(bs => bs.utf8String).runFold("")(_ + _)
-    }.flatMap(identity(_))
+    }
 
     for {
       jsonString <- Try {
