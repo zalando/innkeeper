@@ -18,8 +18,9 @@ import org.zalando.spearheads.innkeeper.metrics.RouteMetrics
 import org.zalando.spearheads.innkeeper.oauth.OAuthDirectives._
 import org.zalando.spearheads.innkeeper.oauth._
 import org.zalando.spearheads.innkeeper.services.ServiceResult.NotFound
+import org.zalando.spearheads.innkeeper.services.team.TeamService
 import org.zalando.spearheads.innkeeper.services.{ ServiceResult, RoutesService }
-import spray.json._
+import spray.json.pimpAny
 
 import scala.concurrent.{ ExecutionContext, Future }
 import scala.util.{ Failure, Success, Try }
@@ -30,6 +31,7 @@ import scala.util.{ Failure, Success, Try }
 @Singleton
 class Routes @Inject() (implicit val materializer: ActorMaterializer,
                         val routesService: RoutesService,
+                        val teamService: TeamService,
                         val jsonService: JsonService,
                         val scopes: Scopes,
                         val metrics: RouteMetrics,
@@ -43,6 +45,8 @@ class Routes @Inject() (implicit val materializer: ActorMaterializer,
     handleRejections(InnkeeperRejectionHandler.rejectionHandler) {
       authenticationToken { token =>
         authenticate(token, authService) { authenticatedUser =>
+          LOG.debug("AuthenticatedUser: {}", authenticatedUser)
+
           path("updated-routes" / Rest) { lastModifiedString =>
             get {
               hasOneOfTheScopes(authenticatedUser)(scopes.READ) {
@@ -89,17 +93,19 @@ class Routes @Inject() (implicit val materializer: ActorMaterializer,
               LOG.info("post /routes/")
               entity(as[RouteIn]) { route =>
                 LOG.debug(s"route ${route}")
-                (isRegexRoute(route.route) & hasOneOfTheScopes(authenticatedUser)(scopes.WRITE_REGEX)) {
-                  metrics.postRoutes.time {
-                    LOG.info("post regex /routes/")
-                    handleWith(saveRoute)
-                  }
-                } ~ (isStrictRoute(route.route) & hasOneOfTheScopes(authenticatedUser)(scopes.WRITE_STRICT, scopes.WRITE_REGEX)) {
-                  metrics.postRoutes.time {
-                    LOG.info("post full-text /routes/")
-                    handleWith(saveRoute)
-                  }
-                } ~ reject(AuthorizationFailedRejection)
+                team(authenticatedUser, token)(teamService) { team =>
+                  (isRegexRoute(route.route) & hasOneOfTheScopes(authenticatedUser)(scopes.WRITE_REGEX)) {
+                    metrics.postRoutes.time {
+                      LOG.info("post regex /routes/")
+                      handleWith(saveRoute)
+                    }
+                  } ~ (isStrictRoute(route.route) & hasOneOfTheScopes(authenticatedUser)(scopes.WRITE_STRICT, scopes.WRITE_REGEX)) {
+                    metrics.postRoutes.time {
+                      LOG.info("post full-text /routes/")
+                      handleWith(saveRoute)
+                    }
+                  } ~ reject(AuthorizationFailedRejection)
+                }
               } ~ reject(UnmarshallRejection)
             }
           } ~ path("routes" / LongNumber) { id =>
@@ -113,19 +119,30 @@ class Routes @Inject() (implicit val materializer: ActorMaterializer,
                 }
               }
             } ~ delete {
+              LOG.debug("try to delete /routes/{}", id)
               hasOneOfTheScopes(authenticatedUser)(scopes.WRITE_STRICT, scopes.WRITE_REGEX) {
                 findRoute(id, routesService)(executionContext) { route =>
-                  (isRegexRoute(route.route) & hasOneOfTheScopes(authenticatedUser)(scopes.WRITE_REGEX)) {
-                    metrics.deleteRoute.time {
-                      LOG.info("delete regex /routes/{}", id)
-                      deleteRoute(route.id)
-                    }
-                  } ~ (isStrictRoute(route.route) & hasOneOfTheScopes(authenticatedUser)(scopes.WRITE_STRICT, scopes.WRITE_REGEX)) {
-                    metrics.deleteRoute.time {
-                      LOG.info("delete strict /routes/{}", id)
-                      deleteRoute(route.id)
-                    }
-                  } ~ reject(AuthorizationFailedRejection)
+                  LOG.debug("try to delete /routes/{} route found {}", id, route)
+
+                  team(authenticatedUser, token)(teamService) { team =>
+                    LOG.debug("try to delete /routes/{} team found {}", team)
+
+                    (teamAuthorization(team, route) & isRegexRoute(route.route) &
+                      hasOneOfTheScopes(authenticatedUser)(scopes.WRITE_REGEX)) {
+
+                        metrics.deleteRoute.time {
+                          LOG.info("delete regex /routes/{}", id)
+                          deleteRoute(route.id)
+                        }
+                      } ~ (teamAuthorization(team, route) & isStrictRoute(route.route) &
+                        hasOneOfTheScopes(authenticatedUser)(scopes.WRITE_STRICT, scopes.WRITE_REGEX)) {
+
+                          metrics.deleteRoute.time {
+                            LOG.info("delete strict /routes/{}", id)
+                            deleteRoute(route.id)
+                          }
+                        } ~ reject(AuthorizationFailedRejection)
+                  }
                 }
               }
             }

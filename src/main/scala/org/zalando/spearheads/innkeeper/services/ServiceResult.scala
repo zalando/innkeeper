@@ -1,7 +1,5 @@
 package org.zalando.spearheads.innkeeper.services
 
-import org.zalando.spearheads.innkeeper.api.RouteOut
-
 /**
  * @author dpersa
  */

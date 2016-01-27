@@ -43,7 +43,10 @@ trait OAuthDirectives {
           case ServiceResult.Success(team) => provide(team)
           case ServiceResult.Failure(_)    => reject(TeamNotFoundRejection)
         }
-      case None => reject(TeamNotFoundRejection)
+      case None => {
+        logger.debug("AuthenticatedUser does not have an username {}", authenticatedUser)
+        reject(TeamNotFoundRejection)
+      }
     }
   }
 
