@@ -90,6 +90,15 @@ class PostStrictRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
             response.status should be(StatusCodes.Forbidden)
           }
         }
+
+        describe("when a which doesn't have an associated uid") {
+          val token = "token--employees-route.write_strict"
+
+          it("should return the 403 Forbidden status") {
+            val response = postSlashRoutesStrict(routeName, token)
+            response.status should be(StatusCodes.Forbidden)
+          }
+        }
       }
     }
 

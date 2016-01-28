@@ -86,6 +86,15 @@ class PostRegexRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
           response.status should be(StatusCodes.Forbidden)
         }
       }
+
+      describe("when a which doesn't have an associated uid") {
+        val token = "token--employees-route.write_regex"
+
+        it("should return the 403 Forbidden status") {
+          val response = postSlashRoutesRegex(routeName, token)
+          response.status should be(StatusCodes.Forbidden)
+        }
+      }
     }
 
     def postSlashRoutesRegex = postSlashRoutes("REGEX") _

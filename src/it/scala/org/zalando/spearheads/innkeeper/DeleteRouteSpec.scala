@@ -5,7 +5,7 @@ import org.scalatest.{BeforeAndAfter, FunSpec, Matchers}
 import org.zalando.spearheads.innkeeper.AcceptanceSpecTokens._
 import org.zalando.spearheads.innkeeper.AcceptanceSpecsHelper._
 import org.zalando.spearheads.innkeeper.RoutesRepoHelper.{insertRoute, recreateSchema}
-import spray.json._
+import spray.json.pimpString
 import spray.json.DefaultJsonProtocol._
 import org.zalando.spearheads.innkeeper.api.JsonProtocols._
 
@@ -29,7 +29,7 @@ class DeleteRouteSpec extends FunSpec with BeforeAndAfter with Matchers {
 
           it("should delete the route") {
             insertRoute("R1")
-            insertRoute("R2")
+            insertRoute("R2", ownedByTeam = "team1")
 
             val response = deleteSlashRoute(2, token)
             response.status.shouldBe(StatusCodes.OK)
@@ -41,7 +41,7 @@ class DeleteRouteSpec extends FunSpec with BeforeAndAfter with Matchers {
 
           it("should delete the route") {
             insertRoute("R1")
-            insertRoute("R2")
+            insertRoute("R2", ownedByTeam = "team1")
 
             val response = deleteSlashRoute(2, token)
             response.status.shouldBe(StatusCodes.OK)
@@ -55,7 +55,7 @@ class DeleteRouteSpec extends FunSpec with BeforeAndAfter with Matchers {
 
           it("should delete the route") {
             insertRoute("R1", routeType = "REGEX")
-            insertRoute("R2", routeType = "REGEX")
+            insertRoute("R2", routeType = "REGEX", ownedByTeam = "team1")
 
             val response = deleteSlashRoute(2, token)
             response.status.shouldBe(StatusCodes.OK)
@@ -66,6 +66,16 @@ class DeleteRouteSpec extends FunSpec with BeforeAndAfter with Matchers {
 
     describe("failure") {
       val token = WRITE_REGEX_TOKEN
+
+      describe("when the route is owned by another team") {
+
+        it("should return the 403 Forbidden status code") {
+          recreateSchema
+          insertRoute("R2", ownedByTeam = "team2")
+          val response = deleteSlashRoute(1, token)
+          response.status.shouldBe(StatusCodes.Forbidden)
+        }
+      }
 
       describe("when a non existing id is provided") {
 
@@ -79,7 +89,7 @@ class DeleteRouteSpec extends FunSpec with BeforeAndAfter with Matchers {
 
         it("should return the 404 Not Found status code") {
           recreateSchema
-          insertRoute("R1")
+          insertRoute("R1", ownedByTeam = "team1")
           deleteSlashRoute(1, token)
           val response = deleteSlashRoute(1, token)
           response.status.shouldBe(StatusCodes.NotFound)
