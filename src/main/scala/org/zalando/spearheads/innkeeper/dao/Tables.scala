@@ -7,10 +7,13 @@ import org.zalando.spearheads.innkeeper.dao.MyPostgresDriver.api._
 case class RouteRow(id: Option[Long] = None,
                     name: String,
                     routeJson: String,
+                    activateAt: LocalDateTime,
+                    ownedByTeam: String,
+                    createdBy: String,
                     createdAt: LocalDateTime = LocalDateTime.now(),
                     description: Option[String] = None,
-                    activateAt: LocalDateTime,
-                    deletedAt: Option[LocalDateTime] = None)
+                    deletedAt: Option[LocalDateTime] = None,
+                    deletedBy: Option[String] = None)
 
 // A Routes table with 4 columns: id, route_json, created_at, deleted_at
 class RoutesTable(tag: Tag)
@@ -22,6 +25,9 @@ class RoutesTable(tag: Tag)
   def createdAt = column[LocalDateTime]("CREATED_AT")
   def activateAt = column[LocalDateTime]("ACTIVATE_AT")
   def deletedAt = column[Option[LocalDateTime]]("DELETED_AT")
+  def createdBy = column[String]("CREATED_BY")
+  def ownedByTeam = column[String]("OWNED_BY_TEAM")
+  def deletedBy = column[Option[String]]("DELETED_BY")
   def routeJson = column[String]("ROUTE_JSON")
 
   def nameIndex = index("NAME_IDX", name)
@@ -30,5 +36,5 @@ class RoutesTable(tag: Tag)
 
   // Every table needs a * projection with the same type as the table's type parameter
   def * = // scalastyle:ignore
-    (id.?, name, routeJson, createdAt, description, activateAt, deletedAt) <> (RouteRow.tupled, RouteRow.unapply)
+    (id.?, name, routeJson, activateAt, ownedByTeam, createdBy, createdAt, description, deletedAt, deletedBy) <> (RouteRow.tupled, RouteRow.unapply)
 }

@@ -6,12 +6,10 @@ import akka.http.scaladsl.server.directives.RouteDirectives._
 import akka.http.scaladsl.server._
 import akka.stream.scaladsl.Source
 import org.zalando.spearheads.innkeeper.api._
-import org.zalando.spearheads.innkeeper.services.RoutesService
+import org.zalando.spearheads.innkeeper.services.{ ServiceResult, RoutesService }
 import org.zalando.spearheads.innkeeper.api.JsonProtocols._
-
 import scala.concurrent.ExecutionContext
-import scala.util.{ Success }
-
+import scala.util.Success
 import spray.json._
 import akka.http.scaladsl.util.FastFuture._
 
@@ -38,9 +36,9 @@ trait RouteDirectives {
     Directive[Tuple1[RouteOut]] { inner =>
       ctx => {
         routesService.findById(id).fast.transformWith {
-          case Success(RoutesService.Success(routeOut)) => inner(Tuple1(routeOut))(ctx)
-          case Success(RoutesService.NotFound)          => reject(RouteNotFoundRejection)(ctx)
-          case _                                        => reject(InternalServerErrorRejection)(ctx)
+          case Success(ServiceResult.Success(routeOut))               => inner(Tuple1(routeOut))(ctx)
+          case Success(ServiceResult.Failure(ServiceResult.NotFound)) => reject(RouteNotFoundRejection)(ctx)
+          case _                                                      => reject(InternalServerErrorRejection)(ctx)
         }
       }
     }
@@ -54,6 +52,12 @@ trait RouteDirectives {
 }
 
 case object RouteNotFoundRejection extends Rejection
+
+case object IncorrectTeamRejection extends Rejection
+
+case object TeamNotFoundRejection extends Rejection
+
+case object NoUidRejection extends Rejection
 
 case object InvalidRouteNameRejection extends Rejection
 

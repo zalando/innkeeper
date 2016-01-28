@@ -7,28 +7,47 @@ import com.google.inject.Inject
 import com.typesafe.config.Config
 import org.zalando.spearheads.innkeeper.api._
 import org.zalando.spearheads.innkeeper.dao.{ RoutesRepo, RouteRow }
-import org.zalando.spearheads.innkeeper.services.RoutesService.{ Success, NotFound, RoutesServiceResult }
+import org.zalando.spearheads.innkeeper.services.ServiceResult.{ Failure, Success, NotFound, Result }
 import spray.json._
 import org.zalando.spearheads.innkeeper.api.JsonProtocols._
 
 import scala.concurrent.{ Future, ExecutionContext }
 
-/**
- * @author dpersa
- */
-class RoutesService @Inject() (implicit val executionContext: ExecutionContext,
-                               val routesRepo: RoutesRepo, val config: Config) {
+trait RoutesService {
+  def create(route: RouteIn,
+             ownedByTeam: String,
+             createdBy: String,
+             createdAt: LocalDateTime = LocalDateTime.now()): Future[Result[RouteOut]]
 
-  def createRoute(route: RouteIn, createdAt: LocalDateTime = LocalDateTime.now()): Future[RoutesServiceResult] = {
+  def remove(id: Long): Future[Result[Boolean]]
+
+  def findByName(name: RouteName): Source[RouteOut, Unit]
+
+  def findModifiedSince(localDateTime: LocalDateTime): Source[RouteOut, Unit]
+
+  def allRoutes: Source[RouteOut, Unit]
+
+  def findById(id: Long): Future[Result[RouteOut]]
+}
+
+class DefaultRoutesService @Inject() (implicit val executionContext: ExecutionContext,
+                                      val routesRepo: RoutesRepo, val config: Config) extends RoutesService {
+
+  override def create(route: RouteIn,
+                      ownedByTeam: String,
+                      createdBy: String,
+                      createdAt: LocalDateTime = LocalDateTime.now()): Future[Result[RouteOut]] = {
 
     val routeRow = RouteRow(id = None,
       name = route.name.name,
       routeJson = route.route.toJson.compactPrint,
-      createdAt = createdAt,
-      description = route.description,
       activateAt = route.activateAt.getOrElse(createdAt.plusMinutes {
         defaultNumberOfMinutesToActivateRoute()
-      })
+      }),
+      ownedByTeam = ownedByTeam,
+      createdBy = createdBy,
+      createdAt = createdAt,
+      description = route.description
     )
 
     routesRepo.insert(routeRow).flatMap(rowToEventualMaybeRoute)
@@ -38,15 +57,15 @@ class RoutesService @Inject() (implicit val executionContext: ExecutionContext,
     config.getInt(s"${config.getString("innkeeper.env")}.defaultNumberOfMinutesToActivateRoute")
   }
 
-  def removeRoute(id: Long): Future[RoutesServiceResult] = {
+  override def remove(id: Long): Future[Result[Boolean]] = {
 
     routesRepo.delete(id).map {
-      case false => RoutesService.NotFound
-      case _     => RoutesService.Success
+      case false => Failure(NotFound)
+      case _     => Success(true)
     }
   }
 
-  def findByName(name: RouteName): Source[RouteOut, Unit] = {
+  override def findByName(name: RouteName): Source[RouteOut, Unit] = {
     Source.fromPublisher(
       routesRepo.selectByName(name.name).mapResult { routeRow =>
         routeRow.id.map { id =>
@@ -56,7 +75,7 @@ class RoutesService @Inject() (implicit val executionContext: ExecutionContext,
     ).mapConcat(_.toList)
   }
 
-  def findModifiedSince(localDateTime: LocalDateTime): Source[RouteOut, Unit] = {
+  override def findModifiedSince(localDateTime: LocalDateTime): Source[RouteOut, Unit] = {
     Source.fromPublisher(
       routesRepo.selectModifiedSince(localDateTime).mapResult { routeRow =>
         routeRow.id.map { id =>
@@ -66,7 +85,7 @@ class RoutesService @Inject() (implicit val executionContext: ExecutionContext,
     ).mapConcat(_.toList)
   }
 
-  def allRoutes: Source[RouteOut, Unit] = {
+  override def allRoutes: Source[RouteOut, Unit] = {
     Source.fromPublisher(routesRepo.selectAll.mapResult { routeRow =>
       routeRow.id.map { id =>
         routeRowToRoute(id, routeRow)
@@ -74,16 +93,16 @@ class RoutesService @Inject() (implicit val executionContext: ExecutionContext,
     }).mapConcat(_.toList)
   }
 
-  def findById(id: Long): Future[RoutesServiceResult] = {
+  override def findById(id: Long): Future[Result[RouteOut]] = {
     routesRepo.selectById(id).flatMap {
       case Some(routeRow) if routeRow.deletedAt.isEmpty => rowToEventualMaybeRoute(routeRow)
-      case _                                            => Future(NotFound)
+      case _                                            => Future(Failure(NotFound))
     }
   }
 
-  private def rowToEventualMaybeRoute(routeRow: RouteRow): Future[RoutesServiceResult] = routeRow.id match {
+  private def rowToEventualMaybeRoute(routeRow: RouteRow): Future[Result[RouteOut]] = routeRow.id match {
     case Some(id) => Future(Success(routeRowToRoute(id, routeRow)))
-    case None     => Future(NotFound)
+    case None     => Future(Failure(NotFound))
   }
 
   private def routeRowToRoute(id: Long, routeRow: RouteRow): RouteOut = {
@@ -93,19 +112,8 @@ class RoutesService @Inject() (implicit val executionContext: ExecutionContext,
       route = routeRow.routeJson.parseJson.convertTo[NewRoute],
       createdAt = routeRow.createdAt,
       activateAt = routeRow.activateAt,
+      ownedByTeam = TeamName(routeRow.ownedByTeam),
       description = routeRow.description,
       deletedAt = routeRow.deletedAt)
   }
-}
-
-object RoutesService {
-
-  sealed trait RoutesServiceResult
-
-  case class Success(route: RouteOut) extends RoutesServiceResult
-
-  case object Success extends RoutesServiceResult
-
-  case object NotFound extends RoutesServiceResult
-
 }

@@ -30,7 +30,7 @@ class PostStrictRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
 
         it("should create the new route") {
           val routeName = "strict_route_1"
-          val response = postSlashRoutesStrict(token, routeName)
+          val response = postSlashRoutesStrict(routeName, token)
           response.status should be(StatusCodes.OK)
           val entity = entityString(response)
           val route = entity.parseJson.convertTo[RouteOut]
@@ -43,7 +43,7 @@ class PostStrictRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
 
           it("should create the new route") {
             val routeName = "strict_route_2"
-            val response = postSlashRoutesStrict(token, routeName)
+            val response = postSlashRoutesStrict(routeName, token)
             response.status should be(StatusCodes.OK)
             val entity = entityString(response)
             val route = entity.parseJson.convertTo[RouteOut]
@@ -60,26 +60,43 @@ class PostStrictRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
 
           it("should create the new route") {
             val routeName = "invalid-strict-route-name"
-            val response = postSlashRoutesStrict(token, routeName)
+            val response = postSlashRoutesStrict(routeName, token)
             response.status should be(StatusCodes.BadRequest)
+          }
+        }
+
+        describe("when no token is provided") {
+
+          it("should return the 401 Unauthorized status") {
+            val response = postSlashRoutesStrict(routeName, "")
+            response.status should be(StatusCodes.Unauthorized)
           }
         }
 
         describe("when an invalid token is provided") {
           val token = INVALID_TOKEN
 
-          it("should return the 401 Unauthorized status") {
-            val response = postSlashRoutesStrict(token, routeName)
-            response.status should be(StatusCodes.Unauthorized)
+          it("should return the 403 Forbidden status") {
+            val response = postSlashRoutesStrict(routeName, token)
+            response.status should be(StatusCodes.Forbidden)
           }
         }
 
         describe("when a token without the write_strict or write_regex scopes is provided") {
           val token = READ_TOKEN
 
-          it("should return the 401 Unauthorized status") {
-            val response = postSlashRoutesStrict(token, routeName)
-            response.status should be(StatusCodes.Unauthorized)
+          it("should return the 403 Forbidden status") {
+            val response = postSlashRoutesStrict(routeName, token)
+            response.status should be(StatusCodes.Forbidden)
+          }
+        }
+
+        describe("when a which doesn't have an associated uid") {
+          val token = "token--employees-route.write_strict"
+
+          it("should return the 403 Forbidden status") {
+            val response = postSlashRoutesStrict(routeName, token)
+            response.status should be(StatusCodes.Forbidden)
           }
         }
       }

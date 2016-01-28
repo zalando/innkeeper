@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory
 import org.zalando.spearheads.innkeeper.api.{ AkkaHttpModule, AkkaModule, AkkaHttp }
 import org.zalando.spearheads.innkeeper.dao.{ RoutesRepo, DbModule }
 import org.zalando.spearheads.innkeeper.oauth.OAuthModule
+import org.zalando.spearheads.innkeeper.services.ServicesModule
 
 import scala.concurrent.ExecutionContext
 
@@ -15,11 +16,15 @@ import scala.concurrent.ExecutionContext
  */
 object Innkeeper extends App {
 
+  import org.zalando.spearheads.innkeeper.utils.UtilsModule
+
   private val LOG = LoggerFactory.getLogger(this.getClass)
 
   private val injector: Injector = Guice.createInjector(
     new ConfigModule(),
     new DbModule(),
+    new UtilsModule(),
+    new ServicesModule(),
     new OAuthModule(),
     new AkkaModule(),
     new AkkaHttpModule()

@@ -3,11 +3,13 @@ package org.zalando.spearheads.innkeeper
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model._
-import akka.http.scaladsl.model.headers.{OAuth2BearerToken, Authorization}
+import akka.http.scaladsl.model.headers.{Authorization, OAuth2BearerToken}
 import akka.stream.ActorMaterializer
 import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.time.{Second, Millis, Seconds, Span}
+import org.scalatest.time.{Seconds, Span}
+
 import scala.collection.immutable.Seq
+import scala.language.implicitConversions
 
 /**
   * @author dpersa
@@ -29,7 +31,7 @@ object AcceptanceSpecsHelper extends ScalaFutures {
       .futureValue
   }
 
-  def postSlashRoutes(routeType: String)(token: String, routeName: String): HttpResponse = {
+  def postSlashRoutes(routeType: String)(routeName: String, token: String = ""): HttpResponse = {
     val route =
       s"""{
           |  "name": "${routeName}",
@@ -47,7 +49,7 @@ object AcceptanceSpecsHelper extends ScalaFutures {
 
     val entity = HttpEntity(ContentType(MediaTypes.`application/json`), route)
 
-    val headers = Seq[HttpHeader](Authorization(OAuth2BearerToken(token)))
+    val headers = headersForToken(token)
 
     val request = HttpRequest(method = HttpMethods.POST,
       uri = routesUri,
@@ -58,36 +60,56 @@ object AcceptanceSpecsHelper extends ScalaFutures {
     futureResponse.futureValue
   }
 
-  def getSlashRoutes(token: String): HttpResponse = {
+  def getSlashRoutes(token: String = ""): HttpResponse = {
     val futureResponse = Http().singleRequest(HttpRequest(uri = routesUri,
-      headers = Seq[HttpHeader](Authorization(OAuth2BearerToken(token)))))
+      headers = headersForToken(token)))
     futureResponse.futureValue
   }
 
-  def getSlashRoutesByName(token: String, name: String): HttpResponse = {
+  def getSlashRoutesByName(name: String, token: String): HttpResponse = {
     val futureResponse = Http().singleRequest(HttpRequest(uri = routeByNameUri(name),
-      headers = Seq[HttpHeader](Authorization(OAuth2BearerToken(token)))))
+      headers = headersForToken(token)))
     futureResponse.futureValue
   }
 
-  def getSlashRoute(token: String, id: Long): HttpResponse = {
-    slashRoute(token, id)
+  def getSlashRoute(id: Long, token: String = ""): HttpResponse = {
+    slashRoute(id, token)
   }
 
-  def deleteSlashRoute(token: String, id: Long): HttpResponse = {
-    slashRoute(token, id, HttpMethods.DELETE)
+  def deleteSlashRoute(id: Long, token: String = ""): HttpResponse = {
+    slashRoute(id, token, HttpMethods.DELETE)
   }
 
-  private def slashRoute(token: String, id: Long, method: HttpMethod = HttpMethods.GET): HttpResponse = {
-    val futureResponse = Http().singleRequest(HttpRequest(uri = routeUri(id), method = method,
-      headers = Seq[HttpHeader](Authorization(OAuth2BearerToken(token)))))
+  private def slashRoute(id: Long, token: Option[String] = None, method: HttpMethod = HttpMethods.GET): HttpResponse = {
+    val futureResponse = Http().singleRequest(
+      HttpRequest(
+        uri = routeUri(id),
+        method = method,
+        headers = headersForToken(token)
+      )
+    )
     futureResponse.futureValue
+  }
+
+  private def headersForToken(token: Option[String]): Seq[HttpHeader] = {
+    val headers = token match {
+      case Some(token) => Seq[HttpHeader](Authorization(OAuth2BearerToken(token)))
+      case None => Seq()
+    }
+    headers
+  }
+
+  implicit def stringToOption(string: String): Option[String] = {
+    string match {
+      case "" | null => None
+      case str => Option(str)
+    }
   }
 }
 
 object AcceptanceSpecTokens {
-  val READ_TOKEN = "token-employees-route.read"
-  val WRITE_STRICT_TOKEN = "token-employees-route.write_strict"
-  val WRITE_REGEX_TOKEN = "token-employees-route.write_regex"
+  val READ_TOKEN = "token-user~1-employees-route.read"
+  val WRITE_STRICT_TOKEN = "token-user~1-employees-route.write_strict"
+  val WRITE_REGEX_TOKEN = "token-user~1-employees-route.write_regex"
   val INVALID_TOKEN = "invalid"
 }

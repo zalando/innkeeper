@@ -20,9 +20,36 @@ object RoutesRepoHelper extends ScalaFutures {
   val db = Database.forConfig("test.innkeeperdb")
   val routesRepo = new RoutesPostgresRepo()(executionContext, db)
 
-  def insertRoute(name: String = "THE_ROUTE", matcher: String = "/hello", routeType: String = "STRICT", createdAt: LocalDateTime = LocalDateTime.now()) = {
-    routesRepo.insert(RouteRow(name = name, routeJson = routeJson(matcher, routeType),
-      createdAt = createdAt, activateAt = createdAt.plusMinutes(5))).futureValue
+  def insertRoute(name: String = "THE_ROUTE", matcher: String = "/hello", routeType: String = "STRICT",
+                  createdBy: String = "testuser",
+                  ownedByTeam: String = "testteam",
+                  createdAt: LocalDateTime = LocalDateTime.now()) = {
+
+    routesRepo.insert(RouteRow(name = name,
+                               routeJson = routeJson(matcher, routeType),
+                               createdBy = createdBy,
+                               ownedByTeam = ownedByTeam,
+                               createdAt = createdAt,
+                               activateAt = createdAt.plusMinutes(5)))
+              .futureValue
+  }
+
+  def sampleRoute(id: Long = 0,
+                  name: String = "THE_ROUTE",
+                  matcher: String = "/hello",
+                  routeType: String = "STRICT",
+                  createdBy: String = "testuser",
+                  ownedByTeam: String = "testteam",
+                  createdAt: LocalDateTime = LocalDateTime.now(),
+                  activateAt: LocalDateTime = LocalDateTime.now()) = {
+
+    RouteRow(id = Some(id),
+      name = name,
+      routeJson = routeJson(matcher, routeType),
+      createdBy = createdBy,
+      ownedByTeam = ownedByTeam,
+      createdAt = createdAt,
+      activateAt = activateAt)
   }
 
   def deleteRoute(id: Long) = {

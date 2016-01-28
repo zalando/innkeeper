@@ -8,6 +8,11 @@ import akka.http.scaladsl.server.directives.BasicDirectives._
 import akka.http.scaladsl.server.directives.HeaderDirectives._
 import akka.http.scaladsl.server.directives.RouteDirectives._
 import org.slf4j.LoggerFactory
+import org.zalando.spearheads.innkeeper.{ TeamNotFoundRejection, IncorrectTeamRejection }
+import org.zalando.spearheads.innkeeper.api.{ TeamName, RouteOut }
+import org.zalando.spearheads.innkeeper.services.ServiceResult
+import org.zalando.spearheads.innkeeper.services.ServiceResult.NotFound
+import org.zalando.spearheads.innkeeper.services.team.{ Team, TeamService }
 import scala.util.{ Failure, Success }
 
 /**
@@ -22,8 +27,8 @@ trait OAuthDirectives {
       AuthenticationFailedRejection(CredentialsMissing, HttpChallenge("", ""))
     }
 
-  def authenticate(token: String, authService: AuthService): Directive1[AuthorizedUser] =
-    authService.authorize(token) match {
+  def authenticate(token: String, authService: AuthService): Directive1[AuthenticatedUser] =
+    authService.authenticate(token) match {
       case Success(authUser) => provide(authUser)
       case Failure(ex) => {
         logger.error(s"Authentication failed with exception: ${ex.getMessage}")
@@ -31,7 +36,30 @@ trait OAuthDirectives {
       }
     }
 
-  def hasOneOfTheScopes(authorizedUser: AuthorizedUser)(scope: Scope*): Directive0 = {
+  def team(authenticatedUser: AuthenticatedUser, token: String)(implicit teamService: TeamService): Directive1[Team] = {
+    authenticatedUser.username match {
+      case Some(username) =>
+        teamService.getForUsername(username, token) match {
+          case ServiceResult.Success(team) => provide(team)
+          case ServiceResult.Failure(_)    => reject(TeamNotFoundRejection)
+        }
+      case None => {
+        logger.debug("AuthenticatedUser does not have an username {}", authenticatedUser)
+        reject(TeamNotFoundRejection)
+      }
+    }
+  }
+
+  def teamAuthorization(team: Team, route: RouteOut)(implicit teamService: TeamService): Directive0 = {
+    // TODO make it configurable
+    if (team.name == "pathfinder" || teamService.routeHasTeam(route, team)) {
+      pass
+    } else {
+      reject(IncorrectTeamRejection)
+    }
+  }
+
+  def hasOneOfTheScopes(authorizedUser: AuthenticatedUser)(scope: Scope*): Directive0 = {
     val configuredScopeNames = scope.flatMap(_.scopeNames).toSet
     authorizedUser.scope.scopeNames.intersect(configuredScopeNames).isEmpty match {
       case false => pass
