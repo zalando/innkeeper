@@ -44,12 +44,12 @@ curl -i -XPOST localhost:8080/routes -d '{
     "activate_at": "2015-10-10T10:10:10",
     "description": "this is a route",
     "name": "THE_ROUTE"
-    }' -H 'Content-Type: application/json' -H 'Authorization: oauth-token'
+    }' -H 'Content-Type: application/json' -H 'Authorization: Bearer oauth-token'
 ```
 
 ### Getting all routes
 
-    curl http://localhost:8080/routes -H 'Authorization: oauth-token'
+    curl http://localhost:8080/routes -H 'Authorization: Bearer oauth-token'
     
 To see it streaming:
 
@@ -57,7 +57,7 @@ To see it streaming:
 
 ### Getting last modified routes
 
-    curl -i http://localhost:8080/updated-routes/2015-08-21T15:23:05.731 -H 'Authorization: oauth-token'
+    curl -i http://localhost:8080/updated-routes/2015-08-21T15:23:05.731 -H 'Authorization: Bearer oauth-token'
 
 # OAuth
 

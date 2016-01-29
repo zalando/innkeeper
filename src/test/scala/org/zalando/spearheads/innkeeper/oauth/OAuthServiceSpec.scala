@@ -28,7 +28,7 @@ class OAuthServiceSpec extends FunSpec with MockFactory with Matchers {
     describe("success") {
 
       it("should authenticate") {
-        (httpClient.callJson _).expects(s"${AUTH_URL}$TOKEN", Some(TOKEN), HttpMethods.GET)
+        (httpClient.callJson _).expects(s"${AUTH_URL}$TOKEN", None, HttpMethods.GET)
           .returning(Try("""{"scope":["read","write"],"realm":"/employees"}""".parseJson))
 
         authService.authenticate(TOKEN) should
@@ -41,7 +41,7 @@ class OAuthServiceSpec extends FunSpec with MockFactory with Matchers {
 
         it("should fail") {
           // scopes instead of scope
-          (httpClient.callJson _).expects(s"${AUTH_URL}$TOKEN", Some(TOKEN), HttpMethods.GET)
+          (httpClient.callJson _).expects(s"${AUTH_URL}$TOKEN", None, HttpMethods.GET)
             .returning(Try("""{"scopes":["read","write"],"realm":"/employees"}""".parseJson))
 
           authService.authenticate(TOKEN).isFailure should be(true)
