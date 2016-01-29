@@ -33,7 +33,7 @@ object Innkeeper extends App {
   private val config = injector.instance[Config]
 
   private val env = config.getString("innkeeper.env")
-  private val schemaRecreate = config.getBoolean(s"${config.getString("innkeeper.env")}.schema.recreate")
+  private val schemaRecreate = config.getString(s"${config.getString("innkeeper.env")}.schema.recreate").toBoolean
 
   LOG.info(s"innkeeper.env=${env}")
   LOG.info(s"${env}.schema.recreate=${schemaRecreate}")

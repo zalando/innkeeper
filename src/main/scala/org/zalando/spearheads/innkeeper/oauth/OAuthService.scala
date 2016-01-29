@@ -21,7 +21,7 @@ class OAuthService @Inject() (val config: Config,
   val logger = LoggerFactory.getLogger(this.getClass)
 
   override def authenticate(token: String): Try[AuthenticatedUser] = {
-    httpClient.callJson(url(token), Some(token)).map(_.convertTo[AuthenticatedUser])
+    httpClient.callJson(url(token), None).map(_.convertTo[AuthenticatedUser])
   }
 
   private lazy val OAUTH_URL = config.getString("oauth.url")
