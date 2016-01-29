@@ -125,7 +125,7 @@ class Routes @Inject() (implicit val materializer: ActorMaterializer,
                   LOG.debug("try to delete /routes/{} route found {}", id, route)
 
                   team(authenticatedUser, token)(teamService) { team =>
-                    LOG.debug("try to delete /routes/{} team found {}", team)
+                    LOG.debug("try to delete /routes/{} team found {}", id, team)
 
                     (teamAuthorization(team, route) & isRegexRoute(route.route) &
                       hasOneOfTheScopes(authenticatedUser)(scopes.WRITE_REGEX)) {
