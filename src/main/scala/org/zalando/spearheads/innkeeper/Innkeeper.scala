@@ -6,8 +6,9 @@ import org.slf4j.LoggerFactory
 import org.zalando.spearheads.innkeeper.api.{ AkkaHttp, AkkaHttpModule, AkkaModule }
 import org.zalando.spearheads.innkeeper.dao.{ DbModule, RoutesRepo }
 import org.zalando.spearheads.innkeeper.oauth.OAuthModule
+import org.zalando.spearheads.innkeeper.routes.RoutesModule
 import org.zalando.spearheads.innkeeper.services.ServicesModule
-import org.zalando.spearheads.innkeeper.utils.EnvConfig
+import org.zalando.spearheads.innkeeper.utils.{ ConfigModule, EnvConfig }
 
 import scala.concurrent.ExecutionContext
 
@@ -27,6 +28,7 @@ object Innkeeper extends App {
     new ServicesModule(),
     new OAuthModule(),
     new AkkaModule(),
+    new RoutesModule(),
     new AkkaHttpModule()
   )
 
