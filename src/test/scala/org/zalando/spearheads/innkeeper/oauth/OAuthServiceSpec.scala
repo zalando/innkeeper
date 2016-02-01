@@ -1,12 +1,12 @@
 package org.zalando.spearheads.innkeeper.oauth
 
 import akka.http.scaladsl.model.HttpMethods
-import com.typesafe.config.Config
 import org.scalamock.scalatest.MockFactory
-import org.scalatest.{ Matchers, FunSpec }
-import org.zalando.spearheads.innkeeper.utils.HttpClient
-import scala.util.{ Failure, Try, Success }
-import spray.json.{ DeserializationException, pimpString }
+import org.scalatest.{ FunSpec, Matchers }
+import org.zalando.spearheads.innkeeper.utils.{ EnvConfig, HttpClient }
+import spray.json.pimpString
+
+import scala.util.{ Success, Try }
 
 /**
  * @author dpersa
@@ -18,7 +18,7 @@ class OAuthServiceSpec extends FunSpec with MockFactory with Matchers {
     val AUTH_URL = "http://auth.com/token="
     val TOKEN = "the-token"
 
-    val config = mock[Config]
+    val config = mock[EnvConfig]
     val httpClient = mock[HttpClient]
     val authService = new OAuthService(config, httpClient)
 
