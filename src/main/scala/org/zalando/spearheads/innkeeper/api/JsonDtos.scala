@@ -22,9 +22,28 @@ object RouteName {
 
 case class TeamName(name: String) extends AnyRef
 
+case class UserName(name: String) extends AnyRef {
+
+  def apply(name: Option[String]) = name match {
+    case Some(name) => UserName(name)
+    case _          => throw InvalidUsereNameException
+  }
+}
+
+object UserName {
+  def apply(name: Option[String]): UserName = name match {
+    case Some(name) => UserName(name)
+    case _          => throw InvalidUsereNameException
+  }
+}
+
 object InvalidRouteNameException
   extends RuntimeException(
     s"Invalid route name. The name should match ${RouteName.validRouteNamePattern}")
+
+object InvalidUsereNameException
+  extends RuntimeException(
+    s"Invalid uid for your token")
 
 sealed trait Route {
   def name: RouteName
@@ -45,6 +64,7 @@ case class RouteOut(id: Long,
                     createdAt: LocalDateTime,
                     activateAt: LocalDateTime,
                     ownedByTeam: TeamName,
+                    createdBy: UserName,
                     description: Option[String] = None,
                     deletedAt: Option[LocalDateTime] = None) extends Route
 

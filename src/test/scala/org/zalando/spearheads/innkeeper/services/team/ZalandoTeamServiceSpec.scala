@@ -4,7 +4,7 @@ import java.time.LocalDateTime
 import akka.http.scaladsl.model.HttpMethods
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.{ FunSpec, Matchers }
-import org.zalando.spearheads.innkeeper.api.{ RouteName, RouteOut, TeamName }
+import org.zalando.spearheads.innkeeper.api.{ UserName, RouteName, RouteOut, TeamName }
 import org.zalando.spearheads.innkeeper.services.ServiceResult
 import org.zalando.spearheads.innkeeper.services.ServiceResult.NotFound
 import org.zalando.spearheads.innkeeper.utils.{ EnvConfig, HttpClient }
@@ -23,7 +23,7 @@ class ZalandoTeamServiceSpec extends FunSpec with MockFactory with Matchers {
 
       val teamService = new ZalandoTeamService(null, null)
       val route = RouteOut(1, RouteName("name"), null, LocalDateTime.now(),
-        LocalDateTime.now(), TeamName("pathfinder"))
+        LocalDateTime.now(), TeamName("pathfinder"), UserName("gigel"))
 
       val team = Team("pathfinder", Official)
 
