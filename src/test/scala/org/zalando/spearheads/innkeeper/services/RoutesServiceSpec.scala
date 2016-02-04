@@ -5,7 +5,6 @@ import java.time.LocalDateTime
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Sink
-import com.typesafe.config.Config
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.{ FunSpec, Matchers }
@@ -13,6 +12,7 @@ import org.zalando.spearheads.innkeeper.FakeDatabasePublisher
 import org.zalando.spearheads.innkeeper.api.JsonProtocols._
 import org.zalando.spearheads.innkeeper.api._
 import org.zalando.spearheads.innkeeper.dao.{ RouteRow, RoutesRepo }
+import org.zalando.spearheads.innkeeper.utils.EnvConfig
 import spray.json._
 
 import scala.concurrent.duration._
@@ -29,7 +29,7 @@ class RoutesServiceSpec extends FunSpec with Matchers with MockFactory with Scal
   implicit val actorSystem = ActorSystem()
   implicit val materializer = ActorMaterializer()
   val routesRepo = mock[RoutesRepo]
-  val config = mock[Config]
+  val config = mock[EnvConfig]
 
   val routesService = new DefaultRoutesService()(executionContext, routesRepo, config)
 
@@ -46,8 +46,7 @@ class RoutesServiceSpec extends FunSpec with Matchers with MockFactory with Scal
     }
 
     it("should create a new route without an activateAt") {
-      (config.getString _).expects("innkeeper.env").returning("test")
-      (config.getInt _).expects("test.defaultNumberOfMinutesToActivateRoute").returning(5)
+      (config.getInt _).expects("defaultNumberOfMinutesToActivateRoute").returning(5)
 
       (routesRepo.insert _).expects(routeRowWithoutId.copy(activateAt = createdAt.plusMinutes(5)))
         .returning(Future(routeOut.copy(activateAt = createdAt.plusMinutes(5))))

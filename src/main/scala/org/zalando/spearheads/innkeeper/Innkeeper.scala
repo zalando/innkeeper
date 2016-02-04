@@ -1,13 +1,13 @@
 package org.zalando.spearheads.innkeeper
 
-import com.google.inject.{ Injector, Guice }
-import com.typesafe.config.Config
+import com.google.inject.{ Guice, Injector }
 import net.codingwell.scalaguice.InjectorExtensions._
 import org.slf4j.LoggerFactory
-import org.zalando.spearheads.innkeeper.api.{ AkkaHttpModule, AkkaModule, AkkaHttp }
-import org.zalando.spearheads.innkeeper.dao.{ RoutesRepo, DbModule }
+import org.zalando.spearheads.innkeeper.api.{ AkkaHttp, AkkaHttpModule, AkkaModule }
+import org.zalando.spearheads.innkeeper.dao.{ DbModule, RoutesRepo }
 import org.zalando.spearheads.innkeeper.oauth.OAuthModule
 import org.zalando.spearheads.innkeeper.services.ServicesModule
+import org.zalando.spearheads.innkeeper.utils.EnvConfig
 
 import scala.concurrent.ExecutionContext
 
@@ -30,10 +30,10 @@ object Innkeeper extends App {
     new AkkaHttpModule()
   )
 
-  private val config = injector.instance[Config]
+  private val config = injector.instance[EnvConfig]
 
-  private val env = config.getString("innkeeper.env")
-  private val schemaRecreate = config.getString(s"${config.getString("innkeeper.env")}.schema.recreate").toBoolean
+  private val env = config.env
+  private val schemaRecreate = config.getString("schema.recreate").toBoolean
 
   LOG.info(s"innkeeper.env=${env}")
   LOG.info(s"${env}.schema.recreate=${schemaRecreate}")

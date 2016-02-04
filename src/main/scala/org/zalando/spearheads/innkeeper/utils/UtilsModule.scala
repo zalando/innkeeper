@@ -10,5 +10,6 @@ class UtilsModule extends AbstractModule with ScalaModule {
 
   override def configure() {
     bind[HttpClient].to[AkkaHttpClient].asEagerSingleton()
+    bind[EnvConfig].to[InnkeeperEnvConfig].asEagerSingleton()
   }
 }

@@ -1,9 +1,7 @@
 package org.zalando.spearheads.innkeeper.oauth
 
 import com.google.inject.{ Inject, Singleton }
-import com.typesafe.config.Config
-import scala.collection.immutable.List
-import scala.collection.JavaConversions._
+import org.zalando.spearheads.innkeeper.utils.EnvConfig
 
 /**
  * @author dpersa
@@ -11,11 +9,11 @@ import scala.collection.JavaConversions._
 case class Scope(val scopeNames: Set[String]) extends AnyVal
 
 @Singleton
-class Scopes @Inject() (val config: Config) {
+class Scopes @Inject() (val config: EnvConfig) {
 
-  val READ = Scope(config.getStringList("oauth.scope.read").toSet)
-  val WRITE_STRICT = Scope(config.getStringList("oauth.scope.writeStrict").toSet)
-  val WRITE_REGEX = Scope(config.getStringList("oauth.scope.writeRegex").toSet)
+  val READ = Scope(config.getStringSet("oauth.scope.read"))
+  val WRITE_STRICT = Scope(config.getStringSet("oauth.scope.writeStrict"))
+  val WRITE_REGEX = Scope(config.getStringSet("oauth.scope.writeRegex"))
 }
 
 object Realms {

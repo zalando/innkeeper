@@ -1,15 +1,13 @@
 package org.zalando.spearheads.innkeeper.services.team
 
 import java.time.LocalDateTime
-
 import akka.http.scaladsl.model.HttpMethods
-import com.typesafe.config.Config
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.{ FunSpec, Matchers }
 import org.zalando.spearheads.innkeeper.api.{ RouteName, RouteOut, TeamName }
 import org.zalando.spearheads.innkeeper.services.ServiceResult
 import org.zalando.spearheads.innkeeper.services.ServiceResult.NotFound
-import org.zalando.spearheads.innkeeper.utils.HttpClient
+import org.zalando.spearheads.innkeeper.utils.{ EnvConfig, HttpClient }
 import spray.json.pimpString
 
 import scala.util.Try
@@ -54,7 +52,7 @@ class ZalandoTeamServiceSpec extends FunSpec with MockFactory with Matchers {
       val USERNAME = "user"
       val teamJson = """[{"id":"pathfinder","type":"official"}]"""
 
-      val config = mock[Config]
+      val config = mock[EnvConfig]
       val httpClient = mock[HttpClient]
       val teamService = new ZalandoTeamService(config, httpClient)
 

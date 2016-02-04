@@ -4,14 +4,14 @@ import java.time.LocalDateTime
 
 import akka.stream.scaladsl.Source
 import com.google.inject.Inject
-import com.typesafe.config.Config
-import org.zalando.spearheads.innkeeper.api._
-import org.zalando.spearheads.innkeeper.dao.{ RoutesRepo, RouteRow }
-import org.zalando.spearheads.innkeeper.services.ServiceResult.{ Failure, Success, NotFound, Result }
-import spray.json._
 import org.zalando.spearheads.innkeeper.api.JsonProtocols._
+import org.zalando.spearheads.innkeeper.api._
+import org.zalando.spearheads.innkeeper.dao.{ RouteRow, RoutesRepo }
+import org.zalando.spearheads.innkeeper.services.ServiceResult.{ Failure, NotFound, Result, Success }
+import org.zalando.spearheads.innkeeper.utils.EnvConfig
+import spray.json.{ pimpAny, pimpString }
 
-import scala.concurrent.{ Future, ExecutionContext }
+import scala.concurrent.{ ExecutionContext, Future }
 
 trait RoutesService {
   def create(route: RouteIn,
@@ -31,7 +31,8 @@ trait RoutesService {
 }
 
 class DefaultRoutesService @Inject() (implicit val executionContext: ExecutionContext,
-                                      val routesRepo: RoutesRepo, val config: Config) extends RoutesService {
+                                      val routesRepo: RoutesRepo,
+                                      val config: EnvConfig) extends RoutesService {
 
   override def create(route: RouteIn,
                       ownedByTeam: String,
@@ -54,7 +55,7 @@ class DefaultRoutesService @Inject() (implicit val executionContext: ExecutionCo
   }
 
   private[services] def defaultNumberOfMinutesToActivateRoute() = {
-    config.getInt(s"${config.getString("innkeeper.env")}.defaultNumberOfMinutesToActivateRoute")
+    config.getInt("defaultNumberOfMinutesToActivateRoute")
   }
 
   override def remove(id: Long): Future[Result[Boolean]] = {

@@ -32,7 +32,7 @@ class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers w
     routeRow.get.deletedAt.get
   }
 
-  implicit def databasePublisherToList[T](databasePublisher: DatabasePublisher[T]): List[T] = {
+  private implicit def databasePublisherToList[T](databasePublisher: DatabasePublisher[T]): List[T] = {
     Source.fromPublisher(databasePublisher).runFold(Seq.empty[T]) {
       case (seq, item) => seq :+ item
     }.futureValue.toList
