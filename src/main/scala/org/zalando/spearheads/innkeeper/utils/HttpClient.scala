@@ -45,12 +45,12 @@ class AkkaHttpClient @Inject() (implicit val actorSystem: ActorSystem,
 
     for {
       jsonString <- Try {
-        logger.debug(s"We call the service with the url: ${uri}")
+        logger.info(s"We call the service with the url: ${uri}")
         Await.result(futureJsonString, 1.second)
       }
 
       json <- Try {
-        logger.debug(s"The service says: $jsonString")
+        logger.info(s"The service says: $jsonString")
         jsonString.parseJson
       }
     } yield json
