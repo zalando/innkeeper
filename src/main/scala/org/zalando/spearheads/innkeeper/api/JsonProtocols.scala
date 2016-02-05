@@ -165,6 +165,18 @@ object JsonProtocols {
     }
   }
 
-  implicit val routeOutFormat = jsonFormat(RouteOut, "id", "name", "route", "created_at", "activate_at", "owned_by_team", "description", "deleted_at")
+  implicit object UserNameFormat extends RootJsonFormat[UserName] {
+
+    override def write(userName: UserName): JsValue = JsString(userName.name)
+
+    override def read(json: JsValue): UserName = {
+      json match {
+        case JsString(value) => UserName(value)
+        case _               => throw new DeserializationException("Error deserializing the user name")
+      }
+    }
+  }
+
+  implicit val routeOutFormat = jsonFormat(RouteOut, "id", "name", "route", "created_at", "activate_at", "owned_by_team", "created_by", "description", "deleted_at")
   implicit val routeInFormat = jsonFormat(RouteIn, "name", "route", "activate_at", "description")
 }

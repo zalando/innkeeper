@@ -5,7 +5,7 @@ import org.scalatest.{BeforeAndAfter, FunSpec, Matchers}
 import org.zalando.spearheads.innkeeper.AcceptanceSpecTokens._
 import org.zalando.spearheads.innkeeper.AcceptanceSpecsHelper._
 import org.zalando.spearheads.innkeeper.RoutesRepoHelper._
-import org.zalando.spearheads.innkeeper.api.{RouteName, RouteOut}
+import org.zalando.spearheads.innkeeper.api.{UserName, TeamName, RouteName, RouteOut}
 import spray.json._
 import spray.json.DefaultJsonProtocol._
 import org.zalando.spearheads.innkeeper.api.JsonProtocols._
@@ -36,6 +36,8 @@ class PostStrictRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
           val route = entity.parseJson.convertTo[RouteOut]
           route.id should be (1)
           route.name should be(RouteName(routeName))
+          route.ownedByTeam should be(TeamName("team1"))
+          route.createdBy should be(UserName("user~1"))
         }
 
         describe("when a token with the write_regex scope is provided") {

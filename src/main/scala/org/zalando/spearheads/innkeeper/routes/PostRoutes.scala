@@ -7,7 +7,7 @@ import com.google.inject.Inject
 import org.slf4j.LoggerFactory
 import org.zalando.spearheads.innkeeper.RouteDirectives.{ isStrictRoute, isRegexRoute }
 import org.zalando.spearheads.innkeeper.UnmarshallRejection
-import org.zalando.spearheads.innkeeper.api.{ RouteOut, RouteIn }
+import org.zalando.spearheads.innkeeper.api.{ TeamName, UserName, RouteOut, RouteIn }
 import org.zalando.spearheads.innkeeper.metrics.RouteMetrics
 import org.zalando.spearheads.innkeeper.oauth.OAuthDirectives.{ team, hasOneOfTheScopes }
 import org.zalando.spearheads.innkeeper.oauth.{ AuthenticatedUser, Scopes }
@@ -37,12 +37,12 @@ class PostRoutes @Inject() (implicit val executionContext: ExecutionContext,
           (isRegexRoute(route.route) & hasOneOfTheScopes(authenticatedUser)(scopes.WRITE_REGEX)) {
             metrics.postRoutes.time {
               LOG.info("post regex /routes/")
-              handleWith(saveRoute)
+              handleWith(saveRoute(UserName(authenticatedUser.username), TeamName(team.name)))
             }
           } ~ (isStrictRoute(route.route) & hasOneOfTheScopes(authenticatedUser)(scopes.WRITE_STRICT, scopes.WRITE_REGEX)) {
             metrics.postRoutes.time {
               LOG.info("post full-text /routes/")
-              handleWith(saveRoute)
+              handleWith(saveRoute(UserName(authenticatedUser.username), TeamName(team.name)))
             }
           } ~ reject(AuthorizationFailedRejection)
         }
@@ -50,9 +50,9 @@ class PostRoutes @Inject() (implicit val executionContext: ExecutionContext,
     }
   }
 
-  private def saveRoute: (RouteIn) => Future[Option[RouteOut]] = (route: RouteIn) => {
+  private def saveRoute(createdBy: UserName, ownedByTeam: TeamName): (RouteIn) => Future[Option[RouteOut]] = (route: RouteIn) => {
     // TODO use the right parameters
-    routesService.create(route, "", "").map {
+    routesService.create(route, ownedByTeam, createdBy).map {
       case ServiceResult.Success(route) => Some(route)
       case _                            => None
     }
