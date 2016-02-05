@@ -17,7 +17,6 @@ import org.zalando.spearheads.innkeeper.api.AkkaHttpModule.ActorMaterializerProv
 class AkkaHttpModule extends AbstractModule with ScalaModule {
 
   override def configure() {
-    bind[Routes].asEagerSingleton()
     bind[AkkaHttp].asEagerSingleton()
     bind[ActorMaterializer].toProvider[ActorMaterializerProvider].asEagerSingleton()
     bind[JsonService].asEagerSingleton()
