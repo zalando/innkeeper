@@ -22,13 +22,7 @@ object RouteName {
 
 case class TeamName(name: String) extends AnyRef
 
-case class UserName(name: String) extends AnyRef {
-
-  def apply(name: Option[String]) = name match {
-    case Some(name) => UserName(name)
-    case _          => throw InvalidUsereNameException
-  }
-}
+case class UserName(name: String) extends AnyRef
 
 object UserName {
   def apply(name: Option[String]): UserName = name match {
