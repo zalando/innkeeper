@@ -15,8 +15,8 @@ import scala.concurrent.{ ExecutionContext, Future }
 
 trait RoutesService {
   def create(route: RouteIn,
-             ownedByTeam: String,
-             createdBy: String,
+             ownedByTeam: TeamName,
+             createdBy: UserName,
              createdAt: LocalDateTime = LocalDateTime.now()): Future[Result[RouteOut]]
 
   def remove(id: Long): Future[Result[Boolean]]
@@ -35,8 +35,8 @@ class DefaultRoutesService @Inject() (implicit val executionContext: ExecutionCo
                                       val config: EnvConfig) extends RoutesService {
 
   override def create(route: RouteIn,
-                      ownedByTeam: String,
-                      createdBy: String,
+                      ownedByTeam: TeamName,
+                      createdBy: UserName,
                       createdAt: LocalDateTime = LocalDateTime.now()): Future[Result[RouteOut]] = {
 
     val routeRow = RouteRow(id = None,
@@ -45,8 +45,8 @@ class DefaultRoutesService @Inject() (implicit val executionContext: ExecutionCo
       activateAt = route.activateAt.getOrElse(createdAt.plusMinutes {
         defaultNumberOfMinutesToActivateRoute()
       }),
-      ownedByTeam = ownedByTeam,
-      createdBy = createdBy,
+      ownedByTeam = ownedByTeam.name,
+      createdBy = createdBy.name,
       createdAt = createdAt,
       description = route.description
     )
@@ -114,6 +114,7 @@ class DefaultRoutesService @Inject() (implicit val executionContext: ExecutionCo
       createdAt = routeRow.createdAt,
       activateAt = routeRow.activateAt,
       ownedByTeam = TeamName(routeRow.ownedByTeam),
+      createdBy = UserName(routeRow.createdBy),
       description = routeRow.description,
       deletedAt = routeRow.deletedAt)
   }

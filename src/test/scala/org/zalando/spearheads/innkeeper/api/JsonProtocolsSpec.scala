@@ -343,12 +343,14 @@ class JsonProtocolsSpec extends FunSpec with Matchers {
       LocalDateTime.of(2015, 10, 10, 10, 10, 10),
       LocalDateTime.of(2015, 10, 10, 10, 10, 10),
       TeamName("team"),
+      UserName("user"),
       Some("this is a route"),
       Some(LocalDateTime.of(2015, 10, 10, 10, 10, 10))
     )
 
     it("should unmarshall the RouteOut") {
       val route = """{
+                    |  "created_by": "user",
                     |  "name": "THE_ROUTE",
                     |  "description": "this is a route",
                     |  "activate_at": "2015-10-10T10:10:10",
@@ -372,6 +374,7 @@ class JsonProtocolsSpec extends FunSpec with Matchers {
 
       routeOut.toJson.prettyPrint should be {
         """{
+          |  "created_by": "user",
           |  "name": "THE_ROUTE",
           |  "owned_by_team": "team",
           |  "description": "this is a route",

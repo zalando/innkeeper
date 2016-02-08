@@ -5,7 +5,7 @@ import org.scalatest.{BeforeAndAfter, FunSpec, Matchers}
 import org.zalando.spearheads.innkeeper.AcceptanceSpecTokens.{INVALID_TOKEN, READ_TOKEN, WRITE_STRICT_TOKEN}
 import org.zalando.spearheads.innkeeper.AcceptanceSpecsHelper._
 import org.zalando.spearheads.innkeeper.RoutesRepoHelper.{insertRoute, recreateSchema, deleteRoute}
-import org.zalando.spearheads.innkeeper.api.{RouteName, RouteOut}
+import org.zalando.spearheads.innkeeper.api.{UserName, TeamName, RouteName, RouteOut}
 import spray.json._
 import spray.json.DefaultJsonProtocol._
 import org.zalando.spearheads.innkeeper.api.JsonProtocols._
@@ -35,6 +35,8 @@ class GetRouteSpec extends FunSpec with BeforeAndAfter with Matchers {
         val entity = entityString(response)
         val route = entity.parseJson.convertTo[RouteOut]
         route.name should be(RouteName("R2"))
+        route.ownedByTeam should be(TeamName("testteam"))
+        route.createdBy should be(UserName("testuser"))
       }
     }
 
