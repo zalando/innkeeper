@@ -3,11 +3,11 @@ package org.zalando.spearheads.innkeeper.services.team
 import java.time.LocalDateTime
 import akka.http.scaladsl.model.HttpMethods
 import org.scalamock.scalatest.MockFactory
-import org.scalatest.{ FunSpec, Matchers }
-import org.zalando.spearheads.innkeeper.api.{ UserName, RouteName, RouteOut, TeamName }
+import org.scalatest.{FunSpec, Matchers}
+import org.zalando.spearheads.innkeeper.api.{UserName, RouteName, RouteOut, TeamName}
 import org.zalando.spearheads.innkeeper.services.ServiceResult
 import org.zalando.spearheads.innkeeper.services.ServiceResult.NotFound
-import org.zalando.spearheads.innkeeper.utils.{ EnvConfig, HttpClient }
+import org.zalando.spearheads.innkeeper.utils.{EnvConfig, HttpClient}
 import spray.json.pimpString
 
 import scala.util.Try
