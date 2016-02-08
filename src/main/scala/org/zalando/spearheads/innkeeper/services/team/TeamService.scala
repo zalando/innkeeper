@@ -5,11 +5,11 @@ import com.google.inject.Inject
 import org.slf4j.LoggerFactory
 import org.zalando.spearheads.innkeeper.api.RouteOut
 import org.zalando.spearheads.innkeeper.services.ServiceResult
-import org.zalando.spearheads.innkeeper.services.ServiceResult.{ Ex, NotFound, Result }
+import org.zalando.spearheads.innkeeper.services.ServiceResult.{Ex, NotFound, Result}
 import org.zalando.spearheads.innkeeper.services.team.TeamJsonProtocol._
-import org.zalando.spearheads.innkeeper.utils.{ EnvConfig, HttpClient }
+import org.zalando.spearheads.innkeeper.utils.{EnvConfig, HttpClient}
 import scala.collection.immutable.Seq
-import scala.util.{ Try, Failure, Success }
+import scala.util.{Try, Failure, Success}
 
 /**
  * @author dpersa

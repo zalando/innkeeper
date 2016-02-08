@@ -2,15 +2,15 @@ package org.zalando.spearheads.innkeeper.routes
 
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-import akka.http.scaladsl.model.{ MediaTypes, HttpEntity, HttpResponse }
-import akka.http.scaladsl.server.Directives.{ complete, get }
+import akka.http.scaladsl.model.{MediaTypes, HttpEntity, HttpResponse}
+import akka.http.scaladsl.server.Directives.{complete, get}
 import akka.http.scaladsl.server.Route
 import com.google.inject.Inject
 import org.slf4j.LoggerFactory
 import org.zalando.spearheads.innkeeper.api.JsonService
 import org.zalando.spearheads.innkeeper.metrics.RouteMetrics
 import org.zalando.spearheads.innkeeper.oauth.OAuthDirectives.hasOneOfTheScopes
-import org.zalando.spearheads.innkeeper.oauth.{ AuthenticatedUser, Scopes }
+import org.zalando.spearheads.innkeeper.oauth.{AuthenticatedUser, Scopes}
 import org.zalando.spearheads.innkeeper.services.RoutesService
 import org.zalando.spearheads.innkeeper.api.JsonProtocols._
 import spray.json.DefaultJsonProtocol._

@@ -1,9 +1,9 @@
 package org.zalando.spearheads.innkeeper.oauth
 
-import com.google.inject.{ Inject, Singleton }
+import com.google.inject.{Inject, Singleton}
 import org.slf4j.LoggerFactory
 import org.zalando.spearheads.innkeeper.oauth.OAuthJsonProtocol.authorizedUserFormat
-import org.zalando.spearheads.innkeeper.utils.{ EnvConfig, HttpClient }
+import org.zalando.spearheads.innkeeper.utils.{EnvConfig, HttpClient}
 
 import scala.util.Try
 

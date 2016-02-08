@@ -2,12 +2,12 @@ package org.zalando.spearheads.innkeeper.dao
 
 import java.time.LocalDateTime
 
-import com.google.inject.{ Inject, Singleton }
+import com.google.inject.{Inject, Singleton}
 import slick.backend.DatabasePublisher
 import org.zalando.spearheads.innkeeper.dao.MyPostgresDriver.api._
 import slick.jdbc.meta.MTable
 
-import scala.concurrent.{ Future, ExecutionContext }
+import scala.concurrent.{Future, ExecutionContext}
 
 /**
  * @author dpersa

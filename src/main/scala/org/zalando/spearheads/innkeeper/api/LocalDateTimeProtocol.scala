@@ -3,7 +3,7 @@ package org.zalando.spearheads.innkeeper.api
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
-import spray.json.{ JsValue, JsString, RootJsonFormat }
+import spray.json.{JsValue, JsString, RootJsonFormat}
 
 /**
  * @author dpersa

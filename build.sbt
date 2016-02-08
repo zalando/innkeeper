@@ -3,7 +3,7 @@ import com.typesafe.sbt.packager.archetypes.JavaAppPackaging
 import sbt.dsl._
 import spray.revolver.RevolverPlugin.Revolver
 
-import scalariform.formatter.preferences.{PreserveSpaceBeforeArguments, Preserve, Prevent, DanglingCloseParenthesis, AlignArguments, AlignSingleLineCaseStatements, DoubleIndentClassDeclaration, AlignParameters}
+import scalariform.formatter.preferences.{SpacesAroundMultiImports, PreserveSpaceBeforeArguments, Preserve, Prevent, DanglingCloseParenthesis, AlignArguments, AlignSingleLineCaseStatements, DoubleIndentClassDeclaration, AlignParameters}
 
 name := """innkeeper"""
 organization  := "org.zalando.spearheads"
@@ -54,6 +54,7 @@ ScalariformKeys.preferences := ScalariformKeys.preferences.value
   .setPreference(PreserveSpaceBeforeArguments, true)
   .setPreference(DanglingCloseParenthesis, Preserve)
   .setPreference(DoubleIndentClassDeclaration, true)
+  .setPreference(SpacesAroundMultiImports, false)
 //.setPreference(AlignArguments, true)
 //.setPreference(AlignParameters, true)
 

@@ -1,8 +1,8 @@
 package org.zalando.spearheads.innkeeper.metrics
 
 import com.codahale.metrics.MetricRegistry
-import com.google.inject.{ Inject, Singleton }
-import nl.grons.metrics.scala.{ MetricName, InstrumentedBuilder }
+import com.google.inject.{Inject, Singleton}
+import nl.grons.metrics.scala.{MetricName, InstrumentedBuilder}
 
 /**
  * @author dpersa

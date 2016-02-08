@@ -6,12 +6,12 @@ import akka.stream.scaladsl.Source
 import com.google.inject.Inject
 import org.zalando.spearheads.innkeeper.api.JsonProtocols._
 import org.zalando.spearheads.innkeeper.api._
-import org.zalando.spearheads.innkeeper.dao.{ RouteRow, RoutesRepo }
-import org.zalando.spearheads.innkeeper.services.ServiceResult.{ Failure, NotFound, Result, Success }
+import org.zalando.spearheads.innkeeper.dao.{RouteRow, RoutesRepo}
+import org.zalando.spearheads.innkeeper.services.ServiceResult.{Failure, NotFound, Result, Success}
 import org.zalando.spearheads.innkeeper.utils.EnvConfig
-import spray.json.{ pimpAny, pimpString }
+import spray.json.{pimpAny, pimpString}
 
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.{ExecutionContext, Future}
 
 trait RoutesService {
   def create(

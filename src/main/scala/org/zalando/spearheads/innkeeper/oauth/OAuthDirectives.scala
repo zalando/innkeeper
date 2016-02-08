@@ -1,19 +1,19 @@
 package org.zalando.spearheads.innkeeper.oauth
 
 import akka.http.scaladsl.model.HttpHeader
-import akka.http.scaladsl.model.headers.{ OAuth2BearerToken, GenericHttpCredentials, Authorization, HttpChallenge }
-import akka.http.scaladsl.server.AuthenticationFailedRejection.{ CredentialsMissing, CredentialsRejected }
+import akka.http.scaladsl.model.headers.{OAuth2BearerToken, GenericHttpCredentials, Authorization, HttpChallenge}
+import akka.http.scaladsl.server.AuthenticationFailedRejection.{CredentialsMissing, CredentialsRejected}
 import akka.http.scaladsl.server._
 import akka.http.scaladsl.server.directives.BasicDirectives._
 import akka.http.scaladsl.server.directives.HeaderDirectives._
 import akka.http.scaladsl.server.directives.RouteDirectives._
 import org.slf4j.LoggerFactory
-import org.zalando.spearheads.innkeeper.{ TeamNotFoundRejection, IncorrectTeamRejection }
-import org.zalando.spearheads.innkeeper.api.{ TeamName, RouteOut }
+import org.zalando.spearheads.innkeeper.{TeamNotFoundRejection, IncorrectTeamRejection}
+import org.zalando.spearheads.innkeeper.api.{TeamName, RouteOut}
 import org.zalando.spearheads.innkeeper.services.ServiceResult
 import org.zalando.spearheads.innkeeper.services.ServiceResult.NotFound
-import org.zalando.spearheads.innkeeper.services.team.{ Team, TeamService }
-import scala.util.{ Failure, Success }
+import org.zalando.spearheads.innkeeper.services.team.{Team, TeamService}
+import scala.util.{Failure, Success}
 
 /**
  * @author dpersa

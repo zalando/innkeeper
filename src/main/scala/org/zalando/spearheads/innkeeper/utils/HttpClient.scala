@@ -2,15 +2,15 @@ package org.zalando.spearheads.innkeeper.utils
 
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
-import akka.http.scaladsl.model.headers.{ Authorization, OAuth2BearerToken }
-import akka.http.scaladsl.model.{ HttpHeader, HttpMethod, HttpMethods, HttpRequest }
+import akka.http.scaladsl.model.headers.{Authorization, OAuth2BearerToken}
+import akka.http.scaladsl.model.{HttpHeader, HttpMethod, HttpMethods, HttpRequest}
 import akka.stream.ActorMaterializer
 import com.google.inject.Inject
 import org.slf4j.LoggerFactory
-import spray.json.{ JsValue, pimpString }
+import spray.json.{JsValue, pimpString}
 
 import scala.collection.immutable.Seq
-import scala.concurrent.{ Await, ExecutionContext }
+import scala.concurrent.{Await, ExecutionContext}
 import scala.concurrent.duration._
 import scala.util.Try
 

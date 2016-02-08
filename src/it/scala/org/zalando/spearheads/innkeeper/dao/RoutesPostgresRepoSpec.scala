@@ -17,8 +17,8 @@ import slick.jdbc.meta.MTable
 import scala.language.implicitConversions
 
 /**
-  * @author dpersa
-  */
+ * @author dpersa
+ */
 class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers with ScalaFutures {
 
   implicit override val patienceConfig = PatienceConfig(timeout = Span(5, Seconds))

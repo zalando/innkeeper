@@ -9,8 +9,8 @@ import scala.concurrent.Future
 import AcceptanceSpecsHelper._
 
 /**
-  * @author dpersa
-  */
+ * @author dpersa
+ */
 class GetStatusSpec extends FunSpec with Matchers with ScalaFutures {
 
   override implicit val patienceConfig = PatienceConfig(timeout = Span(60, Seconds), interval = Span(1, Second))
