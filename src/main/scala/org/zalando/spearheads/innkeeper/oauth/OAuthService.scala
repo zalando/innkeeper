@@ -1,9 +1,9 @@
 package org.zalando.spearheads.innkeeper.oauth
 
-import com.google.inject.{ Inject, Singleton }
+import com.google.inject.{Inject, Singleton}
 import org.slf4j.LoggerFactory
 import org.zalando.spearheads.innkeeper.oauth.OAuthJsonProtocol.authorizedUserFormat
-import org.zalando.spearheads.innkeeper.utils.{ EnvConfig, HttpClient }
+import org.zalando.spearheads.innkeeper.utils.{EnvConfig, HttpClient}
 
 import scala.util.Try
 
@@ -15,8 +15,9 @@ trait AuthService {
 }
 
 @Singleton
-class OAuthService @Inject() (val config: EnvConfig,
-                              val httpClient: HttpClient) extends AuthService {
+class OAuthService @Inject() (
+    config: EnvConfig,
+    httpClient: HttpClient) extends AuthService {
 
   val logger = LoggerFactory.getLogger(this.getClass)
 

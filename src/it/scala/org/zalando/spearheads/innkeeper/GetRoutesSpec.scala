@@ -10,10 +10,9 @@ import spray.json._
 import spray.json.DefaultJsonProtocol._
 import org.zalando.spearheads.innkeeper.api.JsonProtocols._
 
-
 /**
-  * @author dpersa
-  */
+ * @author dpersa
+ */
 class GetRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
 
   val routesRepo = RoutesRepoHelper.routesRepo

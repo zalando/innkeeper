@@ -1,25 +1,26 @@
 package org.zalando.spearheads.innkeeper.routes
 
-import akka.http.scaladsl.server.Directives.{ reject, parameterMap, get }
+import akka.http.scaladsl.server.Directives.{reject, parameterMap, get}
 import akka.http.scaladsl.server.Route
 import com.google.inject.Inject
 import org.slf4j.LoggerFactory
 import org.zalando.spearheads.innkeeper.InvalidRouteNameRejection
 import org.zalando.spearheads.innkeeper.RouteDirectives.chunkedResponseOfRoutes
-import org.zalando.spearheads.innkeeper.api.{ JsonService, RouteName }
+import org.zalando.spearheads.innkeeper.api.{JsonService, RouteName}
 import org.zalando.spearheads.innkeeper.metrics.RouteMetrics
 import org.zalando.spearheads.innkeeper.oauth.OAuthDirectives.hasOneOfTheScopes
-import org.zalando.spearheads.innkeeper.oauth.{ AuthenticatedUser, Scopes }
+import org.zalando.spearheads.innkeeper.oauth.{AuthenticatedUser, Scopes}
 import org.zalando.spearheads.innkeeper.services.RoutesService
-import scala.util.{ Success, Try }
+import scala.util.{Success, Try}
 
 /**
  * @author dpersa
  */
-class GetRoutes @Inject() (val routesService: RoutesService,
-                           val jsonService: JsonService,
-                           val metrics: RouteMetrics,
-                           val scopes: Scopes) {
+class GetRoutes @Inject() (
+    routesService: RoutesService,
+    jsonService: JsonService,
+    metrics: RouteMetrics,
+    scopes: Scopes) {
 
   private val LOG = LoggerFactory.getLogger(this.getClass)
 

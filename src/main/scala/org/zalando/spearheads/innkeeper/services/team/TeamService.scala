@@ -5,11 +5,11 @@ import com.google.inject.Inject
 import org.slf4j.LoggerFactory
 import org.zalando.spearheads.innkeeper.api.RouteOut
 import org.zalando.spearheads.innkeeper.services.ServiceResult
-import org.zalando.spearheads.innkeeper.services.ServiceResult.{ Ex, NotFound, Result }
+import org.zalando.spearheads.innkeeper.services.ServiceResult.{Ex, NotFound, Result}
 import org.zalando.spearheads.innkeeper.services.team.TeamJsonProtocol._
-import org.zalando.spearheads.innkeeper.utils.{ EnvConfig, HttpClient }
+import org.zalando.spearheads.innkeeper.utils.{EnvConfig, HttpClient}
 import scala.collection.immutable.Seq
-import scala.util.{ Try, Failure, Success }
+import scala.util.{Try, Failure, Success}
 
 /**
  * @author dpersa
@@ -21,8 +21,9 @@ trait TeamService {
   def getForUsername(username: String, token: String): Result[Team]
 }
 
-class ZalandoTeamService @Inject() (val config: EnvConfig,
-                                    val httpClient: HttpClient) extends TeamService {
+class ZalandoTeamService @Inject() (
+    config: EnvConfig,
+    httpClient: HttpClient) extends TeamService {
 
   val logger = LoggerFactory.getLogger(this.getClass)
 
@@ -45,8 +46,9 @@ class ZalandoTeamService @Inject() (val config: EnvConfig,
     }
   }
 
-  override def routeHasTeam(route: RouteOut,
-                            team: Team): Boolean = route.ownedByTeam.name == team.name
+  override def routeHasTeam(
+    route: RouteOut,
+    team: Team): Boolean = route.ownedByTeam.name == team.name
 
   private def TEAM_MEMBER_SERVICE_URL = config.getString("team.member.service.url")
 

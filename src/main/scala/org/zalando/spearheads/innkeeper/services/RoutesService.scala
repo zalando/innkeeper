@@ -6,18 +6,19 @@ import akka.stream.scaladsl.Source
 import com.google.inject.Inject
 import org.zalando.spearheads.innkeeper.api.JsonProtocols._
 import org.zalando.spearheads.innkeeper.api._
-import org.zalando.spearheads.innkeeper.dao.{ RouteRow, RoutesRepo }
-import org.zalando.spearheads.innkeeper.services.ServiceResult.{ Failure, NotFound, Result, Success }
+import org.zalando.spearheads.innkeeper.dao.{RouteRow, RoutesRepo}
+import org.zalando.spearheads.innkeeper.services.ServiceResult.{Failure, NotFound, Result, Success}
 import org.zalando.spearheads.innkeeper.utils.EnvConfig
-import spray.json.{ pimpAny, pimpString }
+import spray.json.{pimpAny, pimpString}
 
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.{ExecutionContext, Future}
 
 trait RoutesService {
-  def create(route: RouteIn,
-             ownedByTeam: TeamName,
-             createdBy: UserName,
-             createdAt: LocalDateTime = LocalDateTime.now()): Future[Result[RouteOut]]
+  def create(
+    route: RouteIn,
+    ownedByTeam: TeamName,
+    createdBy: UserName,
+    createdAt: LocalDateTime = LocalDateTime.now()): Future[Result[RouteOut]]
 
   def remove(id: Long): Future[Result[Boolean]]
 
@@ -30,16 +31,19 @@ trait RoutesService {
   def findById(id: Long): Future[Result[RouteOut]]
 }
 
-class DefaultRoutesService @Inject() (implicit val executionContext: ExecutionContext,
-                                      val routesRepo: RoutesRepo,
-                                      val config: EnvConfig) extends RoutesService {
+class DefaultRoutesService @Inject() (
+    routesRepo: RoutesRepo,
+    config: EnvConfig,
+    implicit val executionContext: ExecutionContext) extends RoutesService {
 
-  override def create(route: RouteIn,
-                      ownedByTeam: TeamName,
-                      createdBy: UserName,
-                      createdAt: LocalDateTime = LocalDateTime.now()): Future[Result[RouteOut]] = {
+  override def create(
+    route: RouteIn,
+    ownedByTeam: TeamName,
+    createdBy: UserName,
+    createdAt: LocalDateTime = LocalDateTime.now()): Future[Result[RouteOut]] = {
 
-    val routeRow = RouteRow(id = None,
+    val routeRow = RouteRow(
+      id = None,
       name = route.name.name,
       routeJson = route.route.toJson.compactPrint,
       activateAt = route.activateAt.getOrElse(createdAt.plusMinutes {

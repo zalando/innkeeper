@@ -1,14 +1,14 @@
 package org.zalando.spearheads.innkeeper
 
-import com.google.inject.{ Guice, Injector }
+import com.google.inject.{Guice, Injector}
 import net.codingwell.scalaguice.InjectorExtensions._
 import org.slf4j.LoggerFactory
-import org.zalando.spearheads.innkeeper.api.{ AkkaHttp, AkkaHttpModule, AkkaModule }
-import org.zalando.spearheads.innkeeper.dao.{ DbModule, RoutesRepo }
+import org.zalando.spearheads.innkeeper.api.{AkkaHttp, AkkaHttpModule, AkkaModule}
+import org.zalando.spearheads.innkeeper.dao.{DbModule, RoutesRepo}
 import org.zalando.spearheads.innkeeper.oauth.OAuthModule
 import org.zalando.spearheads.innkeeper.routes.RoutesModule
 import org.zalando.spearheads.innkeeper.services.ServicesModule
-import org.zalando.spearheads.innkeeper.utils.{ ConfigModule, EnvConfig }
+import org.zalando.spearheads.innkeeper.utils.{ConfigModule, EnvConfig}
 
 import scala.concurrent.ExecutionContext
 

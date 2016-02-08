@@ -12,8 +12,8 @@ import scala.collection.immutable.Seq
 import scala.language.implicitConversions
 
 /**
-  * @author dpersa
-  */
+ * @author dpersa
+ */
 object AcceptanceSpecsHelper extends ScalaFutures {
 
   private val routesUri = "http://localhost:8080/routes"
@@ -51,7 +51,8 @@ object AcceptanceSpecsHelper extends ScalaFutures {
 
     val headers = headersForToken(token)
 
-    val request = HttpRequest(method = HttpMethods.POST,
+    val request = HttpRequest(
+      method = HttpMethods.POST,
       uri = routesUri,
       entity = entity,
       headers = headers)
@@ -61,13 +62,15 @@ object AcceptanceSpecsHelper extends ScalaFutures {
   }
 
   def getSlashRoutes(token: String = ""): HttpResponse = {
-    val futureResponse = Http().singleRequest(HttpRequest(uri = routesUri,
+    val futureResponse = Http().singleRequest(HttpRequest(
+      uri = routesUri,
       headers = headersForToken(token)))
     futureResponse.futureValue
   }
 
   def getSlashRoutesByName(name: String, token: String): HttpResponse = {
-    val futureResponse = Http().singleRequest(HttpRequest(uri = routeByNameUri(name),
+    val futureResponse = Http().singleRequest(HttpRequest(
+      uri = routeByNameUri(name),
       headers = headersForToken(token)))
     futureResponse.futureValue
   }
@@ -94,7 +97,7 @@ object AcceptanceSpecsHelper extends ScalaFutures {
   private def headersForToken(token: Option[String]): Seq[HttpHeader] = {
     val headers = token match {
       case Some(token) => Seq[HttpHeader](Authorization(OAuth2BearerToken(token)))
-      case None => Seq()
+      case None        => Seq()
     }
     headers
   }
@@ -102,7 +105,7 @@ object AcceptanceSpecsHelper extends ScalaFutures {
   implicit def stringToOption(string: String): Option[String] = {
     string match {
       case "" | null => None
-      case str => Option(str)
+      case str       => Option(str)
     }
   }
 }

@@ -1,31 +1,32 @@
 package org.zalando.spearheads.innkeeper.routes
 
 import akka.http.scaladsl.model.StatusCodes
-import akka.http.scaladsl.server.Directives.{ onComplete, reject, delete, complete }
-import akka.http.scaladsl.server.{ AuthorizationFailedRejection, Route }
+import akka.http.scaladsl.server.Directives.{onComplete, reject, delete, complete}
+import akka.http.scaladsl.server.{AuthorizationFailedRejection, Route}
 import com.google.inject.Inject
 import org.slf4j.LoggerFactory
-import org.zalando.spearheads.innkeeper.RouteDirectives.{ isStrictRoute, isRegexRoute, findRoute }
+import org.zalando.spearheads.innkeeper.RouteDirectives.{isStrictRoute, isRegexRoute, findRoute}
 import org.zalando.spearheads.innkeeper.metrics.RouteMetrics
-import org.zalando.spearheads.innkeeper.oauth.OAuthDirectives.{ teamAuthorization, team, hasOneOfTheScopes }
-import org.zalando.spearheads.innkeeper.oauth.{ AuthenticatedUser, Scopes }
+import org.zalando.spearheads.innkeeper.oauth.OAuthDirectives.{teamAuthorization, team, hasOneOfTheScopes}
+import org.zalando.spearheads.innkeeper.oauth.{AuthenticatedUser, Scopes}
 import org.zalando.spearheads.innkeeper.services.ServiceResult.NotFound
 import org.zalando.spearheads.innkeeper.services.team.TeamService
-import org.zalando.spearheads.innkeeper.services.{ ServiceResult, RoutesService }
+import org.zalando.spearheads.innkeeper.services.{ServiceResult, RoutesService}
 import org.zalando.spearheads.innkeeper.api.JsonProtocols._
 import spray.json.DefaultJsonProtocol._
 import scala.concurrent.ExecutionContext
-import scala.util.{ Failure, Success }
+import scala.util.{Failure, Success}
 import akka.http.scaladsl.server.RouteConcatenation._
 
 /**
  * @author dpersa
  */
-class DeleteRoute @Inject() (implicit val teamService: TeamService,
-                             val executionContext: ExecutionContext,
-                             val routesService: RoutesService,
-                             val metrics: RouteMetrics,
-                             val scopes: Scopes) {
+class DeleteRoute @Inject() (
+    executionContext: ExecutionContext,
+    routesService: RoutesService,
+    metrics: RouteMetrics,
+    scopes: Scopes,
+    implicit val teamService: TeamService) {
 
   private val LOG = LoggerFactory.getLogger(this.getClass)
 

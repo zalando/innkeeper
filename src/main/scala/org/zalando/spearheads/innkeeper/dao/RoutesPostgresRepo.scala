@@ -2,19 +2,21 @@ package org.zalando.spearheads.innkeeper.dao
 
 import java.time.LocalDateTime
 
-import com.google.inject.{ Inject, Singleton }
+import com.google.inject.{Inject, Singleton}
 import slick.backend.DatabasePublisher
 import org.zalando.spearheads.innkeeper.dao.MyPostgresDriver.api._
 import slick.jdbc.meta.MTable
 
-import scala.concurrent.{ Future, ExecutionContext }
+import scala.concurrent.{Future, ExecutionContext}
 
 /**
  * @author dpersa
  */
 @Singleton
-class RoutesPostgresRepo @Inject() (implicit val executionContext: ExecutionContext,
-                                    val db: Database) extends RoutesRepo {
+class RoutesPostgresRepo @Inject() (
+    db: Database,
+    implicit val executionContext: ExecutionContext
+) extends RoutesRepo {
 
   private val routesTable = TableQuery[RoutesTable]
 

@@ -2,7 +2,7 @@ package org.zalando.spearheads.innkeeper.services
 
 import com.google.inject.AbstractModule
 import net.codingwell.scalaguice.ScalaModule
-import org.zalando.spearheads.innkeeper.services.team.{ ZalandoTeamService, TeamService }
+import org.zalando.spearheads.innkeeper.services.team.{ZalandoTeamService, TeamService}
 
 /**
  * @author dpersa

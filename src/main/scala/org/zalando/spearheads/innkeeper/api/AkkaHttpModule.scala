@@ -24,10 +24,11 @@ class AkkaHttpModule extends AbstractModule with ScalaModule {
 }
 
 @Singleton
-class AkkaHttp @Inject() (val routes: Routes,
-                          val config: Config,
-                          implicit val actorSystem: ActorSystem,
-                          implicit val actorMaterializer: ActorMaterializer) {
+class AkkaHttp @Inject() (
+    routes: Routes,
+    config: Config,
+    implicit val actorSystem: ActorSystem,
+    implicit val actorMaterializer: ActorMaterializer) {
 
   def run() = {
     Http().bindAndHandle(routes.route, config.getString("interface"), config.getInt("port"))

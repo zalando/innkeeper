@@ -3,7 +3,7 @@ import com.typesafe.sbt.packager.archetypes.JavaAppPackaging
 import sbt.dsl._
 import spray.revolver.RevolverPlugin.Revolver
 
-import scalariform.formatter.preferences.{AlignSingleLineCaseStatements, DoubleIndentClassDeclaration, AlignParameters}
+import scalariform.formatter.preferences.{SpacesAroundMultiImports, PreserveSpaceBeforeArguments, Preserve, Prevent, DanglingCloseParenthesis, AlignArguments, AlignSingleLineCaseStatements, DoubleIndentClassDeclaration, AlignParameters}
 
 name := """innkeeper"""
 organization  := "org.zalando.spearheads"
@@ -43,7 +43,7 @@ libraryDependencies ++= List(
 
 lazy val root = project.in(file(".")).configs(IntegrationTest)
 Defaults.itSettings
-scalariformSettings
+scalariformSettingsWithIt
 Revolver.settings
 
 enablePlugins(JavaAppPackaging)
@@ -51,8 +51,12 @@ enablePlugins(JavaAppPackaging)
 ScalariformKeys.preferences := ScalariformKeys.preferences.value
   .setPreference(AlignSingleLineCaseStatements, true)
   .setPreference(AlignSingleLineCaseStatements.MaxArrowIndent, 100)
+  .setPreference(PreserveSpaceBeforeArguments, true)
+  .setPreference(DanglingCloseParenthesis, Preserve)
   .setPreference(DoubleIndentClassDeclaration, true)
-  .setPreference(AlignParameters, true)
+  .setPreference(SpacesAroundMultiImports, false)
+//.setPreference(AlignArguments, true)
+//.setPreference(AlignParameters, true)
 
 parallelExecution in IntegrationTest := false
 

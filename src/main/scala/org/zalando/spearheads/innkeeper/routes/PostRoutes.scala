@@ -1,30 +1,31 @@
 package org.zalando.spearheads.innkeeper.routes
 
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
-import akka.http.scaladsl.server.Directives.{ reject, handleWith, as, entity, post }
-import akka.http.scaladsl.server.{ AuthorizationFailedRejection, Route }
+import akka.http.scaladsl.server.Directives.{reject, handleWith, as, entity, post}
+import akka.http.scaladsl.server.{AuthorizationFailedRejection, Route}
 import com.google.inject.Inject
 import org.slf4j.LoggerFactory
-import org.zalando.spearheads.innkeeper.RouteDirectives.{ isStrictRoute, isRegexRoute }
+import org.zalando.spearheads.innkeeper.RouteDirectives.{isStrictRoute, isRegexRoute}
 import org.zalando.spearheads.innkeeper.UnmarshallRejection
-import org.zalando.spearheads.innkeeper.api.{ TeamName, UserName, RouteOut, RouteIn }
+import org.zalando.spearheads.innkeeper.api.{TeamName, UserName, RouteOut, RouteIn}
 import org.zalando.spearheads.innkeeper.metrics.RouteMetrics
-import org.zalando.spearheads.innkeeper.oauth.OAuthDirectives.{ team, hasOneOfTheScopes }
-import org.zalando.spearheads.innkeeper.oauth.{ AuthenticatedUser, Scopes }
-import org.zalando.spearheads.innkeeper.services.{ ServiceResult, RoutesService }
+import org.zalando.spearheads.innkeeper.oauth.OAuthDirectives.{team, hasOneOfTheScopes}
+import org.zalando.spearheads.innkeeper.oauth.{AuthenticatedUser, Scopes}
+import org.zalando.spearheads.innkeeper.services.{ServiceResult, RoutesService}
 import org.zalando.spearheads.innkeeper.services.team.TeamService
 import org.zalando.spearheads.innkeeper.api.JsonProtocols._
 import akka.http.scaladsl.server.RouteConcatenation._
-import scala.concurrent.{ Future, ExecutionContext }
+import scala.concurrent.{Future, ExecutionContext}
 
 /**
  * @author dpersa
  */
-class PostRoutes @Inject() (implicit val executionContext: ExecutionContext,
-                            val teamService: TeamService,
-                            val routesService: RoutesService,
-                            val metrics: RouteMetrics,
-                            val scopes: Scopes) {
+class PostRoutes @Inject() (
+    teamService: TeamService,
+    routesService: RoutesService,
+    metrics: RouteMetrics,
+    scopes: Scopes,
+    implicit val executionContext: ExecutionContext) {
 
   private val LOG = LoggerFactory.getLogger(this.getClass)
 

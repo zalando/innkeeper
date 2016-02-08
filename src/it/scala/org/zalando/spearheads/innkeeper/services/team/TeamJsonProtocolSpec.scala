@@ -6,10 +6,9 @@ import spray.json.pimpString
 import scala.collection.immutable.Seq
 
 /**
-  * @author dpersa
-  */
+ * @author dpersa
+ */
 class TeamJsonProtocolSpec extends FunSpec with Matchers {
-
 
   describe("Team") {
 

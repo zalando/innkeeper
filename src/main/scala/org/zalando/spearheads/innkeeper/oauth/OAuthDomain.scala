@@ -1,6 +1,6 @@
 package org.zalando.spearheads.innkeeper.oauth
 
-import com.google.inject.{ Inject, Singleton }
+import com.google.inject.{Inject, Singleton}
 import org.zalando.spearheads.innkeeper.utils.EnvConfig
 
 /**
