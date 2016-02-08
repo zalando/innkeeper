@@ -2,8 +2,8 @@ package org.zalando.spearheads.innkeeper.api
 
 import java.time.LocalDateTime
 
-import org.scalatest.{ FunSpec, Matchers }
-import spray.json.{ DeserializationException, _ }
+import org.scalatest.{FunSpec, Matchers}
+import spray.json.{DeserializationException, _}
 import JsonProtocols._
 
 import scala.collection.immutable.Seq

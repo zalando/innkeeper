@@ -1,6 +1,6 @@
 package org.zalando.spearheads.innkeeper.api
 
-import org.scalatest.{ Matchers, FunSpec }
+import org.scalatest.{Matchers, FunSpec}
 
 /**
  * @author dpersa

@@ -2,11 +2,11 @@ package org.zalando.spearheads.innkeeper.oauth
 
 import akka.http.scaladsl.model.HttpMethods
 import org.scalamock.scalatest.MockFactory
-import org.scalatest.{ FunSpec, Matchers }
-import org.zalando.spearheads.innkeeper.utils.{ EnvConfig, HttpClient }
+import org.scalatest.{FunSpec, Matchers}
+import org.zalando.spearheads.innkeeper.utils.{EnvConfig, HttpClient}
 import spray.json.pimpString
 
-import scala.util.{ Success, Try }
+import scala.util.{Success, Try}
 
 /**
  * @author dpersa

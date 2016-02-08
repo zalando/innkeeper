@@ -7,16 +7,16 @@ import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Sink
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.{ FunSpec, Matchers }
+import org.scalatest.{FunSpec, Matchers}
 import org.zalando.spearheads.innkeeper.FakeDatabasePublisher
 import org.zalando.spearheads.innkeeper.api.JsonProtocols._
 import org.zalando.spearheads.innkeeper.api._
-import org.zalando.spearheads.innkeeper.dao.{ RouteRow, RoutesRepo }
+import org.zalando.spearheads.innkeeper.dao.{RouteRow, RoutesRepo}
 import org.zalando.spearheads.innkeeper.utils.EnvConfig
 import spray.json._
 
 import scala.concurrent.duration._
-import scala.concurrent.{ Await, ExecutionContext, Future }
+import scala.concurrent.{Await, ExecutionContext, Future}
 import ServiceResult.NotFound
 import scala.language.postfixOps
 
