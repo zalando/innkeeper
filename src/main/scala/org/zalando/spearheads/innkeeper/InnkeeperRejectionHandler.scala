@@ -58,7 +58,8 @@ object InnkeeperRejectionHandler {
         val names = methodRejections.map(_.supported.name)
         complete(
           StatusCodes.MethodNotAllowed,
-          Error(StatusCodes.MethodNotAllowed.intValue,
+          Error(
+            StatusCodes.MethodNotAllowed.intValue,
             s"Method not allowed! Supported: ${names mkString " or "}!",
             "MNA")
         )

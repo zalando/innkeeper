@@ -21,11 +21,12 @@ import akka.http.scaladsl.server.RouteConcatenation._
 /**
  * @author dpersa
  */
-class DeleteRoute @Inject() (implicit val teamService: TeamService,
-                             val executionContext: ExecutionContext,
-                             val routesService: RoutesService,
-                             val metrics: RouteMetrics,
-                             val scopes: Scopes) {
+class DeleteRoute @Inject() (
+    executionContext: ExecutionContext,
+    routesService: RoutesService,
+    metrics: RouteMetrics,
+    scopes: Scopes,
+    implicit val teamService: TeamService) {
 
   private val LOG = LoggerFactory.getLogger(this.getClass)
 

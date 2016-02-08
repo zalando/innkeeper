@@ -17,7 +17,8 @@ object JsonProtocols {
 
   implicit object RegexHeaderMatcherFormat extends RootJsonFormat[RegexHeaderMatcher] {
     override def write(hm: RegexHeaderMatcher): JsValue =
-      JsObject(Map("name" -> JsString(hm.name),
+      JsObject(Map(
+        "name" -> JsString(hm.name),
         "value" -> JsString(hm.value),
         "type" -> JsString(MatcherType.REGEX)))
 
@@ -26,7 +27,8 @@ object JsonProtocols {
 
   implicit object StrictHeaderMatcherFormat extends RootJsonFormat[StrictHeaderMatcher] {
     override def write(hm: StrictHeaderMatcher): JsValue =
-      JsObject(Map("name" -> JsString(hm.name),
+      JsObject(Map(
+        "name" -> JsString(hm.name),
         "value" -> JsString(hm.value),
         "type" -> JsString(MatcherType.STRICT)))
 
@@ -36,11 +38,13 @@ object JsonProtocols {
   implicit object HeaderMatcherFormat extends RootJsonFormat[HeaderMatcher] {
     def write(headerMatcher: HeaderMatcher) = headerMatcher match {
       case RegexHeaderMatcher(name, value) =>
-        JsObject(Map("name" -> JsString(name),
+        JsObject(Map(
+          "name" -> JsString(name),
           "value" -> JsString(value),
           "type" -> JsString(MatcherType.REGEX)))
       case StrictHeaderMatcher(name, value) =>
-        JsObject(Map("name" -> JsString(name),
+        JsObject(Map(
+          "name" -> JsString(name),
           "value" -> JsString(value),
           "type" -> JsString(MatcherType.STRICT)))
     }
@@ -56,7 +60,8 @@ object JsonProtocols {
 
   implicit object RegexPathMatcherFormat extends RootJsonFormat[RegexPathMatcher] {
     override def write(hm: RegexPathMatcher): JsValue =
-      JsObject(Map("match" -> JsString(hm.matcher),
+      JsObject(Map(
+        "match" -> JsString(hm.matcher),
         "type" -> JsString(MatcherType.REGEX)))
 
     override def read(json: JsValue): RegexPathMatcher = ???
@@ -64,7 +69,8 @@ object JsonProtocols {
 
   implicit object StrictPathMatcherFormat extends RootJsonFormat[StrictPathMatcher] {
     override def write(hm: StrictPathMatcher): JsValue =
-      JsObject(Map("match" -> JsString(hm.matcher),
+      JsObject(Map(
+        "match" -> JsString(hm.matcher),
         "type" -> JsString(MatcherType.STRICT)))
 
     override def read(json: JsValue): StrictPathMatcher = ???
@@ -73,10 +79,12 @@ object JsonProtocols {
   implicit object PathMatcherFormat extends RootJsonFormat[PathMatcher] {
     def write(pathMatcher: PathMatcher) = pathMatcher match {
       case RegexPathMatcher(matcher) =>
-        JsObject(Map("match" -> JsString(matcher),
+        JsObject(Map(
+          "match" -> JsString(matcher),
           "type" -> JsString(MatcherType.REGEX)))
       case StrictPathMatcher(matcher) =>
-        JsObject(Map("match" -> JsString(matcher),
+        JsObject(Map(
+          "match" -> JsString(matcher),
           "type" -> JsString(MatcherType.STRICT)))
     }
 

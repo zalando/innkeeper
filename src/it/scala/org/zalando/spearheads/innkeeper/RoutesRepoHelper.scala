@@ -18,7 +18,7 @@ object RoutesRepoHelper extends ScalaFutures {
 
   val executionContext = ExecutionContext.global
   val db = Database.forConfig("test.innkeeperdb")
-  val routesRepo = new RoutesPostgresRepo()(executionContext, db)
+  val routesRepo = new RoutesPostgresRepo(db, executionContext)
 
   def insertRoute(name: String = "THE_ROUTE", matcher: String = "/hello", routeType: String = "STRICT",
                   createdBy: String = "testuser",

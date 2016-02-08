@@ -33,8 +33,8 @@ trait RouteDirectives {
   }
 
   def findRoute(id: Long, routesService: RoutesService)(implicit executionContext: ExecutionContext): Directive1[RouteOut] =
-    Directive[Tuple1[RouteOut]] { inner =>
-      ctx => {
+    Directive[Tuple1[RouteOut]] { inner => ctx =>
+      {
         routesService.findById(id).fast.transformWith {
           case Success(ServiceResult.Success(routeOut))               => inner(Tuple1(routeOut))(ctx)
           case Success(ServiceResult.Failure(ServiceResult.NotFound)) => reject(RouteNotFoundRejection)(ctx)

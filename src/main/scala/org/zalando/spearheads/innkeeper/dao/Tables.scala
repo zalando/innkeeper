@@ -4,16 +4,17 @@ import java.time.LocalDateTime
 
 import org.zalando.spearheads.innkeeper.dao.MyPostgresDriver.api._
 
-case class RouteRow(id: Option[Long] = None,
-                    name: String,
-                    routeJson: String,
-                    activateAt: LocalDateTime,
-                    ownedByTeam: String,
-                    createdBy: String,
-                    createdAt: LocalDateTime = LocalDateTime.now(),
-                    description: Option[String] = None,
-                    deletedAt: Option[LocalDateTime] = None,
-                    deletedBy: Option[String] = None)
+case class RouteRow(
+  id: Option[Long] = None,
+  name: String,
+  routeJson: String,
+  activateAt: LocalDateTime,
+  ownedByTeam: String,
+  createdBy: String,
+  createdAt: LocalDateTime = LocalDateTime.now(),
+  description: Option[String] = None,
+  deletedAt: Option[LocalDateTime] = None,
+  deletedBy: Option[String] = None)
 
 // A Routes table with 4 columns: id, route_json, created_at, deleted_at
 class RoutesTable(tag: Tag)

@@ -20,11 +20,12 @@ import scala.concurrent.{ Future, ExecutionContext }
 /**
  * @author dpersa
  */
-class PostRoutes @Inject() (implicit val executionContext: ExecutionContext,
-                            val teamService: TeamService,
-                            val routesService: RoutesService,
-                            val metrics: RouteMetrics,
-                            val scopes: Scopes) {
+class PostRoutes @Inject() (
+    teamService: TeamService,
+    routesService: RoutesService,
+    metrics: RouteMetrics,
+    scopes: Scopes,
+    implicit val executionContext: ExecutionContext) {
 
   private val LOG = LoggerFactory.getLogger(this.getClass)
 

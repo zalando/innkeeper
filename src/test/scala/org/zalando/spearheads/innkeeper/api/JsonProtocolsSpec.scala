@@ -337,7 +337,8 @@ class JsonProtocolsSpec extends FunSpec with Matchers {
       )
     )
 
-    val routeOut = RouteOut(1,
+    val routeOut = RouteOut(
+      1,
       RouteName("THE_ROUTE"),
       newRoute,
       LocalDateTime.of(2015, 10, 10, 10, 10, 10),

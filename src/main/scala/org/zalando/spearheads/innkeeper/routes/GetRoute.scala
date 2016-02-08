@@ -18,10 +18,11 @@ import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 /**
  * @author dpersa
  */
-class GetRoute @Inject() (val executionContext: ExecutionContext,
-                          val routesService: RoutesService,
-                          val metrics: RouteMetrics,
-                          val scopes: Scopes) {
+class GetRoute @Inject() (
+    executionContext: ExecutionContext,
+    routesService: RoutesService,
+    metrics: RouteMetrics,
+    scopes: Scopes) {
 
   private val LOG = LoggerFactory.getLogger(this.getClass)
 

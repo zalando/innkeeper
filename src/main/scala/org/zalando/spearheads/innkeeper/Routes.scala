@@ -18,14 +18,15 @@ import scala.concurrent.{ ExecutionContext, Future }
  * @author dpersa
  */
 @Singleton
-class Routes @Inject() (val getRoute: GetRoute,
-                        val getRoutes: GetRoutes,
-                        val deleteRoute: DeleteRoute,
-                        val postRoutes: PostRoutes,
-                        val getUpdatedRoutes: GetUpdatedRoutes,
-                        val metrics: RouteMetrics,
-                        val authService: AuthService,
-                        implicit val executionContext: ExecutionContext) {
+class Routes @Inject() (
+    getRoute: GetRoute,
+    getRoutes: GetRoutes,
+    deleteRoute: DeleteRoute,
+    postRoutes: PostRoutes,
+    getUpdatedRoutes: GetUpdatedRoutes,
+    metrics: RouteMetrics,
+    authService: AuthService,
+    implicit val executionContext: ExecutionContext) {
   private val LOG = LoggerFactory.getLogger(this.getClass)
 
   val route: RequestContext => Future[RouteResult] =

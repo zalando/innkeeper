@@ -47,29 +47,33 @@ sealed trait Route {
   def description: Option[String]
 }
 
-case class RouteIn(name: RouteName,
-                   route: NewRoute,
-                   activateAt: Option[LocalDateTime],
-                   description: Option[String] = None) extends Route
+case class RouteIn(
+  name: RouteName,
+  route: NewRoute,
+  activateAt: Option[LocalDateTime],
+  description: Option[String] = None) extends Route
 
-case class RouteOut(id: Long,
-                    name: RouteName,
-                    route: NewRoute,
-                    createdAt: LocalDateTime,
-                    activateAt: LocalDateTime,
-                    ownedByTeam: TeamName,
-                    createdBy: UserName,
-                    description: Option[String] = None,
-                    deletedAt: Option[LocalDateTime] = None) extends Route
+case class RouteOut(
+  id: Long,
+  name: RouteName,
+  route: NewRoute,
+  createdAt: LocalDateTime,
+  activateAt: LocalDateTime,
+  ownedByTeam: TeamName,
+  createdBy: UserName,
+  description: Option[String] = None,
+  deletedAt: Option[LocalDateTime] = None) extends Route
 
-case class NewRoute(matcher: Matcher,
-                    filters: Option[Seq[Filter]] = Some(Seq.empty),
-                    endpoint: Option[String] = None)
+case class NewRoute(
+  matcher: Matcher,
+  filters: Option[Seq[Filter]] = Some(Seq.empty),
+  endpoint: Option[String] = None)
 
-case class Matcher(hostMatcher: Option[String] = None,
-                   pathMatcher: Option[PathMatcher] = None,
-                   methodMatcher: Option[String] = None,
-                   headerMatchers: Option[Seq[HeaderMatcher]] = Some(Seq.empty))
+case class Matcher(
+  hostMatcher: Option[String] = None,
+  pathMatcher: Option[PathMatcher] = None,
+  methodMatcher: Option[String] = None,
+  headerMatchers: Option[Seq[HeaderMatcher]] = Some(Seq.empty))
 
 sealed trait PathMatcher {
   def matcher: String
@@ -96,7 +100,8 @@ case class StrictHeaderMatcher(name: String, value: String) extends HeaderMatche
 
 case class RegexHeaderMatcher(name: String, value: String) extends HeaderMatcher
 
-case class Error(status: Int,
-                 title: String,
-                 errorType: String,
-                 detail: Option[String] = None)
+case class Error(
+  status: Int,
+  title: String,
+  errorType: String,
+  detail: Option[String] = None)

@@ -16,20 +16,24 @@ import scala.util.Try
 
 trait HttpClient {
 
-  def callJson(uri: String,
-               token: Option[String] = None,
-               method: HttpMethod = HttpMethods.GET): Try[JsValue]
+  def callJson(
+    uri: String,
+    token: Option[String] = None,
+    method: HttpMethod = HttpMethods.GET): Try[JsValue]
 }
 
-class AkkaHttpClient @Inject() (implicit val actorSystem: ActorSystem,
-                                implicit val materializer: ActorMaterializer,
-                                implicit val executionContext: ExecutionContext) extends HttpClient {
+class AkkaHttpClient @Inject() (
+    implicit
+    val actorSystem: ActorSystem,
+    implicit val materializer: ActorMaterializer,
+    implicit val executionContext: ExecutionContext) extends HttpClient {
 
   val logger = LoggerFactory.getLogger(this.getClass)
 
-  override def callJson(uri: String,
-                        token: Option[String] = None,
-                        method: HttpMethod = HttpMethods.GET): Try[JsValue] = {
+  override def callJson(
+    uri: String,
+    token: Option[String] = None,
+    method: HttpMethod = HttpMethods.GET): Try[JsValue] = {
 
     val futureResponse = Http().singleRequest(
       HttpRequest(

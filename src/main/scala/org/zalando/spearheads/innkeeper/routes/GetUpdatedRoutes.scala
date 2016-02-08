@@ -19,10 +19,11 @@ import scala.util.Try
 /**
  * @author dpersa
  */
-class GetUpdatedRoutes @Inject() (val routesService: RoutesService,
-                                  val jsonService: JsonService,
-                                  val metrics: RouteMetrics,
-                                  val scopes: Scopes) {
+class GetUpdatedRoutes @Inject() (
+    routesService: RoutesService,
+    jsonService: JsonService,
+    metrics: RouteMetrics,
+    scopes: Scopes) {
 
   private val LOG = LoggerFactory.getLogger(this.getClass)
 

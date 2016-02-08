@@ -15,8 +15,9 @@ trait AuthService {
 }
 
 @Singleton
-class OAuthService @Inject() (val config: EnvConfig,
-                              val httpClient: HttpClient) extends AuthService {
+class OAuthService @Inject() (
+    config: EnvConfig,
+    httpClient: HttpClient) extends AuthService {
 
   val logger = LoggerFactory.getLogger(this.getClass)
 

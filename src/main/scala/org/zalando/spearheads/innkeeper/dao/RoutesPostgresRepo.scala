@@ -13,8 +13,10 @@ import scala.concurrent.{ Future, ExecutionContext }
  * @author dpersa
  */
 @Singleton
-class RoutesPostgresRepo @Inject() (implicit val executionContext: ExecutionContext,
-                                    val db: Database) extends RoutesRepo {
+class RoutesPostgresRepo @Inject() (
+    db: Database,
+    implicit val executionContext: ExecutionContext
+) extends RoutesRepo {
 
   private val routesTable = TableQuery[RoutesTable]
 

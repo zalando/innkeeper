@@ -31,7 +31,7 @@ class RoutesServiceSpec extends FunSpec with Matchers with MockFactory with Scal
   val routesRepo = mock[RoutesRepo]
   val config = mock[EnvConfig]
 
-  val routesService = new DefaultRoutesService()(executionContext, routesRepo, config)
+  val routesService = new DefaultRoutesService(routesRepo, config, executionContext)
 
   describe("#create") {
 

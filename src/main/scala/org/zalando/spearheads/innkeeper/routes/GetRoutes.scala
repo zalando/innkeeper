@@ -16,10 +16,11 @@ import scala.util.{ Success, Try }
 /**
  * @author dpersa
  */
-class GetRoutes @Inject() (val routesService: RoutesService,
-                           val jsonService: JsonService,
-                           val metrics: RouteMetrics,
-                           val scopes: Scopes) {
+class GetRoutes @Inject() (
+    routesService: RoutesService,
+    jsonService: JsonService,
+    metrics: RouteMetrics,
+    scopes: Scopes) {
 
   private val LOG = LoggerFactory.getLogger(this.getClass)
 
