@@ -20,9 +20,9 @@ object RouteName {
   val validRouteNamePattern = "[a-zA-Z][a-zA-Z0-9_]*"
 }
 
-case class TeamName(name: String) extends AnyRef
+case class TeamName(name: String) extends AnyVal
 
-case class UserName(name: String) extends AnyRef
+case class UserName(name: String) extends AnyVal
 
 object UserName {
   def apply(name: Option[String]): UserName = name match {
