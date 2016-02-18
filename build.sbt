@@ -12,7 +12,6 @@ version       := "0.0.1"
 mainClass in Compile := Some("org.zalando.spearheads.innkeeper.Innkeeper")
 
 scalaVersion := "2.11.7"
-//scapegoatVersion := "1.1.0"
 
 scalacOptions := Seq("-unchecked", "-feature", "-deprecation", "-encoding", "utf8")
 
