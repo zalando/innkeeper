@@ -27,22 +27,22 @@ class PostRoutes @Inject() (
     scopes: Scopes,
     implicit val executionContext: ExecutionContext) {
 
-  private val LOG = LoggerFactory.getLogger(this.getClass)
+  private val logger = LoggerFactory.getLogger(this.getClass)
 
   def apply(authenticatedUser: AuthenticatedUser, token: String): Route = {
     post {
-      LOG.info("post /routes/")
+      logger.info("post /routes/")
       entity(as[RouteIn]) { route =>
-        LOG.debug(s"route ${route}")
+        logger.debug(s"route ${route}")
         team(authenticatedUser, token)(teamService) { team =>
           (isRegexRoute(route.route) & hasOneOfTheScopes(authenticatedUser)(scopes.WRITE_REGEX)) {
             metrics.postRoutes.time {
-              LOG.info("post regex /routes/")
+              logger.info("post regex /routes/")
               handleWith(saveRoute(UserName(authenticatedUser.username), TeamName(team.name)))
             }
           } ~ (isStrictRoute(route.route) & hasOneOfTheScopes(authenticatedUser)(scopes.WRITE_STRICT, scopes.WRITE_REGEX)) {
             metrics.postRoutes.time {
-              LOG.info("post full-text /routes/")
+              logger.info("post full-text /routes/")
               handleWith(saveRoute(UserName(authenticatedUser.username), TeamName(team.name)))
             }
           } ~ reject(AuthorizationFailedRejection)

@@ -22,13 +22,13 @@ class GetRoutes @Inject() (
     metrics: RouteMetrics,
     scopes: Scopes) {
 
-  private val LOG = LoggerFactory.getLogger(this.getClass)
+  private val logger = LoggerFactory.getLogger(this.getClass)
 
   def apply(authenticatedUser: AuthenticatedUser): Route = {
     get {
       hasOneOfTheScopes(authenticatedUser)(scopes.READ) {
         metrics.getRoutes.time {
-          LOG.info("get /routes/")
+          logger.info("get /routes/")
           parameterMap { parameterMap =>
             parameterMap.get("name") match {
               case Some(name) =>

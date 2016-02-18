@@ -24,13 +24,13 @@ class GetRoute @Inject() (
     metrics: RouteMetrics,
     scopes: Scopes) {
 
-  private val LOG = LoggerFactory.getLogger(this.getClass)
+  private val logger = LoggerFactory.getLogger(this.getClass)
 
   def apply(authenticatedUser: AuthenticatedUser, id: Long): Route = {
     get {
       hasOneOfTheScopes(authenticatedUser)(scopes.READ) {
         metrics.getRoute.time {
-          LOG.info("get /routes/{}", id)
+          logger.info("get /routes/{}", id)
           findRoute(id, routesService)(executionContext) { route =>
             complete(route.toJson)
           }

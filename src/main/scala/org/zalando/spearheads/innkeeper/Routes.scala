@@ -27,13 +27,14 @@ class Routes @Inject() (
     metrics: RouteMetrics,
     authService: AuthService,
     implicit val executionContext: ExecutionContext) {
-  private val LOG = LoggerFactory.getLogger(this.getClass)
+
+  private val logger = LoggerFactory.getLogger(this.getClass)
 
   val route: RequestContext => Future[RouteResult] =
     handleRejections(InnkeeperRejectionHandler.rejectionHandler) {
       authenticationToken { token =>
         authenticate(token, authService) { authenticatedUser =>
-          LOG.debug("AuthenticatedUser: {}", authenticatedUser)
+          logger.debug("AuthenticatedUser: {}", authenticatedUser)
 
           path("updated-routes" / Rest) { lastModifiedString =>
             getUpdatedRoutes(authenticatedUser, lastModifiedString)

@@ -10,10 +10,9 @@
     </root>
 
     <logger name="Timing" level="info"/>
-    <logger name="org.zalando.spearheads.innkeeper.oauth" level="info"/>
+    <logger name="org.zalando.spearheads.innkeeper.oauth" level="debug"/>
     <logger name="org.zalando.spearheads.innkeeper.services" level="info"/>
-    <logger name="org.zalando.spearheads.innkeeper.utils" level="info"/>
-    <logger name="org.zalando.spearheads.innkeeper.Routes" level="info"/>
+    <logger name="org.zalando.spearheads.innkeeper.Routes" level="debug"/>
     <logger name="org.zalando.spearheads.innkeeper.utils.HttpClient" level="debug"/>
 
 </configuration>
