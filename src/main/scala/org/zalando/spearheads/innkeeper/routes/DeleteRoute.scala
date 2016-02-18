@@ -28,30 +28,30 @@ class DeleteRoute @Inject() (
     scopes: Scopes,
     implicit val teamService: TeamService) {
 
-  private val LOG = LoggerFactory.getLogger(this.getClass)
+  private val logger = LoggerFactory.getLogger(this.getClass)
 
   def apply(authenticatedUser: AuthenticatedUser, id: Long, token: String): Route = {
     delete {
-      LOG.debug("try to delete /routes/{}", id)
+      logger.debug("try to delete /routes/{}", id)
       hasOneOfTheScopes(authenticatedUser)(scopes.WRITE_STRICT, scopes.WRITE_REGEX) {
         findRoute(id, routesService)(executionContext) { route =>
-          LOG.debug("try to delete /routes/{} route found {}", id, route)
+          logger.debug("try to delete /routes/{} route found {}", id, route)
 
           team(authenticatedUser, token)(teamService) { team =>
-            LOG.debug("try to delete /routes/{} team found {}", id, team)
+            logger.debug("try to delete /routes/{} team found {}", id, team)
 
             (teamAuthorization(team, route) & isRegexRoute(route.route) &
               hasOneOfTheScopes(authenticatedUser)(scopes.WRITE_REGEX)) {
 
                 metrics.deleteRoute.time {
-                  LOG.info("delete regex /routes/{}", id)
+                  logger.info("delete regex /routes/{}", id)
                   deleteRoute(route.id)
                 }
               } ~ (teamAuthorization(team, route) & isStrictRoute(route.route) &
                 hasOneOfTheScopes(authenticatedUser)(scopes.WRITE_STRICT, scopes.WRITE_REGEX)) {
 
                   metrics.deleteRoute.time {
-                    LOG.info("delete strict /routes/{}", id)
+                    logger.info("delete strict /routes/{}", id)
                     deleteRoute(route.id)
                   }
                 } ~ reject(AuthorizationFailedRejection)

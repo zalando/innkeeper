@@ -25,7 +25,7 @@ class GetUpdatedRoutes @Inject() (
     metrics: RouteMetrics,
     scopes: Scopes) {
 
-  private val LOG = LoggerFactory.getLogger(this.getClass)
+  private val logger = LoggerFactory.getLogger(this.getClass)
 
   private val FORMATTER = DateTimeFormatter.ISO_LOCAL_DATE_TIME
 
@@ -33,7 +33,7 @@ class GetUpdatedRoutes @Inject() (
     get {
       hasOneOfTheScopes(authenticatedUser)(scopes.READ) {
         metrics.getUpdatedRoutes.time {
-          LOG.info("get /updated-routes/{}", lastModifiedString)
+          logger.info("get /updated-routes/{}", lastModifiedString)
           val lastModified = localDateTimeFromString(lastModifiedString)
           val chunkedStreamSource = lastModified match {
             case Some(lastModified) => jsonService.sourceToJsonSource {
