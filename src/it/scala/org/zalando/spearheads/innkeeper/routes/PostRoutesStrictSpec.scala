@@ -1,10 +1,10 @@
-package org.zalando.spearheads.innkeeper
+package org.zalando.spearheads.innkeeper.routes
 
 import akka.http.scaladsl.model.StatusCodes
 import org.scalatest.{BeforeAndAfter, FunSpec, Matchers}
-import org.zalando.spearheads.innkeeper.AcceptanceSpecTokens._
-import org.zalando.spearheads.innkeeper.AcceptanceSpecsHelper._
-import org.zalando.spearheads.innkeeper.RoutesRepoHelper._
+import org.zalando.spearheads.innkeeper.routes.AcceptanceSpecTokens._
+import org.zalando.spearheads.innkeeper.routes.AcceptanceSpecsHelper._
+import org.zalando.spearheads.innkeeper.routes.RoutesRepoHelper._
 import org.zalando.spearheads.innkeeper.api.{UserName, TeamName, RouteName, RouteOut}
 import spray.json._
 import spray.json.DefaultJsonProtocol._
@@ -13,7 +13,7 @@ import org.zalando.spearheads.innkeeper.api.JsonProtocols._
 /**
  * @author dpersa
  */
-class PostStrictRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
+class PostRoutesStrictSpec extends FunSpec with BeforeAndAfter with Matchers {
 
   val routeName = "random_strict_name"
 
@@ -104,6 +104,6 @@ class PostStrictRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
       }
     }
 
-    def postSlashRoutesStrict = postSlashRoutes("STRICT") _
+    def postSlashRoutesStrict = postPathMatcherSlashRoutes("STRICT") _
   }
 }

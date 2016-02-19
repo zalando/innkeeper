@@ -1,4 +1,4 @@
-package org.zalando.spearheads.innkeeper
+package org.zalando.spearheads.innkeeper.routes
 
 import java.time.LocalDateTime
 

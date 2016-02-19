@@ -1,10 +1,10 @@
-package org.zalando.spearheads.innkeeper
+package org.zalando.spearheads.innkeeper.routes
 
 import akka.http.scaladsl.model.StatusCodes
 import org.scalatest.{BeforeAndAfter, FunSpec, Matchers}
-import org.zalando.spearheads.innkeeper.AcceptanceSpecTokens.{INVALID_TOKEN, READ_TOKEN, WRITE_STRICT_TOKEN}
-import org.zalando.spearheads.innkeeper.AcceptanceSpecsHelper._
-import org.zalando.spearheads.innkeeper.RoutesRepoHelper.{recreateSchema, insertRoute, deleteRoute}
+import org.zalando.spearheads.innkeeper.routes.AcceptanceSpecTokens.{INVALID_TOKEN, READ_TOKEN, WRITE_STRICT_TOKEN}
+import org.zalando.spearheads.innkeeper.routes.AcceptanceSpecsHelper._
+import org.zalando.spearheads.innkeeper.routes.RoutesRepoHelper.{recreateSchema, insertRoute, deleteRoute}
 import org.zalando.spearheads.innkeeper.api.RouteOut
 import spray.json._
 import spray.json.DefaultJsonProtocol._

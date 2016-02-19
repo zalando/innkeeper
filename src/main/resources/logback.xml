@@ -4,15 +4,16 @@
             <pattern>%d{HH:mm:ss.SSS} %-5level %logger{0}: %msg%n</pattern>
         </encoder>
     </appender>
-
+    
     <root level="info">
         <appender-ref ref="STDOUT"/>
     </root>
 
     <logger name="Timing" level="info"/>
     <logger name="org.zalando.spearheads.innkeeper.oauth" level="debug"/>
-    <logger name="org.zalando.spearheads.innkeeper.services" level="info"/>
+    <logger name="org.zalando.spearheads.innkeeper.services" level="debug"/>
     <logger name="org.zalando.spearheads.innkeeper.Routes" level="debug"/>
-    <logger name="org.zalando.spearheads.innkeeper.utils.HttpClient" level="debug"/>
+    <logger name="org.zalando.spearheads.innkeeper.routes" level="debug"/>
+    <logger name="org.zalando.spearheads.innkeeper.utils" level="debug"/>
 
 </configuration>
