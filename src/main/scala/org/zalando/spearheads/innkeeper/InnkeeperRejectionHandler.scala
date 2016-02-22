@@ -21,7 +21,7 @@ object InnkeeperRejectionHandler {
       .handle {
         case rejection: InnkeeperRejection => {
           extractRequest { req =>
-            logger.error(s"The request with path ${rejection.requestDescription} was rejected entity: ${req.entity.toString}")
+            logger.error(s"The request with path ${rejection.requestDescription} was rejected: ${rejection} entity: ${req.entity.toString}")
             complete(
               rejection.statusCode,
               Error(rejection.statusCode.intValue, rejection.message, rejection.code)

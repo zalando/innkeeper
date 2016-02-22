@@ -4,7 +4,7 @@ import akka.http.scaladsl.model.StatusCodes
 import org.scalatest.{BeforeAndAfter, FunSpec, Matchers}
 import org.zalando.spearheads.innkeeper.routes.AcceptanceSpecTokens._
 import org.zalando.spearheads.innkeeper.routes.AcceptanceSpecsHelper._
-import org.zalando.spearheads.innkeeper.routes.RoutesRepoHelper.{insertRoute, recreateSchema}
+import org.zalando.spearheads.innkeeper.routes.RoutesRepoHelper.{insertRoute, recreateSchema, insertHostRoute}
 import spray.json.pimpString
 import spray.json.DefaultJsonProtocol._
 import org.zalando.spearheads.innkeeper.api.JsonProtocols._
@@ -56,6 +56,20 @@ class DeleteRouteSpec extends FunSpec with BeforeAndAfter with Matchers {
           it("should delete the route") {
             insertRoute("R1", routeType = "REGEX")
             insertRoute("R2", routeType = "REGEX", ownedByTeam = "team1")
+
+            val response = deleteSlashRoute(2, token)
+            response.status.shouldBe(StatusCodes.OK)
+          }
+        }
+      }
+
+      describe("a host route") {
+        describe("when a token with the write_regex scope is provided") {
+          val token = WRITE_REGEX_TOKEN
+
+          it("should delete the route") {
+            insertHostRoute("R1", "host.com")
+            insertHostRoute("R2", "host1.com", ownedByTeam = "team1")
 
             val response = deleteSlashRoute(2, token)
             response.status.shouldBe(StatusCodes.OK)
@@ -114,12 +128,25 @@ class DeleteRouteSpec extends FunSpec with BeforeAndAfter with Matchers {
       }
 
       describe("a regex route") {
-        describe("when a token without the write_strict scope is provided") {
+        describe("when a token without the write_regex scope is provided") {
           val token = WRITE_STRICT_TOKEN
 
           it("should return the 403 Forbidden status") {
             recreateSchema
             insertRoute(routeType = "REGEX")
+            val response = deleteSlashRoute(1, token)
+            response.status.shouldBe(StatusCodes.Forbidden)
+          }
+        }
+      }
+
+      describe("a host route") {
+        describe("when a token without the write_regex scope is provided") {
+          val token = WRITE_STRICT_TOKEN
+
+          it("should return the 403 Forbidden status") {
+            recreateSchema
+            insertHostRoute(hostMatcher = "host.com")
             val response = deleteSlashRoute(1, token)
             response.status.shouldBe(StatusCodes.Forbidden)
           }

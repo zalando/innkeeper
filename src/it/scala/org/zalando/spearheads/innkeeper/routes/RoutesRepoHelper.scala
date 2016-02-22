@@ -35,6 +35,23 @@ object RoutesRepoHelper extends ScalaFutures {
       .futureValue
   }
 
+  def insertHostRoute(
+    name: String = "THE_ROUTE",
+    hostMatcher: String = "host.com",
+    createdBy: String = "testuser",
+    ownedByTeam: String = "testteam",
+    createdAt: LocalDateTime = LocalDateTime.now()) = {
+
+    routesRepo.insert(RouteRow(
+      name = name,
+      routeJson = hostRouteJson(hostMatcher),
+      createdBy = createdBy,
+      ownedByTeam = ownedByTeam,
+      createdAt = createdAt,
+      activateAt = createdAt.plusMinutes(5)))
+      .futureValue
+  }
+
   def sampleRoute(
     id: Long = 0,
     name: String = "THE_ROUTE",
@@ -71,6 +88,13 @@ object RoutesRepoHelper extends ScalaFutures {
         |      "match": "$matcher",
         |      "type": "$routeType"
              }
+        |  }
+        |}""".stripMargin
+
+  def hostRouteJson(hostMatcher: String) =
+    s"""{
+        |  "matcher": {
+        |    "host_matcher": "$hostMatcher"
         |  }
         |}""".stripMargin
 }
