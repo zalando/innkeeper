@@ -1,4 +1,6 @@
-package org.zalando.spearheads.innkeeper
+package org.zalando.spearheads.innkeeper.routes
+
+import java.time.LocalDateTime
 
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
@@ -31,21 +33,33 @@ object AcceptanceSpecsHelper extends ScalaFutures {
       .futureValue
   }
 
-  def postSlashRoutes(routeType: String)(routeName: String, token: String = ""): HttpResponse = {
-    val route =
-      s"""{
-          |  "name": "${routeName}",
-          |  "description": "this is a route",
-          |  "activate_at": "2015-10-10T10:10:10",
-          |  "route": {
-          |    "matcher": {
-          |      "path_matcher": {
-          |        "match": "/hello-*",
-          |        "type": "${routeType}"
-          |      }
-          |    }
-          |  }
-          |}""".stripMargin
+  def hostMatcherRoute(routeName: String, host: String) = s"""{
+                      |  "name": "${routeName}",
+                      |  "description": "this is a route",
+                      |  "activate_at": "2015-10-10T10:10:10",
+                      |  "route": {
+                      |    "matcher": {
+                      |      "host_matcher": "${host}"
+                      |    }
+                      |  }
+                      |}""".stripMargin
+
+  def pathMatcherRoute(routeName: String, routeType: String) =
+    s"""{
+        |  "name": "${routeName}",
+        |  "description": "this is a route",
+        |  "activate_at": "2015-10-10T10:10:10",
+        |  "route": {
+        |    "matcher": {
+        |      "path_matcher": {
+        |        "match": "/hello-*",
+        |        "type": "${routeType}"
+        |      }
+        |    }
+        |  }
+        |}""".stripMargin
+
+  def postSlashRoutes(route: String)(token: String): HttpResponse = {
 
     val entity = HttpEntity(ContentType(MediaTypes.`application/json`), route)
 
@@ -60,6 +74,12 @@ object AcceptanceSpecsHelper extends ScalaFutures {
     val futureResponse = Http().singleRequest(request)
     futureResponse.futureValue
   }
+
+  def postPathMatcherSlashRoutes(routeType: String)(routeName: String, token: String): HttpResponse =
+    postSlashRoutes(pathMatcherRoute(routeName, routeType))(token)
+
+  def postHostMatcherSlashRoutes(routeName: String, host: String, token: String): HttpResponse =
+    postSlashRoutes(hostMatcherRoute(routeName, host))(token)
 
   def getSlashRoutes(token: String = ""): HttpResponse = {
     val futureResponse = Http().singleRequest(HttpRequest(
@@ -79,11 +99,28 @@ object AcceptanceSpecsHelper extends ScalaFutures {
     slashRoute(id, token)
   }
 
+  def getUpdatedRoutes(localDateTime: String, token: String) = {
+    val futureResponse = Http().singleRequest(HttpRequest(
+      uri = updatedRoutesUri(localDateTime),
+      headers = headersForToken(token)))
+    futureResponse.futureValue
+  }
+
+  def getUpdatedRoutes(localDateTime: LocalDateTime, token: String): HttpResponse =
+    getUpdatedRoutes(GetUpdatedRoutes.urlDateTimeFormatter.format(localDateTime), token)
+
+  def updatedRoutesUri(localDateTime: String) =
+    s"http://localhost:8080/updated-routes/$localDateTime"
+
   def deleteSlashRoute(id: Long, token: String = ""): HttpResponse = {
     slashRoute(id, token, HttpMethods.DELETE)
   }
 
-  private def slashRoute(id: Long, token: Option[String] = None, method: HttpMethod = HttpMethods.GET): HttpResponse = {
+  private def slashRoute(
+    id: Long,
+    token: Option[String] = None,
+    method: HttpMethod = HttpMethods.GET): HttpResponse = {
+
     val futureResponse = Http().singleRequest(
       HttpRequest(
         uri = routeUri(id),

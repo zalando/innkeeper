@@ -1,11 +1,13 @@
 package org.zalando.spearheads.innkeeper
 
-import akka.http.scaladsl.model.{MediaTypes, HttpEntity, HttpResponse}
+import akka.http.scaladsl.model.{StatusCodes, StatusCode, MediaTypes, HttpEntity, HttpResponse}
 import akka.http.scaladsl.server.directives.BasicDirectives.pass
 import akka.http.scaladsl.server.directives.RouteDirectives._
 import akka.http.scaladsl.server._
 import akka.stream.scaladsl.Source
+import org.zalando.spearheads.innkeeper.Rejections.{RouteNotFoundRejection, InternalServerErrorRejection}
 import org.zalando.spearheads.innkeeper.api._
+import org.zalando.spearheads.innkeeper.oauth.AuthenticatedUser
 import org.zalando.spearheads.innkeeper.services.{ServiceResult, RoutesService}
 import org.zalando.spearheads.innkeeper.api.JsonProtocols._
 import scala.concurrent.ExecutionContext
@@ -32,13 +34,13 @@ trait RouteDirectives {
     }
   }
 
-  def findRoute(id: Long, routesService: RoutesService)(implicit executionContext: ExecutionContext): Directive1[RouteOut] =
+  def findRoute(id: Long, routesService: RoutesService, requestDescription: String)(implicit executionContext: ExecutionContext): Directive1[RouteOut] =
     Directive[Tuple1[RouteOut]] { inner => ctx =>
       {
         routesService.findById(id).fast.transformWith {
           case Success(ServiceResult.Success(routeOut))               => inner(Tuple1(routeOut))(ctx)
-          case Success(ServiceResult.Failure(ServiceResult.NotFound)) => reject(RouteNotFoundRejection)(ctx)
-          case _                                                      => reject(InternalServerErrorRejection)(ctx)
+          case Success(ServiceResult.Failure(ServiceResult.NotFound)) => reject(RouteNotFoundRejection(requestDescription))(ctx)
+          case _                                                      => reject(InternalServerErrorRejection(requestDescription))(ctx)
         }
       }
     }
@@ -50,19 +52,5 @@ trait RouteDirectives {
     }
   }
 }
-
-case object RouteNotFoundRejection extends Rejection
-
-case object IncorrectTeamRejection extends Rejection
-
-case object TeamNotFoundRejection extends Rejection
-
-case object NoUidRejection extends Rejection
-
-case object InvalidRouteNameRejection extends Rejection
-
-case object InternalServerErrorRejection extends Rejection
-
-case object UnmarshallRejection extends Rejection
 
 object RouteDirectives extends RouteDirectives

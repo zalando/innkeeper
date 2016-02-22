@@ -9,8 +9,9 @@ import akka.stream.scaladsl.Source
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.time.{Seconds, Span}
 import org.scalatest.{BeforeAndAfter, FunSpec, Matchers}
-import org.zalando.spearheads.innkeeper.RoutesRepoHelper
-import org.zalando.spearheads.innkeeper.RoutesRepoHelper.{insertRoute, routeJson, sampleRoute}
+import org.zalando.spearheads.innkeeper.routes.RoutesRepoHelper
+import RoutesRepoHelper.{insertRoute, routeJson, sampleRoute}
+import org.zalando.spearheads.innkeeper.routes.RoutesRepoHelper
 import slick.backend.DatabasePublisher
 import slick.jdbc.meta.MTable
 

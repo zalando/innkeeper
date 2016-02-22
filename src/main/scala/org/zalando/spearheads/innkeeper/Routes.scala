@@ -32,23 +32,27 @@ class Routes @Inject() (
 
   val route: RequestContext => Future[RouteResult] =
     handleRejections(InnkeeperRejectionHandler.rejectionHandler) {
-      authenticationToken { token =>
-        authenticate(token, authService) { authenticatedUser =>
-          logger.debug("AuthenticatedUser: {}", authenticatedUser)
+      extractRequest { req =>
+        val reqDesc = s"${req.method.toString()} ${req.uri.path.toString()}"
 
-          path("updated-routes" / Rest) { lastModifiedString =>
-            getUpdatedRoutes(authenticatedUser, lastModifiedString)
-          } ~ path("routes") {
-            getRoutes(authenticatedUser) ~ postRoutes(authenticatedUser, token)
-          } ~ path("routes" / LongNumber) { id =>
-            getRoute(authenticatedUser, id) ~ deleteRoute(authenticatedUser, id, token)
+        authenticationToken(reqDesc) { token =>
+          authenticate(token, reqDesc, authService) { authenticatedUser =>
+            logger.debug(s"$reqDesc AuthenticatedUser: $authenticatedUser")
+
+            path("updated-routes" / Rest) { lastModifiedString =>
+              getUpdatedRoutes(authenticatedUser, lastModifiedString)
+            } ~ path("routes") {
+              getRoutes(authenticatedUser) ~ postRoutes(authenticatedUser, token)
+            } ~ path("routes" / LongNumber) { id =>
+              getRoute(authenticatedUser, id) ~ deleteRoute(authenticatedUser, id, token)
+            }
           }
-        }
-      } ~ path("status") {
-        complete("Ok")
-      } ~ path("metrics") {
-        complete {
-          metrics.metrics.metricRegistry.toJson
+        } ~ path("status") {
+          complete("Ok")
+        } ~ path("metrics") {
+          complete {
+            metrics.metrics.metricRegistry.toJson
+          }
         }
       }
     }

@@ -1,24 +1,23 @@
-package org.zalando.spearheads.innkeeper
+package org.zalando.spearheads.innkeeper.routes
 
 import akka.http.scaladsl.model.StatusCodes
-import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.{BeforeAndAfter, FunSpec, Matchers}
-import org.zalando.spearheads.innkeeper.AcceptanceSpecTokens._
-import org.zalando.spearheads.innkeeper.AcceptanceSpecsHelper._
-import org.zalando.spearheads.innkeeper.RoutesRepoHelper._
-import org.zalando.spearheads.innkeeper.api.{UserName, TeamName, RouteName, RouteOut}
-import spray.json._
+import org.zalando.spearheads.innkeeper.api.{RouteName, RouteOut, TeamName, UserName}
+import org.zalando.spearheads.innkeeper.routes.AcceptanceSpecTokens._
+import org.zalando.spearheads.innkeeper.routes.AcceptanceSpecsHelper._
+import org.zalando.spearheads.innkeeper.routes.RoutesRepoHelper._
+import spray.json.pimpString
 import spray.json.DefaultJsonProtocol._
 import org.zalando.spearheads.innkeeper.api.JsonProtocols._
 
 /**
  * @author dpersa
  */
-class PostRegexRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
+class PostRoutesHostSpec extends FunSpec with BeforeAndAfter with Matchers {
 
   val routeName = "random_regex_name"
 
-  describe("post regex /routes") {
+  describe("post /routes") {
 
     describe("success") {
       before {
@@ -29,8 +28,8 @@ class PostRegexRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
         val token = WRITE_REGEX_TOKEN
 
         it("should create the new route") {
-          val routeName = "route_regex_1"
-          val response = postSlashRoutesRegex(routeName, token)
+          val routeName = "route_host_1"
+          val response = postHostMatcherSlashRoutes(routeName, "www.yahoo.com", token)
           response.status should be(StatusCodes.OK)
           val entity = entityString(response)
           val route = entity.parseJson.convertTo[RouteOut]
@@ -38,6 +37,7 @@ class PostRegexRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
           route.name should be(RouteName(routeName))
           route.ownedByTeam should be(TeamName("team1"))
           route.createdBy should be(UserName("user~1"))
+          route.route.matcher.hostMatcher.get should be("www.yahoo.com")
         }
       }
     }
@@ -49,7 +49,7 @@ class PostRegexRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
 
         it("should return the 400 Bad Request status") {
           val routeName = "invalid-regex-route-name"
-          val response = postSlashRoutesRegex(routeName, token)
+          val response = postHostMatcherSlashRoutes(routeName, "www.yahoo.com", token)
           response.status should be(StatusCodes.BadRequest)
         }
       }
@@ -57,7 +57,7 @@ class PostRegexRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
       describe("when no token is provided") {
 
         it("should return the 401 Unauthorized status") {
-          val response = postSlashRoutesRegex(routeName, "")
+          val response = postHostMatcherSlashRoutes(routeName, "www.yahoo.com", "")
           response.status should be(StatusCodes.Unauthorized)
         }
       }
@@ -66,7 +66,7 @@ class PostRegexRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
         val token = INVALID_TOKEN
 
         it("should return the 403 Forbidden status") {
-          val response = postSlashRoutesRegex(routeName, token)
+          val response = postHostMatcherSlashRoutes(routeName, "www.yahoo.com", token)
           response.status should be(StatusCodes.Forbidden)
         }
       }
@@ -75,7 +75,7 @@ class PostRegexRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
         val token = READ_TOKEN
 
         it("should return the 403 Forbidden status") {
-          val response = postSlashRoutesRegex(routeName, token)
+          val response = postHostMatcherSlashRoutes(routeName, "www.yahoo.com", token)
           response.status should be(StatusCodes.Forbidden)
         }
       }
@@ -84,7 +84,7 @@ class PostRegexRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
         val token = WRITE_STRICT_TOKEN
 
         it("should return the 403 Forbidden status") {
-          val response = postSlashRoutesRegex(routeName, token)
+          val response = postHostMatcherSlashRoutes(routeName, "www.yahoo.com", token)
           response.status should be(StatusCodes.Forbidden)
         }
       }
@@ -93,12 +93,10 @@ class PostRegexRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
         val token = "token--employees-route.write_regex"
 
         it("should return the 403 Forbidden status") {
-          val response = postSlashRoutesRegex(routeName, token)
+          val response = postHostMatcherSlashRoutes(routeName, "www.yahoo.com", token)
           response.status should be(StatusCodes.Forbidden)
         }
       }
     }
-
-    def postSlashRoutesRegex = postSlashRoutes("REGEX") _
   }
 }

@@ -1,12 +1,13 @@
-package org.zalando.spearheads.innkeeper
+package org.zalando.spearheads.innkeeper.routes
 
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.{HttpRequest, HttpResponse, StatusCodes}
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.time.{Second, Seconds, Span}
 import org.scalatest.{FunSpec, Matchers}
+import org.zalando.spearheads.innkeeper.routes.AcceptanceSpecsHelper._
+
 import scala.concurrent.Future
-import AcceptanceSpecsHelper._
 
 /**
  * @author dpersa

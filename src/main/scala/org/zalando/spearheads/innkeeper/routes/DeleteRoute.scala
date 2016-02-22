@@ -5,6 +5,7 @@ import akka.http.scaladsl.server.Directives.{onComplete, reject, delete, complet
 import akka.http.scaladsl.server.{AuthorizationFailedRejection, Route}
 import com.google.inject.Inject
 import org.slf4j.LoggerFactory
+import org.zalando.spearheads.innkeeper.Rejections.InnkeeperAuthorizationFailedRejection
 import org.zalando.spearheads.innkeeper.RouteDirectives.{isStrictRoute, isRegexRoute, findRoute}
 import org.zalando.spearheads.innkeeper.metrics.RouteMetrics
 import org.zalando.spearheads.innkeeper.oauth.OAuthDirectives.{teamAuthorization, team, hasOneOfTheScopes}
@@ -32,29 +33,32 @@ class DeleteRoute @Inject() (
 
   def apply(authenticatedUser: AuthenticatedUser, id: Long, token: String): Route = {
     delete {
-      logger.debug("try to delete /routes/{}", id)
-      hasOneOfTheScopes(authenticatedUser)(scopes.WRITE_STRICT, scopes.WRITE_REGEX) {
-        findRoute(id, routesService)(executionContext) { route =>
+      val reqDesc = s"delete /routes/${id}"
+
+      logger.debug(s"try to ${reqDesc}")
+
+      hasOneOfTheScopes(authenticatedUser, reqDesc)(scopes.WRITE_STRICT, scopes.WRITE_REGEX) {
+        findRoute(id, routesService, "delete /routes/{}")(executionContext) { route =>
           logger.debug("try to delete /routes/{} route found {}", id, route)
 
-          team(authenticatedUser, token)(teamService) { team =>
+          team(authenticatedUser, token, reqDesc)(teamService) { team =>
             logger.debug("try to delete /routes/{} team found {}", id, team)
 
-            (teamAuthorization(team, route) & isRegexRoute(route.route) &
-              hasOneOfTheScopes(authenticatedUser)(scopes.WRITE_REGEX)) {
+            (teamAuthorization(team, route, reqDesc) & isRegexRoute(route.route) &
+              hasOneOfTheScopes(authenticatedUser, reqDesc)(scopes.WRITE_REGEX)) {
 
                 metrics.deleteRoute.time {
                   logger.info("delete regex /routes/{}", id)
                   deleteRoute(route.id)
                 }
-              } ~ (teamAuthorization(team, route) & isStrictRoute(route.route) &
-                hasOneOfTheScopes(authenticatedUser)(scopes.WRITE_STRICT, scopes.WRITE_REGEX)) {
+              } ~ (teamAuthorization(team, route, reqDesc) & isStrictRoute(route.route) &
+                hasOneOfTheScopes(authenticatedUser, reqDesc)(scopes.WRITE_STRICT, scopes.WRITE_REGEX)) {
 
                   metrics.deleteRoute.time {
                     logger.info("delete strict /routes/{}", id)
                     deleteRoute(route.id)
                   }
-                } ~ reject(AuthorizationFailedRejection)
+                } ~ reject(InnkeeperAuthorizationFailedRejection(s"delete /routes/${route.id}"))
           }
         }
       }

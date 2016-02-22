@@ -4,7 +4,7 @@ import akka.http.scaladsl.server.Directives.{reject, parameterMap, get}
 import akka.http.scaladsl.server.Route
 import com.google.inject.Inject
 import org.slf4j.LoggerFactory
-import org.zalando.spearheads.innkeeper.InvalidRouteNameRejection
+import org.zalando.spearheads.innkeeper.Rejections.InvalidRouteNameRejection
 import org.zalando.spearheads.innkeeper.RouteDirectives.chunkedResponseOfRoutes
 import org.zalando.spearheads.innkeeper.api.{JsonService, RouteName}
 import org.zalando.spearheads.innkeeper.metrics.RouteMetrics
@@ -26,9 +26,10 @@ class GetRoutes @Inject() (
 
   def apply(authenticatedUser: AuthenticatedUser): Route = {
     get {
-      hasOneOfTheScopes(authenticatedUser)(scopes.READ) {
+      val reqDesc = "get /routes"
+      hasOneOfTheScopes(authenticatedUser, reqDesc)(scopes.READ) {
         metrics.getRoutes.time {
-          logger.info("get /routes/")
+          logger.info(s"try to $reqDesc")
           parameterMap { parameterMap =>
             parameterMap.get("name") match {
               case Some(name) =>
@@ -37,7 +38,7 @@ class GetRoutes @Inject() (
                     chunkedResponseOfRoutes(jsonService) {
                       routesService.findByName(routeName)
                     }
-                  case _ => reject(InvalidRouteNameRejection)
+                  case _ => reject(InvalidRouteNameRejection(reqDesc))
                 }
               case None =>
                 chunkedResponseOfRoutes(jsonService) {
