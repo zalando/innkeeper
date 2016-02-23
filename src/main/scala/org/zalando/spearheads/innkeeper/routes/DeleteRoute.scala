@@ -47,22 +47,19 @@ class DeleteRoute @Inject() (
           team(authenticatedUser, token, reqDesc)(teamService) { team =>
             logger.debug("try to delete /routes/{} team found {}", id, team)
 
-            (isStrictRoute(route.route) & teamAuthorization(team, route, reqDesc) &
-              hasOneOfTheScopes(authenticatedUser, reqDesc)(scopes.WRITE_STRICT, scopes.WRITE_REGEX)) {
+            (isStrictRoute(route.route) & teamAuthorization(team, route, reqDesc) & hasOneOfTheScopes(authenticatedUser, reqDesc)(scopes.WRITE_STRICT, scopes.WRITE_REGEX)) {
 
-                deleteRoute(id, s"$reqDesc strict")
+              deleteRoute(id, s"$reqDesc strict")
 
-              } ~ (isRegexRoute(route.route) & teamAuthorization(team, route, reqDesc) &
-                hasOneOfTheScopes(authenticatedUser, reqDesc)(scopes.WRITE_REGEX)) {
+            } ~ (isRegexRoute(route.route) & teamAuthorization(team, route, reqDesc) & hasOneOfTheScopes(authenticatedUser, reqDesc)(scopes.WRITE_REGEX)) {
 
-                  deleteRoute(id, s"$reqDesc regex")
+              deleteRoute(id, s"$reqDesc regex")
 
-                } ~ (teamAuthorization(team, route, reqDesc) &
-                  hasOneOfTheScopes(authenticatedUser, reqDesc)(scopes.WRITE_REGEX)) {
+            } ~ (teamAuthorization(team, route, reqDesc) & hasOneOfTheScopes(authenticatedUser, reqDesc)(scopes.WRITE_REGEX)) {
 
-                    deleteRoute(id, s"$reqDesc other")
+              deleteRoute(id, s"$reqDesc other")
 
-                  } ~ reject(InnkeeperAuthorizationFailedRejection(s"delete /routes/${route.id}"))
+            } ~ reject(InnkeeperAuthorizationFailedRejection(reqDesc))
           }
         }
       }
@@ -71,7 +68,7 @@ class DeleteRoute @Inject() (
 
   private def deleteRoute(id: Long, reqDesc: String) = {
     metrics.deleteRoute.time {
-      logger.info(s"delete route for $reqDesc")
+      logger.debug(s"$reqDesc deleteRoute($id)")
 
       onComplete(routesService.remove(id)) {
         case Success(ServiceResult.Success(_))        => complete("")

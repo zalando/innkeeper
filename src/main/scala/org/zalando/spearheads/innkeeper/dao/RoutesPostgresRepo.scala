@@ -3,6 +3,7 @@ package org.zalando.spearheads.innkeeper.dao
 import java.time.LocalDateTime
 
 import com.google.inject.{Inject, Singleton}
+import org.slf4j.LoggerFactory
 import slick.backend.DatabasePublisher
 import org.zalando.spearheads.innkeeper.dao.MyPostgresDriver.api._
 import slick.jdbc.meta.MTable
@@ -18,12 +19,16 @@ class RoutesPostgresRepo @Inject() (
     implicit val executionContext: ExecutionContext
 ) extends RoutesRepo {
 
+  private val logger = LoggerFactory.getLogger(this.getClass)
+
   private val routesTable = TableQuery[RoutesTable]
 
   private lazy val insertRouteQuery = routesTable returning routesTable.map(_.id) into
     ((routeRow: RouteRow, id) => routeRow.copy(id = Some(id)))
 
   def createSchema: Future[Unit] = {
+    logger.debug("create schema")
+
     db.run(
       MTable.getTables("ROUTES")
     ).flatMap { tables =>
@@ -36,6 +41,8 @@ class RoutesPostgresRepo @Inject() (
   }
 
   def dropSchema: Future[Unit] = {
+    logger.debug("drop schema")
+
     db.run(
       MTable.getTables("ROUTES")
     ).flatMap { tables =>
@@ -48,18 +55,24 @@ class RoutesPostgresRepo @Inject() (
   }
 
   def insert(route: RouteRow): Future[RouteRow] = {
+    logger.debug(s"insert route ${route}")
+
     db.run {
       insertRouteQuery += route
     }
   }
 
   def selectById(id: Long): Future[Option[RouteRow]] = {
+    logger.debug(s"selectById $id")
+
     db.run {
       routesTable.filter(_.id === id).result
     }.map(_.headOption)
   }
 
   def selectAll: DatabasePublisher[RouteRow] = {
+    logger.debug("select all")
+
     val q = for {
       routeRow <- routesTable
       if routeRow.deletedAt.isEmpty
@@ -71,6 +84,8 @@ class RoutesPostgresRepo @Inject() (
   }
 
   def selectModifiedSince(localDateTime: LocalDateTime): DatabasePublisher[RouteRow] = {
+    logger.debug(s"selectModifiedSince $localDateTime")
+
     val q = for {
       routeRow <- routesTable
       if (routeRow.createdAt > localDateTime || routeRow.deletedAt > localDateTime)
@@ -82,6 +97,8 @@ class RoutesPostgresRepo @Inject() (
   }
 
   def selectByName(name: String): DatabasePublisher[RouteRow] = {
+    logger.debug(s"selectByName $name")
+
     val q = for {
       routeRow <- routesTable
       if routeRow.name === name && routeRow.deletedAt.isEmpty
@@ -93,6 +110,8 @@ class RoutesPostgresRepo @Inject() (
   }
 
   def delete(id: Long): Future[Boolean] = {
+    logger.debug(s"delete $id")
+
     db.run {
       val deletedAt = for {
         routeRow <- routesTable
