@@ -1,7 +1,7 @@
 FROM zalando/openjdk:8u66-b17-1-3
 MAINTAINER Team Pathfinder <team-pathfinder@zalando.de>
 
-EXPOSE 8080 8080
+EXPOSE 8080
 
 RUN mkdir -p /opt/innkeeper
 
