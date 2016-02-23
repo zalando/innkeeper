@@ -84,7 +84,7 @@ private object ConnectionPoolFactory {
   def apply(uri: Uri)(implicit actorSystem: ActorSystem, materializer: ActorMaterializer): Flow[(HttpRequest, Int), (Try[HttpResponse], Int), HostConnectionPool] = {
 
     uri.scheme match {
-      case "shttp" | "https" => Http().cachedHostConnectionPoolTls[Int](uri.authority.host.address())
+      case "shttp" | "https" => Http().cachedHostConnectionPoolHttps[Int](uri.authority.host.address())
       case _                 => Http().cachedHostConnectionPool[Int](uri.authority.host.address(), uri.authority.port)
     }
   }

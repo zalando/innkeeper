@@ -18,7 +18,7 @@ scalacOptions := Seq("-unchecked", "-feature", "-deprecation", "-encoding", "utf
 resolvers += "Whisk" at "https://dl.bintray.com/whisk/maven"
 resolvers += "softprops-maven" at "http://dl.bintray.com/content/softprops/maven"
 
-val akkaStreamV      = "2.0.3"
+val akkaStreamV      = "2.4.2"
 val scalaTestV       = "3.0.0-M15"
 val scalaMockV       = "3.2.2"
 val slickPgV         = "0.11.2"
@@ -30,8 +30,8 @@ libraryDependencies ++= List(
   "com.typesafe.slick"      %% "slick"                                % slickV,
   "com.typesafe.slick"      %% "slick-hikaricp"                       % slickV exclude("com.zaxxer", "HikariCP-java6"),
 
-  "com.typesafe.akka"       %% "akka-stream-experimental"             % akkaStreamV,
-  "com.typesafe.akka"       %% "akka-http-core-experimental"          % akkaStreamV,
+  "com.typesafe.akka"       %% "akka-stream"                          % akkaStreamV,
+  "com.typesafe.akka"       %% "akka-http-core"                       % akkaStreamV,
   "com.typesafe.akka"       %% "akka-http-spray-json-experimental"    % akkaStreamV,
 
   "com.typesafe.akka"       %% "akka-slf4j"                           % "2.3.9",
@@ -47,8 +47,8 @@ libraryDependencies ++= List(
 
   "org.scalatest"           %% "scalatest"                            % scalaTestV       % "it,test",
   "org.scalamock"           %% "scalamock-scalatest-support"          % scalaMockV       % "it,test",
-  "com.typesafe.akka"       %% "akka-http-testkit-experimental"       % akkaStreamV      % "it,test",
-  "com.typesafe.akka"       %% "akka-stream-testkit-experimental"     % akkaStreamV      % "it,test"
+  "com.typesafe.akka"       %% "akka-http-testkit"                    % akkaStreamV      % "it,test",
+  "com.typesafe.akka"       %% "akka-stream-testkit"                  % akkaStreamV      % "it,test"
 )
 
 lazy val root = project.in(file(".")).configs(IntegrationTest)
