@@ -39,30 +39,32 @@ class PostRoutes @Inject() (
         team(authenticatedUser, token, "path")(teamService) { team =>
           logger.debug(s"post /routes team ${team}")
           (isStrictRoute(route.route) & hasOneOfTheScopes(authenticatedUser, s"$reqDesc strict")(scopes.WRITE_STRICT, scopes.WRITE_REGEX)) {
-            postRoute(authenticatedUser, team, s"$reqDesc strict")
+
+            handleWith(saveRoute(UserName(authenticatedUser.username), TeamName(team.name), s"$reqDesc strict"))
+
           } ~ (isRegexRoute(route.route) & hasOneOfTheScopes(authenticatedUser, s"$reqDesc regex")(scopes.WRITE_REGEX)) {
-            postRoute(authenticatedUser, team, s"$reqDesc regex")
+
+            handleWith(saveRoute(UserName(authenticatedUser.username), TeamName(team.name), s"$reqDesc regex"))
+
           } ~ hasOneOfTheScopes(authenticatedUser, s"$reqDesc regex")(scopes.WRITE_REGEX) {
-            postRoute(authenticatedUser, team, s"$reqDesc other")
+
+            handleWith(saveRoute(UserName(authenticatedUser.username), TeamName(team.name), s"$reqDesc other"))
+
           } ~ reject(AuthorizationFailedRejection)
         }
       } ~ {
-        reject(UnmarshallRejection("post /routes"))
+        reject(UnmarshallRejection(reqDesc))
       }
     }
   }
 
-  def postRoute(authenticatedUser: AuthenticatedUser, team: Team, reqDesc: String): Route = {
+  private def saveRoute(createdBy: UserName, ownedByTeam: TeamName, reqDesc: String): (RouteIn) => Future[Option[RouteOut]] = (route: RouteIn) => {
     metrics.postRoutes.time {
-      logger.info(s"Save route for $reqDesc")
-      handleWith(saveRoute(UserName(authenticatedUser.username), TeamName(team.name)))
-    }
-  }
-
-  private def saveRoute(createdBy: UserName, ownedByTeam: TeamName): (RouteIn) => Future[Option[RouteOut]] = (route: RouteIn) => {
-    routesService.create(route, ownedByTeam, createdBy).map {
-      case ServiceResult.Success(route) => Some(route)
-      case _                            => None
+      logger.debug(s"$reqDesc saveRoute")
+      routesService.create(route, ownedByTeam, createdBy).map {
+        case ServiceResult.Success(route) => Some(route)
+        case _                            => None
+      }
     }
   }
 }

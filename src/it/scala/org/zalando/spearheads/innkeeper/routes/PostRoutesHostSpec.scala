@@ -39,6 +39,16 @@ class PostRoutesHostSpec extends FunSpec with BeforeAndAfter with Matchers {
           route.createdBy should be(UserName("user~1"))
           route.route.matcher.hostMatcher.get should be("www.yahoo.com")
         }
+
+        it("should not create more routes") {
+          val response = postHostMatcherSlashRoutes("route_regex_1", "www.yahoo.com", token)
+
+          val routesResponse = getSlashRoutes(READ_TOKEN)
+          response.status.shouldBe(StatusCodes.OK)
+          val entity = entityString(routesResponse)
+          val routes = entity.parseJson.convertTo[Seq[RouteOut]]
+          routes.size should be(1)
+        }
       }
     }
 

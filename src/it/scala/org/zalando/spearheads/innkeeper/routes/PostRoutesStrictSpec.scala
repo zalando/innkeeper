@@ -34,72 +34,83 @@ class PostRoutesStrictSpec extends FunSpec with BeforeAndAfter with Matchers {
           response.status should be(StatusCodes.OK)
           val entity = entityString(response)
           val route = entity.parseJson.convertTo[RouteOut]
-          route.id should be (1)
+          route.id should be(1)
           route.name should be(RouteName(routeName))
           route.ownedByTeam should be(TeamName("team1"))
           route.createdBy should be(UserName("user~1"))
         }
 
-        describe("when a token with the write_regex scope is provided") {
-          val token = WRITE_REGEX_TOKEN
+        it("should not create more routes") {
+          val routeName = "route_regex_1"
+          val response = postSlashRoutesStrict(routeName, token)
 
-          it("should create the new route") {
-            val routeName = "strict_route_2"
-            val response = postSlashRoutesStrict(routeName, token)
-            response.status should be(StatusCodes.OK)
-            val entity = entityString(response)
-            val route = entity.parseJson.convertTo[RouteOut]
-            route.id should be (1)
-            route.name should be(RouteName(routeName))
-          }
+          val routesResponse = getSlashRoutes(READ_TOKEN)
+          response.status.shouldBe(StatusCodes.OK)
+          val entity = entityString(routesResponse)
+          val routes = entity.parseJson.convertTo[Seq[RouteOut]]
+          routes.size should be(1)
         }
       }
 
-      describe("failure") {
+      describe("when a token with the write_regex scope is provided") {
+        val token = WRITE_REGEX_TOKEN
 
-        describe("when an invalid name is provided") {
-          val token = WRITE_STRICT_TOKEN
-
-          it("should create the new route") {
-            val routeName = "invalid-strict-route-name"
-            val response = postSlashRoutesStrict(routeName, token)
-            response.status should be(StatusCodes.BadRequest)
-          }
+        it("should create the new route") {
+          val routeName = "strict_route_2"
+          val response = postSlashRoutesStrict(routeName, token)
+          response.status should be(StatusCodes.OK)
+          val entity = entityString(response)
+          val route = entity.parseJson.convertTo[RouteOut]
+          route.id should be(1)
+          route.name should be(RouteName(routeName))
         }
+      }
+    }
 
-        describe("when no token is provided") {
+    describe("failure") {
 
-          it("should return the 401 Unauthorized status") {
-            val response = postSlashRoutesStrict(routeName, "")
-            response.status should be(StatusCodes.Unauthorized)
-          }
+      describe("when an invalid name is provided") {
+        val token = WRITE_STRICT_TOKEN
+
+        it("should return the 400 Bad Request status") {
+          val routeName = "invalid-strict-route-name"
+          val response = postSlashRoutesStrict(routeName, token)
+          response.status should be(StatusCodes.BadRequest)
         }
+      }
 
-        describe("when an invalid token is provided") {
-          val token = INVALID_TOKEN
+      describe("when no token is provided") {
 
-          it("should return the 403 Forbidden status") {
-            val response = postSlashRoutesStrict(routeName, token)
-            response.status should be(StatusCodes.Forbidden)
-          }
+        it("should return the 401 Unauthorized status") {
+          val response = postSlashRoutesStrict(routeName, "")
+          response.status should be(StatusCodes.Unauthorized)
         }
+      }
 
-        describe("when a token without the write_strict or write_regex scopes is provided") {
-          val token = READ_TOKEN
+      describe("when an invalid token is provided") {
+        val token = INVALID_TOKEN
 
-          it("should return the 403 Forbidden status") {
-            val response = postSlashRoutesStrict(routeName, token)
-            response.status should be(StatusCodes.Forbidden)
-          }
+        it("should return the 403 Forbidden status") {
+          val response = postSlashRoutesStrict(routeName, token)
+          response.status should be(StatusCodes.Forbidden)
         }
+      }
 
-        describe("when a which doesn't have an associated uid") {
-          val token = "token--employees-route.write_strict"
+      describe("when a token without the write_strict or write_regex scopes is provided") {
+        val token = READ_TOKEN
 
-          it("should return the 403 Forbidden status") {
-            val response = postSlashRoutesStrict(routeName, token)
-            response.status should be(StatusCodes.Forbidden)
-          }
+        it("should return the 403 Forbidden status") {
+          val response = postSlashRoutesStrict(routeName, token)
+          response.status should be(StatusCodes.Forbidden)
+        }
+      }
+
+      describe("when a token doesn't have an associated uid") {
+        val token = "token--employees-route.write_strict"
+
+        it("should return the 403 Forbidden status") {
+          val response = postSlashRoutesStrict(routeName, token)
+          response.status should be(StatusCodes.Forbidden)
         }
       }
     }
