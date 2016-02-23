@@ -2,6 +2,7 @@ package org.zalando.spearheads.innkeeper.services
 
 import java.time.LocalDateTime
 
+import akka.NotUsed
 import akka.stream.scaladsl.Source
 import com.google.inject.Inject
 import org.zalando.spearheads.innkeeper.api.JsonProtocols._
@@ -22,11 +23,11 @@ trait RoutesService {
 
   def remove(id: Long): Future[Result[Boolean]]
 
-  def findByName(name: RouteName): Source[RouteOut, Unit]
+  def findByName(name: RouteName): Source[RouteOut, NotUsed]
 
-  def findModifiedSince(localDateTime: LocalDateTime): Source[RouteOut, Unit]
+  def findModifiedSince(localDateTime: LocalDateTime): Source[RouteOut, NotUsed]
 
-  def allRoutes: Source[RouteOut, Unit]
+  def allRoutes: Source[RouteOut, NotUsed]
 
   def findById(id: Long): Future[Result[RouteOut]]
 }
@@ -70,7 +71,7 @@ class DefaultRoutesService @Inject() (
     }
   }
 
-  override def findByName(name: RouteName): Source[RouteOut, Unit] = {
+  override def findByName(name: RouteName): Source[RouteOut, NotUsed] = {
     Source.fromPublisher(
       routesRepo.selectByName(name.name).mapResult { routeRow =>
         routeRow.id.map { id =>
@@ -80,7 +81,7 @@ class DefaultRoutesService @Inject() (
     ).mapConcat(_.toList)
   }
 
-  override def findModifiedSince(localDateTime: LocalDateTime): Source[RouteOut, Unit] = {
+  override def findModifiedSince(localDateTime: LocalDateTime): Source[RouteOut, NotUsed] = {
     Source.fromPublisher(
       routesRepo.selectModifiedSince(localDateTime).mapResult { routeRow =>
         routeRow.id.map { id =>
@@ -90,7 +91,7 @@ class DefaultRoutesService @Inject() (
     ).mapConcat(_.toList)
   }
 
-  override def allRoutes: Source[RouteOut, Unit] = {
+  override def allRoutes: Source[RouteOut, NotUsed] = {
     Source.fromPublisher(routesRepo.selectAll.mapResult { routeRow =>
       routeRow.id.map { id =>
         routeRowToRoute(id, routeRow)

@@ -1,5 +1,7 @@
 package org.zalando.spearheads.innkeeper
 
+import akka.NotUsed
+import akka.http.scaladsl.model.HttpEntity.ChunkStreamPart
 import akka.http.scaladsl.model.{StatusCodes, StatusCode, MediaTypes, HttpEntity, HttpResponse}
 import akka.http.scaladsl.server.directives.BasicDirectives.pass
 import akka.http.scaladsl.server.directives.RouteDirectives._
@@ -45,8 +47,8 @@ trait RouteDirectives {
       }
     }
 
-  def chunkedResponseOfRoutes(jsonService: JsonService)(routeSource: Source[RouteOut, Unit]) = {
-    val chunkedStreamSource = jsonService.sourceToJsonSource(routeSource)
+  def chunkedResponseOfRoutes(jsonService: JsonService)(routeSource: Source[RouteOut, NotUsed]) = {
+    val chunkedStreamSource: Source[ChunkStreamPart, NotUsed] = jsonService.sourceToJsonSource(routeSource)
     complete {
       HttpResponse(entity = HttpEntity.Chunked(MediaTypes.`application/json`, chunkedStreamSource))
     }
