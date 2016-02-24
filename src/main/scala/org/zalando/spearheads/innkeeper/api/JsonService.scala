@@ -23,6 +23,8 @@ class JsonService {
         })
         .mapConcat(_.toList)
 
-    Source.single(ChunkStreamPart("[")).concat(commaSeparatedRoutes).concat(Source.single(ChunkStreamPart("]")))
+    Source.single(ChunkStreamPart("["))
+      .concat(commaSeparatedRoutes)
+      .concat(Source.single(ChunkStreamPart("]")))
   }
 }

@@ -21,12 +21,8 @@ before_install:
   - sudo mv docker-compose /usr/local/bin
 
 script:
-  - export DOCKER_HOST=tcp://127.0.0.1:2375
   - cp src/main/resources/travis.application.conf src/main/resources/application.conf
   - ./acceptance-tests.sh
-
-  # Trick to avoid unnecessary cache updates
-  - find $HOME/.sbt -name "*.lock" | xargs rm
 
 notifications:
   email:
