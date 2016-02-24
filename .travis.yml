@@ -1,10 +1,7 @@
-# use Docker-based container (instead of OpenVZ)
-sudo: false
+sudo: true                  # Required to install packages
 
-cache:
-  directories:
-    - $HOME/.sbt
-    - $HOME/.ivy2
+env:
+  DOCKER_COMPOSE_VERSION: 1.5.1
 
 language: scala
 
@@ -16,6 +13,12 @@ jdk:
 
 services:
   - docker
+
+before_install:
+  - sudo rm /usr/local/bin/docker-compose
+  - curl -L https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-`uname -s`-`uname -m` > docker-compose
+  - chmod +x docker-compose
+  - sudo mv docker-compose /usr/local/bin
 
 script:
   - export DOCKER_HOST=tcp://127.0.0.1:2375
