@@ -101,25 +101,9 @@ object JsonProtocols {
 
   implicit object MatcherFormat extends RootJsonFormat[Matcher] {
 
-    private def validate(matcher: Matcher, f: () => Exception) = {
-      if ((!matcher.headerMatchers.isDefined || matcher.headerMatchers.get.isEmpty) &&
-        !matcher.hostMatcher.isDefined &&
-        !matcher.methodMatcher.isDefined &&
-        !matcher.pathMatcher.isDefined) {
-        throw f()
-      }
-      matcher
-    }
-
-    private val exceptionMessage =
-      "At least one of the fields in the matcher should be defined"
-
     override def write(matcher: Matcher): JsValue = {
       matcherFormat.write {
-        validate(
-          matcher,
-          () => new SerializationException(exceptionMessage)
-        )
+        matcher
       }
     }
 
@@ -129,7 +113,7 @@ object JsonProtocols {
       val matcherWithDefaults = matcher.copy(
         headerMatchers = matcher.headerMatchers.orElse(Some(Seq.empty))
       )
-      validate(matcherWithDefaults, () => new DeserializationException(exceptionMessage))
+      matcherWithDefaults
     }
   }
 

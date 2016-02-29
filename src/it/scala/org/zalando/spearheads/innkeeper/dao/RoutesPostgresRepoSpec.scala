@@ -101,7 +101,7 @@ class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers w
             val createdAt = LocalDateTime.now()
             insertRoute("R3", createdAt = createdAt)
             insertRoute("R4", createdAt = createdAt)
-            routesRepo.delete(2)
+            routesRepo.delete(2).futureValue
 
             val routes: List[RouteRow] = routesRepo.selectAll
 

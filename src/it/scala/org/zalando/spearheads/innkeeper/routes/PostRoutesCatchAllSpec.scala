@@ -13,11 +13,11 @@ import org.zalando.spearheads.innkeeper.api.JsonProtocols._
 /**
  * @author dpersa
  */
-class PostRoutesHostSpec extends FunSpec with BeforeAndAfter with Matchers {
+class PostRoutesCatchAllSpec extends FunSpec with BeforeAndAfter with Matchers {
 
   val routeName = "random_regex_name"
 
-  describe("post host_matched /routes") {
+  describe("post catch_all /routes") {
 
     describe("success") {
       before {
@@ -29,7 +29,7 @@ class PostRoutesHostSpec extends FunSpec with BeforeAndAfter with Matchers {
 
         it("should create the new route") {
           val routeName = "route_host_1"
-          val response = postHostMatcherSlashRoutes(routeName, "www.yahoo.com", token)
+          val response = postCatchAllSlashRoutes(routeName, token)
           response.status should be(StatusCodes.OK)
           val entity = entityString(response)
           val route = entity.parseJson.convertTo[RouteOut]
@@ -37,11 +37,11 @@ class PostRoutesHostSpec extends FunSpec with BeforeAndAfter with Matchers {
           route.name should be(RouteName(routeName))
           route.ownedByTeam should be(TeamName("team1"))
           route.createdBy should be(UserName("user~1"))
-          route.route.matcher.hostMatcher.get should be("www.yahoo.com")
+          route.route.matcher.hostMatcher should be(None)
         }
 
         it("should not create more routes") {
-          val response = postHostMatcherSlashRoutes("route_regex_1", "www.yahoo.com", token)
+          val response = postCatchAllSlashRoutes("route_regex_1", token)
 
           val routesResponse = getSlashRoutes(READ_TOKEN)
           response.status.shouldBe(StatusCodes.OK)
@@ -59,7 +59,7 @@ class PostRoutesHostSpec extends FunSpec with BeforeAndAfter with Matchers {
 
         it("should return the 400 Bad Request status") {
           val routeName = "invalid-regex-route-name"
-          val response = postHostMatcherSlashRoutes(routeName, "www.yahoo.com", token)
+          val response = postCatchAllSlashRoutes(routeName, token)
           response.status should be(StatusCodes.BadRequest)
         }
       }
@@ -67,7 +67,7 @@ class PostRoutesHostSpec extends FunSpec with BeforeAndAfter with Matchers {
       describe("when no token is provided") {
 
         it("should return the 401 Unauthorized status") {
-          val response = postHostMatcherSlashRoutes(routeName, "www.yahoo.com", "")
+          val response = postCatchAllSlashRoutes(routeName, "")
           response.status should be(StatusCodes.Unauthorized)
         }
       }
@@ -76,7 +76,7 @@ class PostRoutesHostSpec extends FunSpec with BeforeAndAfter with Matchers {
         val token = INVALID_TOKEN
 
         it("should return the 403 Forbidden status") {
-          val response = postHostMatcherSlashRoutes(routeName, "www.yahoo.com", token)
+          val response = postCatchAllSlashRoutes(routeName, token)
           response.status should be(StatusCodes.Forbidden)
         }
       }
@@ -85,7 +85,7 @@ class PostRoutesHostSpec extends FunSpec with BeforeAndAfter with Matchers {
         val token = READ_TOKEN
 
         it("should return the 403 Forbidden status") {
-          val response = postHostMatcherSlashRoutes(routeName, "www.yahoo.com", token)
+          val response = postCatchAllSlashRoutes(routeName, token)
           response.status should be(StatusCodes.Forbidden)
         }
       }
@@ -94,7 +94,7 @@ class PostRoutesHostSpec extends FunSpec with BeforeAndAfter with Matchers {
         val token = WRITE_STRICT_TOKEN
 
         it("should return the 403 Forbidden status") {
-          val response = postHostMatcherSlashRoutes(routeName, "www.yahoo.com", token)
+          val response = postCatchAllSlashRoutes(routeName, token)
           response.status should be(StatusCodes.Forbidden)
         }
       }
@@ -103,7 +103,7 @@ class PostRoutesHostSpec extends FunSpec with BeforeAndAfter with Matchers {
         val token = "token--employees-route.write_regex"
 
         it("should return the 403 Forbidden status") {
-          val response = postHostMatcherSlashRoutes(routeName, "www.yahoo.com", token)
+          val response = postCatchAllSlashRoutes(routeName, token)
           response.status should be(StatusCodes.Forbidden)
         }
       }
