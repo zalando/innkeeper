@@ -180,10 +180,10 @@ class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers w
           insertRoute("1")
           insertRoute("2")
 
-          routesRepo.delete(1)
+          routesRepo.delete(1).futureValue
           val deletedAt = getDeletedAtForRoute(1)
           // delete the route again
-          routesRepo.delete(1)
+          routesRepo.delete(1).futureValue
 
           val deletedAtAfterSecondDelete = getDeletedAtForRoute(1)
 
