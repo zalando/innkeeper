@@ -44,20 +44,30 @@ object AcceptanceSpecsHelper extends ScalaFutures {
                       |  }
                       |}""".stripMargin
 
+  def catchAllRoute(routeName: String) = s"""{
+                      |  "name": "${routeName}",
+                      |  "description": "this is a route",
+                      |  "activate_at": "2015-10-10T10:10:10",
+                      |  "route": {
+                      |    "matcher": {
+                      |    }
+                      |  }
+                      |}""".stripMargin
+
   def pathMatcherRoute(routeName: String, routeType: String) =
     s"""{
-        |  "name": "${routeName}",
-        |  "description": "this is a route",
-        |  "activate_at": "2015-10-10T10:10:10",
-        |  "route": {
-        |    "matcher": {
-        |      "path_matcher": {
-        |        "match": "/hello-*",
-        |        "type": "${routeType}"
-        |      }
-        |    }
-        |  }
-        |}""".stripMargin
+                      |  "name": "${routeName}",
+                      |  "description": "this is a route",
+                      |  "activate_at": "2015-10-10T10:10:10",
+                      |  "route": {
+                      |    "matcher": {
+                      |      "path_matcher": {
+                      |        "match": "/hello-*",
+                      |        "type": "${routeType}"
+                      |      }
+                      |    }
+                      |  }
+                      |}""".stripMargin
 
   def postSlashRoutes(route: String)(token: String): HttpResponse = {
 
@@ -80,6 +90,9 @@ object AcceptanceSpecsHelper extends ScalaFutures {
 
   def postHostMatcherSlashRoutes(routeName: String, host: String, token: String): HttpResponse =
     postSlashRoutes(hostMatcherRoute(routeName, host))(token)
+
+  def postCatchAllSlashRoutes(routeName: String, token: String): HttpResponse =
+    postSlashRoutes(catchAllRoute(routeName))(token)
 
   def getSlashRoutes(token: String = ""): HttpResponse = {
     val futureResponse = Http().singleRequest(HttpRequest(

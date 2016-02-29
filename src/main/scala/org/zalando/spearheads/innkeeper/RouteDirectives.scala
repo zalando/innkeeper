@@ -2,14 +2,13 @@ package org.zalando.spearheads.innkeeper
 
 import akka.NotUsed
 import akka.http.scaladsl.model.HttpEntity.ChunkStreamPart
-import akka.http.scaladsl.model.{StatusCodes, StatusCode, MediaTypes, HttpEntity, HttpResponse}
+import akka.http.scaladsl.model.{MediaTypes, HttpEntity, HttpResponse}
 import akka.http.scaladsl.server.directives.BasicDirectives.pass
 import akka.http.scaladsl.server.directives.RouteDirectives._
 import akka.http.scaladsl.server._
 import akka.stream.scaladsl.Source
 import org.zalando.spearheads.innkeeper.Rejections.{RouteNotFoundRejection, InternalServerErrorRejection}
 import org.zalando.spearheads.innkeeper.api._
-import org.zalando.spearheads.innkeeper.oauth.AuthenticatedUser
 import org.zalando.spearheads.innkeeper.services.{ServiceResult, RoutesService}
 import org.zalando.spearheads.innkeeper.api.JsonProtocols._
 import scala.concurrent.ExecutionContext

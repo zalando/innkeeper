@@ -9,8 +9,6 @@
         <appender-ref ref="STDOUT"/>
     </root>
 
-    <logger name="Timing" level="info"/>
-    <logger name="org.zalando.spearheads.innkeeper" level="debug"/>
-    <logger name="org.zalando.spearheads.innkeeper.dao" level="info"/>
+    <logger name="org.zalando.spearheads.innkeeper" level="info"/>
 
 </configuration>

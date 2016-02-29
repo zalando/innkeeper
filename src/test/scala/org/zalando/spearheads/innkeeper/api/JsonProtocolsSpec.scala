@@ -145,9 +145,11 @@ class JsonProtocolsSpec extends FunSpec with Matchers {
     }
 
     it("should not unmarshall an empty Matcher") {
-      intercept[DeserializationException] {
-        """{}""".stripMargin.parseJson.convertTo[Matcher]
-      }
+      val matcher = """{}""".stripMargin.parseJson.convertTo[Matcher]
+      matcher.hostMatcher should be(None)
+      matcher.pathMatcher should be(None)
+      matcher.methodMatcher should be(None)
+      matcher.headerMatchers should be(Some(Seq()))
     }
 
     it("should marshall the Matcher") {
@@ -182,10 +184,12 @@ class JsonProtocolsSpec extends FunSpec with Matchers {
       )
     }
 
-    it("should not marshall an empty Matcher") {
-      intercept[SerializationException] {
-        Matcher().toJson
-      }
+    it("should marshall an empty Matcher") {
+      Matcher().toJson.prettyPrint should be(
+        """{
+          |  "header_matchers": []
+          |}""".stripMargin
+      )
     }
   }
 
