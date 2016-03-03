@@ -39,6 +39,7 @@ curl -i -XPOST localhost:8080/routes -d '{
         },
         "header_matchers": []
       },
+      "predicates": [],
       "filters": []
     },
     "activate_at": "2015-10-10T10:10:10",
@@ -58,6 +59,8 @@ To see it streaming:
 ### Getting last modified routes
 
     curl -i http://localhost:8080/updated-routes/2015-08-21T15:23:05.731 -H 'Authorization: Bearer oauth-token'
+
+Here are more [examples](EXAMPLES.md)
 
 # OAuth
 
@@ -92,7 +95,8 @@ For users of `boot2docker` or `docker-machine` it is also necessary to create a 
 Assuming the docker-machine is named `default` this can be achieved via:
 
 ```bash
-$ VBoxManage controlvm "default" natpf1 "tcp-port5432,tcp,,5432,,5432"
+$ VBoxManage controlvm "default" natpf1 "tcp-port6767,tcp,,6767,,6767"
+$ VBoxManage controlvm "default" natpf1 "tcp-port6768,tcp,,6768,,6768"
 $ VBoxManage controlvm "default" natpf1 "tcp-port5433,tcp,,5433,,5433"
 $ VBoxManage controlvm "default" natpf1 "tcp-port8080,tcp,,8080,,8080"
 ```

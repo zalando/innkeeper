@@ -36,6 +36,8 @@ class GetRouteSpec extends FunSpec with BeforeAndAfter with Matchers {
         route.name should be(RouteName("R2"))
         route.ownedByTeam should be(TeamName("testteam"))
         route.createdBy should be(UserName("testuser"))
+        routeFiltersShouldBeCorrect(route)
+        routePredicatesShouldBeCorrect(route)
       }
     }
 
@@ -85,5 +87,19 @@ class GetRouteSpec extends FunSpec with BeforeAndAfter with Matchers {
         }
       }
     }
+  }
+
+  private def routeFiltersShouldBeCorrect(route: RouteOut) = {
+    route.route.filters should be('defined)
+    route.route.filters.get should not be ('empty)
+    route.route.filters.get.head.name should be("someFilter")
+    route.route.filters.get.head.args.head should be(Right("HelloFilter"))
+  }
+
+  private def routePredicatesShouldBeCorrect(route: RouteOut) = {
+    route.route.predicates should be('defined)
+    route.route.predicates.get should not be ('empty)
+    route.route.predicates.get.head.name should be("somePredicate")
+    route.route.predicates.get.head.args.head should be(Right("HelloPredicate"))
   }
 }

@@ -87,8 +87,16 @@ object RoutesRepoHelper extends ScalaFutures {
         |    "path_matcher": {
         |      "match": "$matcher",
         |      "type": "$routeType"
-             }
-        |  }
+        |    }
+        |  },
+        |  "predicates": [{
+        |      "name": "somePredicate",
+        |      "args": ["HelloPredicate", 123]
+        |  }],
+        |  "filters": [{
+        |      "name": "someFilter",
+        |      "args": ["HelloFilter", 123]
+        |  }]
         |}""".stripMargin
 
   def hostRouteJson(hostMatcher: String) =
