@@ -89,9 +89,9 @@ object MatcherType {
   val REGEX = "REGEX"
 }
 
-case class Predicate(name: String, args: Seq[Either[Int, String]])
+case class Predicate(name: String, args: Seq[Either[Double, String]])
 
-case class Filter(name: String, args: Seq[Either[Int, String]])
+case class Filter(name: String, args: Seq[Either[Double, String]])
 
 sealed trait HeaderMatcher {
   def name(): String

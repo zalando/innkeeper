@@ -38,6 +38,8 @@ class PostRoutesHostSpec extends FunSpec with BeforeAndAfter with Matchers {
           route.ownedByTeam should be(TeamName("team1"))
           route.createdBy should be(UserName("user~1"))
           route.route.matcher.hostMatcher.get should be("www.yahoo.com")
+          routeFiltersShouldBeCorrect(route)
+          routePredicatesShouldBeCorrect(route)
         }
 
         it("should not create more routes") {

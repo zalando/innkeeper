@@ -60,29 +60,33 @@ class JsonProtocolsSpec extends FunSpec with Matchers {
 
   describe("Predicate") {
     it("should unmarshall the predicate") {
-      val filter = """{"name": "somePredicate", "args": ["hello", 123]}""".parseJson.convertTo[Predicate]
-      filter.name should be("somePredicate")
-      filter.args(0) should be(Right("hello"))
-      filter.args(1) should be(Left(123))
+      val predicate = """{"name": "somePredicate", "args": ["hello", 123, 0.99, 1]}""".parseJson.convertTo[Predicate]
+      predicate.name should be("somePredicate")
+      predicate.args(0) should be(Right("hello"))
+      predicate.args(1) should be(Left(123))
+      predicate.args(2) should be(Left(0.99))
+      predicate.args(3) should be(Left(1))
     }
 
     it("should marshall the Predicate") {
-      val filterJson = Filter("somePredicate", Seq(Right("Hello"), Left(123))).toJson
-      filterJson.compactPrint should be("""{"name":"somePredicate","args":["Hello",123]}""")
+      val predicateJson = Filter("somePredicate", Seq(Right("Hello"), Left(123), Left(0.99), Left(1))).toJson
+      predicateJson.compactPrint should be("""{"name":"somePredicate","args":["Hello",123.0,0.99,1.0]}""")
     }
   }
 
   describe("Filter") {
     it("should unmarshall the Filter") {
-      val filter = """{"name": "someFilter", "args": ["hello", 123]}""".parseJson.convertTo[Filter]
+      val filter = """{"name": "someFilter", "args": ["hello", 123, 0.99, 1]}""".parseJson.convertTo[Filter]
       filter.name should be("someFilter")
       filter.args(0) should be(Right("hello"))
       filter.args(1) should be(Left(123))
+      filter.args(2) should be(Left(0.99))
+      filter.args(3) should be(Left(1))
     }
 
     it("should marshall the Filter") {
-      val filterJson = Filter("someFilter", Seq(Right("Hello"), Left(123))).toJson
-      filterJson.compactPrint should be("""{"name":"someFilter","args":["Hello",123]}""")
+      val filterJson = Filter("someFilter", Seq(Right("Hello"), Left(123), Left(0.99), Left(1))).toJson
+      filterJson.compactPrint should be("""{"name":"someFilter","args":["Hello",123.0,0.99,1.0]}""")
     }
   }
 
@@ -267,17 +271,17 @@ class JsonProtocolsSpec extends FunSpec with Matchers {
           |  },
           |  "predicates": [{
           |    "name": "somePredicate",
-          |    "args": ["Hello", 123]
+          |    "args": ["Hello", 123.0]
           |  }, {
           |    "name": "someOtherPredicate",
-          |    "args": ["Hello", 123, "World"]
+          |    "args": ["Hello", 123.0, "World"]
           |  }],
           |  "filters": [{
           |    "name": "someFilter",
-          |    "args": ["Hello", 123]
+          |    "args": ["Hello", 123.0]
           |  }, {
           |    "name": "someOtherFilter",
-          |    "args": ["Hello", 123, "World"]
+          |    "args": ["Hello", 123.0, "World"]
           |  }],
           |  "endpoint": "https://www.endpoint.com:8080/endpoint"
           |}""".stripMargin
