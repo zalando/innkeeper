@@ -91,11 +91,11 @@ object RoutesRepoHelper extends ScalaFutures {
         |  },
         |  "predicates": [{
         |      "name": "somePredicate",
-        |      "args": ["HelloPredicate", 123]
+        |      "args": ["HelloPredicate", 123, 0.99]
         |  }],
         |  "filters": [{
         |      "name": "someFilter",
-        |      "args": ["HelloFilter", 123]
+        |      "args": ["HelloFilter", 123, 0.99]
         |  }]
         |}""".stripMargin
 

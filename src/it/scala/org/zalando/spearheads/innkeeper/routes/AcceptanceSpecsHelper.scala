@@ -7,8 +7,10 @@ import akka.http.scaladsl.Http
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.headers.{Authorization, OAuth2BearerToken}
 import akka.stream.ActorMaterializer
+import org.scalatest.Matchers
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.time.{Seconds, Span}
+import org.zalando.spearheads.innkeeper.api.RouteOut
 
 import scala.collection.immutable.Seq
 import scala.language.implicitConversions
@@ -16,7 +18,7 @@ import scala.language.implicitConversions
 /**
  * @author dpersa
  */
-object AcceptanceSpecsHelper extends ScalaFutures {
+object AcceptanceSpecsHelper extends ScalaFutures with Matchers {
 
   private val routesUri = "http://localhost:8080/routes"
   override implicit val patienceConfig = PatienceConfig(timeout = Span(5, Seconds))
@@ -40,7 +42,15 @@ object AcceptanceSpecsHelper extends ScalaFutures {
                       |  "route": {
                       |    "matcher": {
                       |      "host_matcher": "${host}"
-                      |    }
+                      |    },
+                      |    "predicates": [{
+                      |     "name": "somePredicate",
+                      |     "args": ["HelloPredicate", 123, 0.99]
+                      |    }],
+                      |    "filters": [{
+                      |     "name": "someFilter",
+                      |     "args": ["HelloFilter", 123, 0.99]
+                      |    }]
                       |  }
                       |}""".stripMargin
 
@@ -50,12 +60,19 @@ object AcceptanceSpecsHelper extends ScalaFutures {
                       |  "activate_at": "2015-10-10T10:10:10",
                       |  "route": {
                       |    "matcher": {
-                      |    }
+                      |    },
+                      |    "predicates": [{
+                      |     "name": "somePredicate",
+                      |     "args": ["HelloPredicate", 123, 0.99]
+                      |    }],
+                      |    "filters": [{
+                      |     "name": "someFilter",
+                      |     "args": ["HelloFilter", 123, 0.99]
+                      |    }]
                       |  }
                       |}""".stripMargin
 
-  def pathMatcherRoute(routeName: String, routeType: String) =
-    s"""{
+  def pathMatcherRoute(routeName: String, routeType: String) = s"""{
                       |  "name": "${routeName}",
                       |  "description": "this is a route",
                       |  "activate_at": "2015-10-10T10:10:10",
@@ -65,7 +82,15 @@ object AcceptanceSpecsHelper extends ScalaFutures {
                       |        "match": "/hello-*",
                       |        "type": "${routeType}"
                       |      }
-                      |    }
+                      |    },
+                      |    "predicates": [{
+                      |     "name": "somePredicate",
+                      |     "args": ["HelloPredicate", 123, 0.99]
+                      |    }],
+                      |    "filters": [{
+                      |     "name": "someFilter",
+                      |     "args": ["HelloFilter", 123, 0.99]
+                      |    }]
                       |  }
                       |}""".stripMargin
 
@@ -157,6 +182,24 @@ object AcceptanceSpecsHelper extends ScalaFutures {
       case "" | null => None
       case str       => Option(str)
     }
+  }
+
+  def routeFiltersShouldBeCorrect(route: RouteOut) = {
+    route.route.filters should be('defined)
+    route.route.filters.get should not be ('empty)
+    route.route.filters.get.head.name should be("someFilter")
+    route.route.filters.get.head.args.head should be(Right("HelloFilter"))
+    route.route.filters.get.head.args(1) should be(Left(123))
+    route.route.filters.get.head.args(2) should be(Left(0.99))
+  }
+
+  def routePredicatesShouldBeCorrect(route: RouteOut) = {
+    route.route.predicates should be('defined)
+    route.route.predicates.get should not be ('empty)
+    route.route.predicates.get.head.name should be("somePredicate")
+    route.route.predicates.get.head.args.head should be(Right("HelloPredicate"))
+    route.route.predicates.get.head.args(1) should be(Left(123))
+    route.route.predicates.get.head.args(2) should be(Left(0.99))
   }
 }
 

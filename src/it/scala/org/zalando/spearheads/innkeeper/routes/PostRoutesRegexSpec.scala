@@ -37,6 +37,8 @@ class PostRoutesRegexSpec extends FunSpec with BeforeAndAfter with Matchers {
           route.name should be(RouteName(routeName))
           route.ownedByTeam should be(TeamName("team1"))
           route.createdBy should be(UserName("user~1"))
+          routeFiltersShouldBeCorrect(route)
+          routePredicatesShouldBeCorrect(route)
         }
 
         it("should not create more routes") {
