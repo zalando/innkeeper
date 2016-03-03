@@ -248,6 +248,10 @@ definitions:
         $ref: '#/definitions/Matcher'
         description: |
           Definition of the matcher
+      predicated:
+        $ref: '#/definitions/Predicate'
+        description: |
+          Definition of predicates to be applied
       filters:
         $ref: '#/definitions/Filter'
         description: |
@@ -321,6 +325,18 @@ definitions:
       header_matcher:
         type: array
         $ref: '#/definitions/HeaderMatcher'
+  Predicate:
+      required:
+        - name
+        - args
+      properties:
+        name:
+          type: string
+          description: |
+            The name of the predicate, as it is definined in Skipper
+        args:
+          type: array
+          description: The arguments for the predicate, can be string or int32
   Filter:
     required:
       - name
@@ -332,7 +348,7 @@ definitions:
           The name of the filter, as it is definined in Skipper
       args:
         type: array
-        description: The arguments for the filters, can be string or int32
+        description: The arguments for the filter, can be string or int32
   Error:
     required:
       - type

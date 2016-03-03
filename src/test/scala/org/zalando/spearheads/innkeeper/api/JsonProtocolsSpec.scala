@@ -58,6 +58,20 @@ class JsonProtocolsSpec extends FunSpec with Matchers {
     }
   }
 
+  describe("Predicate") {
+    it("should unmarshall the predicate") {
+      val filter = """{"name": "somePredicate", "args": ["hello", 123]}""".parseJson.convertTo[Predicate]
+      filter.name should be("somePredicate")
+      filter.args(0) should be(Right("hello"))
+      filter.args(1) should be(Left(123))
+    }
+
+    it("should marshall the Predicate") {
+      val filterJson = Filter("somePredicate", Seq(Right("Hello"), Left(123))).toJson
+      filterJson.compactPrint should be("""{"name":"somePredicate","args":["Hello",123]}""")
+    }
+  }
+
   describe("Filter") {
     it("should unmarshall the Filter") {
       val filter = """{"name": "someFilter", "args": ["hello", 123]}""".parseJson.convertTo[Filter]
@@ -207,6 +221,7 @@ class JsonProtocolsSpec extends FunSpec with Matchers {
       route.matcher.headerMatchers.get should be(Seq.empty)
       route.matcher.pathMatcher.get should be(RegexPathMatcher("/hello-*"))
       route.filters.get should (be(Seq.empty))
+      route.predicates.get should (be(Seq.empty))
     }
 
     it("should marshall the NewRoute") {
@@ -220,6 +235,10 @@ class JsonProtocolsSpec extends FunSpec with Matchers {
             StrictHeaderMatcher("X-Port", "8080"))
           )
         ),
+        predicates = Some(Seq(
+          Predicate("somePredicate", Seq(Right("Hello"), Left(123))),
+          Predicate("someOtherPredicate", Seq(Right("Hello"), Left(123), Right("World")))
+        )),
         filters = Some(Seq(
           Filter("someFilter", Seq(Right("Hello"), Left(123))),
           Filter("someOtherFilter", Seq(Right("Hello"), Left(123), Right("World")))
@@ -246,6 +265,13 @@ class JsonProtocolsSpec extends FunSpec with Matchers {
           |      "type": "STRICT"
           |    }]
           |  },
+          |  "predicates": [{
+          |    "name": "somePredicate",
+          |    "args": ["Hello", 123]
+          |  }, {
+          |    "name": "someOtherPredicate",
+          |    "args": ["Hello", 123, "World"]
+          |  }],
           |  "filters": [{
           |    "name": "someFilter",
           |    "args": ["Hello", 123]
@@ -274,6 +300,7 @@ class JsonProtocolsSpec extends FunSpec with Matchers {
           |    },
           |    "header_matchers": []
           |  },
+          |  "predicates": [],
           |  "filters": []
           |}""".stripMargin
       }
@@ -324,6 +351,7 @@ class JsonProtocolsSpec extends FunSpec with Matchers {
           |      },
           |      "header_matchers": []
           |    },
+          |    "predicates": [],
           |    "filters": []
           |  },
           |  "activate_at": "2015-10-10T10:10:10",
@@ -394,6 +422,7 @@ class JsonProtocolsSpec extends FunSpec with Matchers {
           |      },
           |      "header_matchers": []
           |    },
+          |    "predicates": [],
           |    "filters": []
           |  },
           |  "deleted_at": "2015-10-10T10:10:10"
@@ -412,4 +441,3 @@ class JsonProtocolsSpec extends FunSpec with Matchers {
     }
   }
 }
-

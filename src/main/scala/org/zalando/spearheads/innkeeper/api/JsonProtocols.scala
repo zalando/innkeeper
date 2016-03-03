@@ -13,6 +13,8 @@ object JsonProtocols {
 
   implicit val filterFormat = jsonFormat(Filter, "name", "args")
 
+  implicit val predicateFormat = jsonFormat(Predicate, "name", "args")
+
   implicit val errorFormat = jsonFormat(Error, "status", "title", "type", "detail")
 
   implicit object RegexHeaderMatcherFormat extends RootJsonFormat[RegexHeaderMatcher] {
@@ -117,7 +119,7 @@ object JsonProtocols {
     }
   }
 
-  private val newComplexRouteFormat = jsonFormat(NewRoute.apply, "matcher", "filters", "endpoint")
+  private val newComplexRouteFormat = jsonFormat(NewRoute, "matcher", "predicates", "filters", "endpoint")
 
   implicit object NewComplexRouteFormat extends RootJsonFormat[NewRoute] {
 
@@ -127,6 +129,7 @@ object JsonProtocols {
       val newComplexRoute = newComplexRouteFormat.read(json)
 
       newComplexRoute.copy(
+        predicates = newComplexRoute.predicates.orElse(Some(Seq.empty)),
         filters = newComplexRoute.filters.orElse(Some(Seq.empty)),
         endpoint = newComplexRoute.endpoint.orElse(None)
       )
