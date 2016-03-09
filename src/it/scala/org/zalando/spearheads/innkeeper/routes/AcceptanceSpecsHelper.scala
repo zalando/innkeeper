@@ -20,13 +20,19 @@ import scala.language.implicitConversions
  */
 object AcceptanceSpecsHelper extends ScalaFutures with Matchers {
 
-  private val routesUri = "http://localhost:8080/routes"
+  private val baseUri = "http://localhost:8080"
+
+  private val routesUri = s"$baseUri/routes"
+
   override implicit val patienceConfig = PatienceConfig(timeout = Span(5, Seconds))
+
   implicit val system = ActorSystem("main-actor-system")
+
   implicit val materializer = ActorMaterializer()
 
-  def routeUri(id: Long) = s"$routesUri/$id"
-  def routeByNameUri(name: String) = s"$routesUri?name=$name"
+  private def routeUri(id: Long) = s"$routesUri/$id"
+
+  private def routeByNameUri(name: String) = s"$routesUri?name=$name"
 
   def entityString(response: HttpResponse): String = {
     response.entity.dataBytes
@@ -119,40 +125,30 @@ object AcceptanceSpecsHelper extends ScalaFutures with Matchers {
   def postCatchAllSlashRoutes(routeName: String, token: String): HttpResponse =
     postSlashRoutes(catchAllRoute(routeName))(token)
 
-  def getSlashRoutes(token: String = ""): HttpResponse = {
-    val futureResponse = Http().singleRequest(HttpRequest(
-      uri = routesUri,
-      headers = headersForToken(token)))
-    futureResponse.futureValue
-  }
+  def getSlashRoutes(token: String = ""): HttpResponse = doGet(routesUri, token)
 
-  def getSlashRoutesByName(name: String, token: String): HttpResponse = {
-    val futureResponse = Http().singleRequest(HttpRequest(
-      uri = routeByNameUri(name),
-      headers = headersForToken(token)))
-    futureResponse.futureValue
-  }
+  def getSlashRoutesByName(name: String, token: String): HttpResponse = doGet(routeByNameUri(name), token)
 
-  def getSlashRoute(id: Long, token: String = ""): HttpResponse = {
-    slashRoute(id, token)
-  }
+  def getSlashRoute(id: Long, token: String = ""): HttpResponse = slashRoute(id, token)
 
-  def getUpdatedRoutes(localDateTime: String, token: String) = {
-    val futureResponse = Http().singleRequest(HttpRequest(
-      uri = updatedRoutesUri(localDateTime),
-      headers = headersForToken(token)))
-    futureResponse.futureValue
-  }
+  def getUpdatedRoutes(localDateTime: String, token: String): HttpResponse =
+    doGet(updatedRoutesUri(localDateTime), token)
+
+  def getDeletedRoutes(token: String = ""): HttpResponse = doGet(s"$baseUri/deleted-routes", token)
 
   def getUpdatedRoutes(localDateTime: LocalDateTime, token: String): HttpResponse =
     getUpdatedRoutes(GetUpdatedRoutes.urlDateTimeFormatter.format(localDateTime), token)
 
-  def updatedRoutesUri(localDateTime: String) =
-    s"http://localhost:8080/updated-routes/$localDateTime"
-
-  def deleteSlashRoute(id: Long, token: String = ""): HttpResponse = {
-    slashRoute(id, token, HttpMethods.DELETE)
+  private def doGet(requestUri: String, token: String = ""): HttpResponse = {
+    val futureResponse = Http().singleRequest(HttpRequest(
+      uri = requestUri,
+      headers = headersForToken(token)))
+    futureResponse.futureValue
   }
+
+  private def updatedRoutesUri(localDateTime: String) = s"$baseUri/updated-routes/$localDateTime"
+
+  def deleteSlashRoute(id: Long, token: String = ""): HttpResponse = slashRoute(id, token, HttpMethods.DELETE)
 
   private def slashRoute(
     id: Long,

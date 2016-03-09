@@ -26,7 +26,7 @@ class RoutesPostgresRepo @Inject() (
   private lazy val insertRouteQuery = routesTable returning routesTable.map(_.id) into
     ((routeRow: RouteRow, id) => routeRow.copy(id = Some(id)))
 
-  def createSchema: Future[Unit] = {
+  override def createSchema: Future[Unit] = {
     logger.debug("create schema")
 
     db.run(
@@ -40,7 +40,7 @@ class RoutesPostgresRepo @Inject() (
       }
   }
 
-  def dropSchema: Future[Unit] = {
+  override def dropSchema: Future[Unit] = {
     logger.debug("drop schema")
 
     db.run(
@@ -54,15 +54,15 @@ class RoutesPostgresRepo @Inject() (
       }
   }
 
-  def insert(route: RouteRow): Future[RouteRow] = {
-    logger.debug(s"insert route ${route}")
+  override def insert(route: RouteRow): Future[RouteRow] = {
+    logger.debug(s"insert route $route")
 
     db.run {
       insertRouteQuery += route
     }
   }
 
-  def selectById(id: Long): Future[Option[RouteRow]] = {
+  override def selectById(id: Long): Future[Option[RouteRow]] = {
     logger.debug(s"selectById $id")
 
     db.run {
@@ -70,7 +70,7 @@ class RoutesPostgresRepo @Inject() (
     }.map(_.headOption)
   }
 
-  def selectAll: DatabasePublisher[RouteRow] = {
+  override def selectAll: DatabasePublisher[RouteRow] = {
     logger.debug("select all")
 
     val q = for {
@@ -83,7 +83,7 @@ class RoutesPostgresRepo @Inject() (
     }
   }
 
-  def selectModifiedSince(localDateTime: LocalDateTime): DatabasePublisher[RouteRow] = {
+  override def selectModifiedSince(localDateTime: LocalDateTime): DatabasePublisher[RouteRow] = {
     logger.debug(s"selectModifiedSince $localDateTime")
 
     val q = for {
@@ -96,7 +96,7 @@ class RoutesPostgresRepo @Inject() (
     }
   }
 
-  def selectByName(name: String): DatabasePublisher[RouteRow] = {
+  override def selectByName(name: String): DatabasePublisher[RouteRow] = {
     logger.debug(s"selectByName $name")
 
     val q = for {
@@ -109,7 +109,7 @@ class RoutesPostgresRepo @Inject() (
     }
   }
 
-  def delete(id: Long): Future[Boolean] = {
+  override def delete(id: Long): Future[Boolean] = {
     logger.debug(s"delete $id")
 
     db.run {
@@ -121,4 +121,18 @@ class RoutesPostgresRepo @Inject() (
       deletedAt.update(Some(LocalDateTime.now())).map(_ > 0)
     }
   }
+
+  override def selectDeleted: DatabasePublisher[RouteRow] = {
+    logger.debug("select deleted")
+
+    val q = for {
+      routeRow <- routesTable
+      if routeRow.deletedAt.isDefined
+    } yield routeRow
+
+    db.stream {
+      q.result
+    }
+  }
+
 }
