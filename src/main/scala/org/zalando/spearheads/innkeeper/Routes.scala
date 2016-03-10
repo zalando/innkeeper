@@ -46,8 +46,8 @@ class Routes @Inject() (
               getRoutes(authenticatedUser) ~ postRoutes(authenticatedUser, token)
             } ~ path("routes" / LongNumber) { id =>
               getRoute(authenticatedUser, id) ~ deleteRoute(authenticatedUser, id, token)
-            } ~ path("deleted-routes") {
-              getDeletedRoutes(authenticatedUser)
+            } ~ path("deleted-routes" / Rest) { deletedBefore =>
+              getDeletedRoutes(authenticatedUser, deletedBefore)
             }
           }
         } ~ path("status") {

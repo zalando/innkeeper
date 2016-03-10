@@ -23,7 +23,7 @@ object RoutesRepoHelper extends ScalaFutures {
   def insertRoute(name: String = "THE_ROUTE", matcher: String = "/hello", routeType: String = "STRICT",
     createdBy: String = "testuser",
     ownedByTeam: String = "testteam",
-    createdAt: LocalDateTime = LocalDateTime.now()) = {
+    createdAt: LocalDateTime = LocalDateTime.now()): RouteRow = {
 
     routesRepo.insert(RouteRow(
       name = name,
@@ -40,7 +40,7 @@ object RoutesRepoHelper extends ScalaFutures {
     hostMatcher: String = "host.com",
     createdBy: String = "testuser",
     ownedByTeam: String = "testteam",
-    createdAt: LocalDateTime = LocalDateTime.now()) = {
+    createdAt: LocalDateTime = LocalDateTime.now()): RouteRow = {
 
     routesRepo.insert(RouteRow(
       name = name,
@@ -60,7 +60,7 @@ object RoutesRepoHelper extends ScalaFutures {
     createdBy: String = "testuser",
     ownedByTeam: String = "testteam",
     createdAt: LocalDateTime = LocalDateTime.now(),
-    activateAt: LocalDateTime = LocalDateTime.now()) = {
+    activateAt: LocalDateTime = LocalDateTime.now()): RouteRow = {
 
     RouteRow(
       id = Some(id),
@@ -72,8 +72,8 @@ object RoutesRepoHelper extends ScalaFutures {
       activateAt = activateAt)
   }
 
-  def deleteRoute(id: Long) = {
-    routesRepo.delete(id)
+  def deleteRoute(id: Long, dateTime: Option[LocalDateTime] = None): Boolean = {
+    routesRepo.delete(id, dateTime).futureValue
   }
 
   def recreateSchema = {

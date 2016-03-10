@@ -32,7 +32,7 @@ trait RoutesService {
 
   def findById(id: Long): Future[Result[RouteOut]]
 
-  def allDeletedRoutes: Source[RouteOut, NotUsed]
+  def findDeletedBefore(deletedBefore: LocalDateTime): Source[RouteOut, NotUsed]
 
 }
 
@@ -110,8 +110,8 @@ class DefaultRoutesService @Inject() (
     }
   }
 
-  override def allDeletedRoutes: Source[RouteOut, NotUsed] = {
-    Source.fromPublisher(routesRepo.selectDeleted.mapResult { routeRow =>
+  override def findDeletedBefore(dateTime: LocalDateTime): Source[RouteOut, NotUsed] = {
+    Source.fromPublisher(routesRepo.selectDeletedBefore(dateTime).mapResult { routeRow =>
       routeRow.id.map { id =>
         routeRowToRoute(id, routeRow)
       }

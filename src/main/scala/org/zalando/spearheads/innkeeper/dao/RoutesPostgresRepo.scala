@@ -88,7 +88,7 @@ class RoutesPostgresRepo @Inject() (
 
     val q = for {
       routeRow <- routesTable
-      if (routeRow.createdAt > localDateTime || routeRow.deletedAt > localDateTime)
+      if routeRow.createdAt > localDateTime || routeRow.deletedAt > localDateTime
     } yield routeRow
 
     db.stream {
@@ -109,7 +109,7 @@ class RoutesPostgresRepo @Inject() (
     }
   }
 
-  override def delete(id: Long): Future[Boolean] = {
+  override def delete(id: Long, dateTime: Option[LocalDateTime]): Future[Boolean] = {
     logger.debug(s"delete $id")
 
     db.run {
@@ -118,16 +118,16 @@ class RoutesPostgresRepo @Inject() (
         if routeRow.id === id && routeRow.deletedAt.isEmpty
       } yield routeRow.deletedAt
 
-      deletedAt.update(Some(LocalDateTime.now())).map(_ > 0)
+      deletedAt.update(dateTime.orElse(Some(LocalDateTime.now()))).map(_ > 0)
     }
   }
 
-  override def selectDeleted: DatabasePublisher[RouteRow] = {
-    logger.debug("select deleted")
+  override def selectDeletedBefore(dateTime: LocalDateTime): DatabasePublisher[RouteRow] = {
+    logger.debug(s"select deleted $dateTime")
 
     val q = for {
       routeRow <- routesTable
-      if routeRow.deletedAt.isDefined
+      if routeRow.deletedAt.isDefined && routeRow.deletedAt < dateTime
     } yield routeRow
 
     db.stream {

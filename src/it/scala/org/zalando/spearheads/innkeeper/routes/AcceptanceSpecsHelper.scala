@@ -134,10 +134,14 @@ object AcceptanceSpecsHelper extends ScalaFutures with Matchers {
   def getUpdatedRoutes(localDateTime: String, token: String): HttpResponse =
     doGet(updatedRoutesUri(localDateTime), token)
 
-  def getDeletedRoutes(token: String = ""): HttpResponse = doGet(s"$baseUri/deleted-routes", token)
+  def getDeletedRoutes(deletedBefore: LocalDateTime, token: String = ""): HttpResponse =
+    getDeletedRoutes(RequestParameters.urlDateTimeFormatter.format(deletedBefore), token)
+
+  def getDeletedRoutes(deletedBefore: String, token: String): HttpResponse =
+    doGet(s"$baseUri/deleted-routes/$deletedBefore", token)
 
   def getUpdatedRoutes(localDateTime: LocalDateTime, token: String): HttpResponse =
-    getUpdatedRoutes(GetUpdatedRoutes.urlDateTimeFormatter.format(localDateTime), token)
+    getUpdatedRoutes(RequestParameters.urlDateTimeFormatter.format(localDateTime), token)
 
   private def doGet(requestUri: String, token: String = ""): HttpResponse = {
     val futureResponse = Http().singleRequest(HttpRequest(

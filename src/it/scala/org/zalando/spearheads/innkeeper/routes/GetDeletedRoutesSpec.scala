@@ -1,5 +1,7 @@
 package org.zalando.spearheads.innkeeper.routes
 
+import java.time.LocalDateTime
+
 import akka.http.scaladsl.model.StatusCodes
 import org.scalatest.{Matchers, BeforeAndAfter, FunSpec}
 import org.zalando.spearheads.innkeeper.api.{RouteName, RouteOut}
@@ -26,7 +28,7 @@ class GetDeletedRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
         insertRoute("R1")
         insertRoute("R2")
 
-        val response = getDeletedRoutes(READ_TOKEN)
+        val response = getDeletedRoutes(LocalDateTime.now(), READ_TOKEN)
         response.status shouldBe StatusCodes.OK
 
         val entity = entityString(response)
@@ -43,7 +45,7 @@ class GetDeletedRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
         insertedRoute1.id.foreach(id => deleteRoute(id))
         insertedRoute2.id.foreach(id => deleteRoute(id))
 
-        val response = getDeletedRoutes(READ_TOKEN)
+        val response = getDeletedRoutes(LocalDateTime.now().plusHours(1L), READ_TOKEN)
         response.status shouldBe StatusCodes.OK
 
         val entity = entityString(response)
@@ -59,15 +61,21 @@ class GetDeletedRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
     describe("failure") {
 
       it("should return 401 if token was not provided") {
-        val response = getDeletedRoutes()
+        val response = getDeletedRoutes(LocalDateTime.now())
 
         response.status shouldBe StatusCodes.Unauthorized
       }
 
       it("should return 403 if wrong token was provided") {
-        val response = getDeletedRoutes(INVALID_TOKEN)
+        val response = getDeletedRoutes(LocalDateTime.now(), INVALID_TOKEN)
 
         response.status shouldBe StatusCodes.Forbidden
+      }
+
+      it("should return 400 if wrong date was provided") {
+        val response = getDeletedRoutes("test", READ_TOKEN)
+
+        response.status shouldBe StatusCodes.BadRequest
       }
 
     }
