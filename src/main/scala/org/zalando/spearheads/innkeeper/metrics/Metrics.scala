@@ -9,7 +9,9 @@ import nl.grons.metrics.scala.{MetricName, InstrumentedBuilder}
  */
 @Singleton
 class Metrics @Inject() (val metricRegistry: MetricRegistry) extends InstrumentedBuilder {
+
   override lazy val metricBaseName = MetricName("zmon.response")
+
 }
 
 class RouteMetrics @Inject() (val metrics: Metrics) {
@@ -19,4 +21,6 @@ class RouteMetrics @Inject() (val metrics: Metrics) {
   val postRoutes = metrics.metrics.timer("201.POST.routes")
   val deleteRoute = metrics.metrics.timer("200.DELETE.route")
   val getRoute = metrics.metrics.timer("200.GET.route")
+  val getDeletedRoutes = metrics.metrics.timer("200.GET.deleted-routes")
+
 }

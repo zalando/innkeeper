@@ -18,5 +18,22 @@ trait RoutesRepo {
   def selectAll: DatabasePublisher[RouteRow]
   def selectModifiedSince(localDateTime: LocalDateTime): DatabasePublisher[RouteRow]
   def selectByName(name: String): DatabasePublisher[RouteRow]
-  def delete(id: Long): Future[Boolean]
+
+  /**
+   * Marks route as deleted.
+   *
+   * @param   id of the route to be marked as deleted
+   * @param   dateTime optional timestamp that will be written into deleted_at column
+   * @return  future that contains operation success flag
+   */
+  def delete(id: Long, dateTime: Option[LocalDateTime] = None): Future[Boolean]
+
+  /**
+   * Returns routes that were marked as deleted before the specified timestamp.
+   *
+   * @param  dateTime timestamp to compare with deleted_at column
+   * @return a stream of routes marked as deleted
+   */
+  def selectDeletedBefore(dateTime: LocalDateTime): DatabasePublisher[RouteRow]
+
 }

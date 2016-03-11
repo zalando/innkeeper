@@ -6,7 +6,7 @@ info:
     and define non-wildcard paths to all relevant users in employee realm as
     well as, some service realm clients (e.g. CMS). Creation of wildcard routes
     is reserved for maintainers of this API as it requires special care.
-  version: 2.0.0
+  version: 2.1.0
 host: innkeeper.host.eu
 schemes:
   - https
@@ -185,6 +185,42 @@ paths:
             type: array
             items:
               $ref: '#/definitions/RouteOut'
+        default:
+          description: A processing or an unexpected error.
+          schema:
+            $ref: '#/definitions/Error'
+  '/deleted-routes/{id}':
+    get:
+      operationId: getDeletedRoutes
+      security:
+        - company:
+          - routes.read
+      parameters:
+        - name: id
+          in: path
+          type: string
+          required: true
+          format: ISO-8601
+      summary: Returns a list of routes that were deleted before (excluding) specified date
+      responses:
+        '200':
+          description: An array of deleted routes
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/RouteOut'
+        '401':
+          description: Happens in case of non-existent oauth credentials.
+          schema:
+            $ref: '#/definitions/Error'
+        '403':
+          description: Happens in a case of insufficient permissions.
+          schema:
+            $ref: '#/definitions/Error'      
+        '400':
+          description: Happens when provided date is in wrong format.
+          schema:
+            $ref: '#/definitions/Error'
         default:
           description: A processing or an unexpected error.
           schema:

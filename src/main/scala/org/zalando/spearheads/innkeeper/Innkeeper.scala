@@ -19,7 +19,7 @@ object Innkeeper extends App {
 
   import org.zalando.spearheads.innkeeper.utils.UtilsModule
 
-  private val LOG = LoggerFactory.getLogger(this.getClass)
+  private val logger = LoggerFactory.getLogger(this.getClass)
 
   private val injector: Injector = Guice.createInjector(
     new ConfigModule(),
@@ -37,8 +37,8 @@ object Innkeeper extends App {
   private val env = config.env
   private val schemaRecreate = config.getString("schema.recreate").toBoolean
 
-  LOG.info(s"innkeeper.env=${env}")
-  LOG.info(s"${env}.schema.recreate=${schemaRecreate}")
+  logger.info(s"innkeeper.env=$env")
+  logger.info(s"$env.schema.recreate=$schemaRecreate")
 
   if (schemaRecreate) {
     implicit val ec = ExecutionContext.Implicits.global
@@ -52,4 +52,7 @@ object Innkeeper extends App {
   val akkaHttp = injector.instance[AkkaHttp]
 
   akkaHttp.run()
+
+  logger.info(s"Listening on port ${config.getInt("port")}...")
+
 }

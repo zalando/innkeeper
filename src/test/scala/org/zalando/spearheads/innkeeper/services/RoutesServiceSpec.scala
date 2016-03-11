@@ -69,19 +69,19 @@ class RoutesServiceSpec extends FunSpec with Matchers with MockFactory with Scal
 
   describe("#remove") {
     it("should remove a route") {
-      (routesRepo.delete _).expects(routeId).returning(Future(true))
+      (routesRepo.delete _).expects(routeId, None).returning(Future(true))
       val result = routesService.remove(routeId).futureValue
       result should be(ServiceResult.Success(true))
     }
 
     it("should not find a route") {
-      (routesRepo.delete _).expects(routeId).returning(Future(false))
+      (routesRepo.delete _).expects(routeId, None).returning(Future(false))
       val result = routesService.remove(routeId).futureValue
       result should be(ServiceResult.Failure(NotFound))
     }
 
     it("should fail when trying to delete a route") {
-      (routesRepo.delete _).expects(routeId).returning {
+      (routesRepo.delete _).expects(routeId, None).returning {
         Future {
           throw new IllegalStateException()
         }
@@ -216,6 +216,22 @@ class RoutesServiceSpec extends FunSpec with Matchers with MockFactory with Scal
     }
   }
 
+  describe("#findDeletedBefore") {
+    it("should find the right routes") {
+
+      (routesRepo.selectDeletedBefore _).expects(deletedBefore).returning {
+        FakeDatabasePublisher[RouteRow](Seq(routeRow))
+      }
+
+      val result = routesService.findDeletedBefore(deletedBefore)
+      val firstRoute = result.runWith(Sink.head).futureValue
+
+      firstRoute.id should be(routeId)
+      firstRoute.name should be(RouteName("THE_ROUTE"))
+      firstRoute.description should be(Some("The New Route"))
+    }
+  }
+
   val routeId: Long = 1
 
   val description = "The New Route"
@@ -231,6 +247,7 @@ class RoutesServiceSpec extends FunSpec with Matchers with MockFactory with Scal
   val createdBy = "user"
   val ownedByTeam = "team"
   val createdAt = LocalDateTime.now()
+  val deletedBefore = LocalDateTime.now()
   val activateAt = LocalDateTime.now()
   val routeName = RouteName("THE_ROUTE")
   val savedRoute = RouteOut(routeId, routeName, newRoute, createdAt, activateAt, TeamName(ownedByTeam), UserName(createdBy), Some(description))

@@ -20,6 +20,7 @@ object LocalDateTimeProtocol {
       case JsString(s) => LocalDateTime.from(formatter.parse(s))
       case _           => throw new IllegalArgumentException(s"JsString expected: $json")
     }
+
   }
 
 }

@@ -9,7 +9,7 @@ import org.zalando.spearheads.innkeeper.metrics.MetricRegistryJsonProtocol._
 import org.zalando.spearheads.innkeeper.metrics.RouteMetrics
 import org.zalando.spearheads.innkeeper.oauth.OAuthDirectives._
 import org.zalando.spearheads.innkeeper.oauth._
-import org.zalando.spearheads.innkeeper.routes.{DeleteRoute, GetRoute, GetRoutes, GetUpdatedRoutes, PostRoutes}
+import org.zalando.spearheads.innkeeper.routes._
 import spray.json.pimpAny
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -24,6 +24,7 @@ class Routes @Inject() (
     deleteRoute: DeleteRoute,
     postRoutes: PostRoutes,
     getUpdatedRoutes: GetUpdatedRoutes,
+    getDeletedRoutes: GetDeletedRoutes,
     metrics: RouteMetrics,
     authService: AuthService,
     implicit val executionContext: ExecutionContext) {
@@ -45,6 +46,8 @@ class Routes @Inject() (
               getRoutes(authenticatedUser) ~ postRoutes(authenticatedUser, token)
             } ~ path("routes" / LongNumber) { id =>
               getRoute(authenticatedUser, id) ~ deleteRoute(authenticatedUser, id, token)
+            } ~ path("deleted-routes" / Rest) { deletedBefore =>
+              getDeletedRoutes(authenticatedUser, deletedBefore)
             }
           }
         } ~ path("status") {

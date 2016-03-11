@@ -1,7 +1,5 @@
 package org.zalando.spearheads.innkeeper.routes
 
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 import akka.http.scaladsl.model.{MediaTypes, HttpEntity, HttpResponse}
 import akka.http.scaladsl.server.Directives.{reject, complete, get}
 import akka.http.scaladsl.server.Route
@@ -15,8 +13,7 @@ import org.zalando.spearheads.innkeeper.oauth.{AuthenticatedUser, Scopes}
 import org.zalando.spearheads.innkeeper.services.RoutesService
 import org.zalando.spearheads.innkeeper.api.JsonProtocols._
 import spray.json.DefaultJsonProtocol._
-import scala.util.Try
-import org.zalando.spearheads.innkeeper.routes.GetUpdatedRoutes.urlDateTimeFormatter
+import org.zalando.spearheads.innkeeper.routes.RequestParameters.dateTimeParameter
 
 /**
  * @author dpersa
@@ -33,7 +30,7 @@ class GetUpdatedRoutes @Inject() (
     get {
       val reqDesc = s"get /updated-routes/$lastModifiedString"
 
-      localDateTimeFromString(lastModifiedString) match {
+      dateTimeParameter(lastModifiedString) match {
         case Some(lastModified) => {
           hasOneOfTheScopes(authenticatedUser, reqDesc)(scopes.READ) {
             metrics.getUpdatedRoutes.time {
@@ -53,11 +50,4 @@ class GetUpdatedRoutes @Inject() (
       }
     }
   }
-
-  private def localDateTimeFromString(lastModified: String): Option[LocalDateTime] =
-    Try(LocalDateTime.from(urlDateTimeFormatter.parse(lastModified))).toOption
-}
-
-object GetUpdatedRoutes {
-  private[routes] val urlDateTimeFormatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME
 }

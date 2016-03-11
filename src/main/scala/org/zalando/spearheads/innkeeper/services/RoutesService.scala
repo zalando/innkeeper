@@ -15,6 +15,7 @@ import spray.json.{pimpAny, pimpString}
 import scala.concurrent.{ExecutionContext, Future}
 
 trait RoutesService {
+
   def create(
     route: RouteIn,
     ownedByTeam: TeamName,
@@ -30,6 +31,9 @@ trait RoutesService {
   def allRoutes: Source[RouteOut, NotUsed]
 
   def findById(id: Long): Future[Result[RouteOut]]
+
+  def findDeletedBefore(deletedBefore: LocalDateTime): Source[RouteOut, NotUsed]
+
 }
 
 class DefaultRoutesService @Inject() (
@@ -104,6 +108,14 @@ class DefaultRoutesService @Inject() (
       case Some(routeRow) if routeRow.deletedAt.isEmpty => rowToEventualMaybeRoute(routeRow)
       case _                                            => Future(Failure(NotFound))
     }
+  }
+
+  override def findDeletedBefore(dateTime: LocalDateTime): Source[RouteOut, NotUsed] = {
+    Source.fromPublisher(routesRepo.selectDeletedBefore(dateTime).mapResult { routeRow =>
+      routeRow.id.map { id =>
+        routeRowToRoute(id, routeRow)
+      }
+    }).mapConcat(_.toList)
   }
 
   private def rowToEventualMaybeRoute(routeRow: RouteRow): Future[Result[RouteOut]] = routeRow.id match {

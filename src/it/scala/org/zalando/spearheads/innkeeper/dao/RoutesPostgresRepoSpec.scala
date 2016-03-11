@@ -9,8 +9,9 @@ import akka.stream.scaladsl.Source
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.time.{Seconds, Span}
 import org.scalatest.{BeforeAndAfter, FunSpec, Matchers}
+import org.zalando.spearheads.innkeeper.api.RouteName
 import org.zalando.spearheads.innkeeper.routes.RoutesRepoHelper
-import RoutesRepoHelper.{insertRoute, routeJson, sampleRoute}
+import RoutesRepoHelper.{insertRoute, routeJson, sampleRoute, deleteRoute}
 import org.zalando.spearheads.innkeeper.routes.RoutesRepoHelper
 import slick.backend.DatabasePublisher
 import slick.jdbc.meta.MTable
@@ -153,6 +154,35 @@ class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers w
             routes.map(_.id.get).toSet should be(Set(3))
           }
         }
+
+        describe("#selectDeletedBefore") {
+          it("should select nothing if there are no deleted routes") {
+            insertRoute("R1")
+            insertRoute("R2")
+
+            val dateTime: LocalDateTime = LocalDateTime.now().plusHours(1L)
+            val routes: List[RouteRow] = routesRepo.selectDeletedBefore(dateTime)
+
+            routes.size should be (0)
+          }
+
+          it("should select only routes that were deleted before the specified date") {
+            val insertedRoutes = Seq(insertRoute("R1"), insertRoute("R2"), insertRoute("R3"))
+
+            val now = LocalDateTime.now()
+            val lastDeletedAt = insertedRoutes.zipWithIndex
+              .map(routeRowWithIndex => {
+                val deletedAt = now.plusHours(routeRowWithIndex._2 + 1)
+                routeRowWithIndex._1.id.foreach(id => deleteRoute(id, Some(deletedAt)))
+                deletedAt
+              }).last
+
+            val routes: List[RouteRow] = routesRepo.selectDeletedBefore(lastDeletedAt)
+
+            routes.size should be (2)
+            routes.map(_.name) should contain theSameElementsAs Seq("R1", "R2")
+          }
+        }
       }
 
       describe("delete") {
@@ -180,14 +210,15 @@ class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers w
           insertRoute("1")
           insertRoute("2")
 
-          routesRepo.delete(1).futureValue
-          val deletedAt = getDeletedAtForRoute(1)
+          val expectedDeletedAt = LocalDateTime.now()
+          routesRepo.delete(1, Some(expectedDeletedAt)).futureValue
+
           // delete the route again
-          routesRepo.delete(1).futureValue
+          routesRepo.delete(1, Some(expectedDeletedAt.plusHours(1L))).futureValue
 
-          val deletedAtAfterSecondDelete = getDeletedAtForRoute(1)
+          val deletedAt = getDeletedAtForRoute(1)
 
-          deletedAtAfterSecondDelete should be(deletedAt)
+          deletedAt should be (expectedDeletedAt)
         }
       }
     }
