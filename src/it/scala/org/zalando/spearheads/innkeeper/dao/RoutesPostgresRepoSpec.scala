@@ -163,7 +163,7 @@ class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers w
             val dateTime: LocalDateTime = LocalDateTime.now().plusHours(1L)
             val routes: List[RouteRow] = routesRepo.selectDeletedBefore(dateTime)
 
-            routes.size shouldBe 0
+            routes.size should be (0)
           }
 
           it("should select only routes that were deleted before the specified date") {
@@ -179,7 +179,7 @@ class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers w
 
             val routes: List[RouteRow] = routesRepo.selectDeletedBefore(lastDeletedAt)
 
-            routes.size shouldBe 2
+            routes.size should be (2)
             routes.map(_.name) should contain theSameElementsAs Seq("R1", "R2")
           }
         }
@@ -218,7 +218,7 @@ class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers w
 
           val deletedAt = getDeletedAtForRoute(1)
 
-          deletedAt shouldBe expectedDeletedAt
+          deletedAt should be (expectedDeletedAt)
         }
       }
     }

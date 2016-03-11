@@ -29,12 +29,12 @@ class GetDeletedRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
         insertRoute("R2")
 
         val response = getDeletedRoutes(LocalDateTime.now(), READ_TOKEN)
-        response.status shouldBe StatusCodes.OK
+        response.status should be (StatusCodes.OK)
 
         val entity = entityString(response)
 
         val deletedRoutes = entity.parseJson.convertTo[Seq[RouteOut]]
-        deletedRoutes.size shouldBe 0
+        deletedRoutes.size should be (0)
       }
 
       it("should return only deleted routes") {
@@ -46,13 +46,13 @@ class GetDeletedRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
         insertedRoute2.id.foreach(id => deleteRoute(id))
 
         val response = getDeletedRoutes(LocalDateTime.now().plusHours(1L), READ_TOKEN)
-        response.status shouldBe StatusCodes.OK
+        response.status should be (StatusCodes.OK)
 
         val entity = entityString(response)
 
         val deletedRoutes = entity.parseJson.convertTo[Seq[RouteOut]]
 
-        deletedRoutes.size shouldBe 2
+        deletedRoutes.size should be (2)
         deletedRoutes.map(_.name) should contain theSameElementsAs Seq(RouteName("R1"), RouteName("R2"))
       }
 
@@ -63,19 +63,19 @@ class GetDeletedRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
       it("should return 401 if token was not provided") {
         val response = getDeletedRoutes(LocalDateTime.now())
 
-        response.status shouldBe StatusCodes.Unauthorized
+        response.status should be (StatusCodes.Unauthorized)
       }
 
       it("should return 403 if wrong token was provided") {
         val response = getDeletedRoutes(LocalDateTime.now(), INVALID_TOKEN)
 
-        response.status shouldBe StatusCodes.Forbidden
+        response.status should be (StatusCodes.Forbidden)
       }
 
       it("should return 400 if wrong date was provided") {
         val response = getDeletedRoutes("test", READ_TOKEN)
 
-        response.status shouldBe StatusCodes.BadRequest
+        response.status should be (StatusCodes.BadRequest)
       }
 
     }
