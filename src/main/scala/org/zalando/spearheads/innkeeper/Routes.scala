@@ -26,7 +26,7 @@ class Routes @Inject() (
     getUpdatedRoutes: GetUpdatedRoutes,
     getDeletedRoutes: GetDeletedRoutes,
     metrics: RouteMetrics,
-    authService: AuthService,
+    implicit val authService: AuthService,
     implicit val executionContext: ExecutionContext) {
 
   private val logger = LoggerFactory.getLogger(this.getClass)
@@ -37,7 +37,7 @@ class Routes @Inject() (
         val reqDesc = s"${req.method.toString()} ${req.uri.path.toString()}"
 
         authenticationToken(reqDesc) { token =>
-          authenticate(token, reqDesc, authService) { authenticatedUser =>
+          authenticate(token, reqDesc, { authenticatedUser =>
             logger.debug(s"$reqDesc AuthenticatedUser: $authenticatedUser")
 
             path("updated-routes" / Rest) { lastModifiedString =>
@@ -49,7 +49,7 @@ class Routes @Inject() (
             } ~ path("deleted-routes" / Rest) { deletedBefore =>
               getDeletedRoutes(authenticatedUser, deletedBefore)
             }
-          }
+          })
         } ~ path("status") {
           complete("Ok")
         } ~ path("metrics") {

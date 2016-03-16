@@ -3,19 +3,22 @@ package org.zalando.spearheads.innkeeper.services.team
 import java.time.LocalDateTime
 import akka.http.scaladsl.model.HttpMethods
 import org.scalamock.scalatest.MockFactory
+import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.{FunSpec, Matchers}
 import org.zalando.spearheads.innkeeper.api._
 import org.zalando.spearheads.innkeeper.services.ServiceResult
 import org.zalando.spearheads.innkeeper.services.ServiceResult.NotFound
 import org.zalando.spearheads.innkeeper.utils.{EnvConfig, HttpClient}
+import spray.json.JsonParser.ParsingException
 import spray.json.pimpString
 
+import scala.concurrent.{Future, ExecutionContext}
 import scala.util.Try
 
 /**
  * @author dpersa
  */
-class ZalandoTeamServiceSpec extends FunSpec with MockFactory with Matchers {
+class ZalandoTeamServiceSpec extends FunSpec with MockFactory with Matchers with ScalaFutures {
 
   val mockConfig = mock[EnvConfig]
 
@@ -25,7 +28,7 @@ class ZalandoTeamServiceSpec extends FunSpec with MockFactory with Matchers {
 
     describe("#routeHasTeam") {
       (mockConfig.getStringSet _).expects("admin.teams").returning(Set("team_admin"))
-      val teamService = new ZalandoTeamService(mockConfig, mockHttpClient)
+      val teamService = new ZalandoTeamService(mockConfig, mockHttpClient, null)
 
       val now = LocalDateTime.now()
       val route = RouteOut(1, RouteName("name"), NewRoute(Matcher(pathMatcher = Some(RegexPathMatcher("/test-*")))),
@@ -55,7 +58,7 @@ class ZalandoTeamServiceSpec extends FunSpec with MockFactory with Matchers {
 
     describe("#isAdminTeam") {
       (mockConfig.getStringSet _).expects("admin.teams").returning(Set("team_admin1", "team_admin2"))
-      val teamService = new ZalandoTeamService(mockConfig, mockHttpClient)
+      val teamService = new ZalandoTeamService(mockConfig, mockHttpClient, null)
 
       describe("success") {
 
@@ -75,9 +78,10 @@ class ZalandoTeamServiceSpec extends FunSpec with MockFactory with Matchers {
       val token = "the-token"
       val username = "user"
       val teamJson = """[{"id":"pathfinder","type":"official"}]"""
+      implicit val executionContext = ExecutionContext.global
 
       (mockConfig.getStringSet _).expects("admin.teams").returning(Set("team_admin"))
-      val teamService = new ZalandoTeamService(mockConfig, mockHttpClient)
+      val teamService = new ZalandoTeamService(mockConfig, mockHttpClient, executionContext)
 
       describe("success") {
 
@@ -85,9 +89,9 @@ class ZalandoTeamServiceSpec extends FunSpec with MockFactory with Matchers {
           (mockConfig.getString _).expects("team.member.service.url").returning(teamMemberServiceUrl)
 
           (mockHttpClient.callJson _).expects(s"$teamMemberServiceUrl$username", Some(token), HttpMethods.GET)
-            .returning(Try(teamJson.parseJson))
+            .returning(Future(teamJson.parseJson))
 
-          teamService.getForUsername(username, token) should be(ServiceResult.Success(Team("pathfinder", Official)))
+          teamService.getForUsername(username, token).futureValue should be(ServiceResult.Success(Team("pathfinder", Official)))
         }
 
       }
@@ -100,11 +104,12 @@ class ZalandoTeamServiceSpec extends FunSpec with MockFactory with Matchers {
             (mockConfig.getString _).expects("team.member.service.url").returning(teamMemberServiceUrl)
 
             (mockHttpClient.callJson _).expects(s"$teamMemberServiceUrl$username", Some(token), HttpMethods.GET)
-              .returning(Try("""[zzz""".parseJson))
+              .returning(Future("""[zzz""".parseJson))
 
-            teamService.getForUsername(username, token).isInstanceOf[ServiceResult.Failure] should be (true)
+            intercept[Exception] {
+              teamService.getForUsername(username, token).onFailure(throw new Exception())
+            }
           }
-
         }
 
         describe("when the json can't be deserialized") {
@@ -114,9 +119,9 @@ class ZalandoTeamServiceSpec extends FunSpec with MockFactory with Matchers {
 
             // missing team id
             (mockHttpClient.callJson _).expects(s"$teamMemberServiceUrl$username", Some(token), HttpMethods.GET)
-              .returning(Try("""[{"type":"official"}]""".parseJson))
+              .returning(Future("""[{"type":"official"}]""".parseJson))
 
-            teamService.getForUsername(username, token).isInstanceOf[ServiceResult.Failure] should be (true)
+            teamService.getForUsername(username, token).futureValue.isInstanceOf[ServiceResult.Failure] should be (true)
           }
 
         }
@@ -128,9 +133,9 @@ class ZalandoTeamServiceSpec extends FunSpec with MockFactory with Matchers {
 
             // virtual team
             (mockHttpClient.callJson _).expects(s"$teamMemberServiceUrl$username", Some(token), HttpMethods.GET)
-              .returning(Try("""[{"id":"pathfinder","type":"virtual"}]""".parseJson))
+              .returning(Future("""[{"id":"pathfinder","type":"virtual"}]""".parseJson))
 
-            teamService.getForUsername(username, token) should be (ServiceResult.Failure(NotFound))
+            teamService.getForUsername(username, token).futureValue should be (ServiceResult.Failure(NotFound))
           }
 
         }

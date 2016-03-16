@@ -1,6 +1,5 @@
 package org.zalando.spearheads.innkeeper.services.team
 
-import java.util.NoSuchElementException
 import com.google.inject.Inject
 import org.slf4j.LoggerFactory
 import org.zalando.spearheads.innkeeper.api.RouteOut
@@ -9,6 +8,7 @@ import org.zalando.spearheads.innkeeper.services.ServiceResult.{Ex, NotFound, Re
 import org.zalando.spearheads.innkeeper.services.team.TeamJsonProtocol._
 import org.zalando.spearheads.innkeeper.utils.{TeamServiceClient, EnvConfig, HttpClient}
 import scala.collection.immutable.Seq
+import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Try, Failure, Success}
 
 /**
@@ -20,32 +20,35 @@ trait TeamService {
 
   def isAdminTeam(team: Team): Boolean
 
-  def getForUsername(username: String, token: String): Result[Team]
-
+  def getForUsername(username: String, token: String): Future[Result[Team]]
 }
 
 class ZalandoTeamService @Inject() (
     config: EnvConfig,
-    @TeamServiceClient() httpClient: HttpClient) extends TeamService {
+    @TeamServiceClient() httpClient: HttpClient,
+    implicit val executionContext: ExecutionContext) extends TeamService {
 
   val logger = LoggerFactory.getLogger(this.getClass)
 
   val adminTeams = config.getStringSet("admin.teams")
 
-  override def getForUsername(username: String, token: String): Result[Team] = {
-    (for {
-      json <- httpClient.callJson(url(username), Some(token))
-      teams <- Try { json.convertTo[Seq[Team]] }
-      officialTeam <- Try { teams.filter(_.teamType == Official).head }
-    } yield officialTeam) match {
-      case Success(officialTeam) => ServiceResult.Success(officialTeam)
-      case Failure(ex: NoSuchElementException) => {
-        logger.debug("No official team found for username: ", username)
-        ServiceResult.Failure(NotFound)
-      }
-      case Failure(ex) => {
-        logger.error("TeamService.getForUsername failed with {}", ex)
-        ServiceResult.Failure(Ex(ex))
+  override def getForUsername(username: String, token: String): Future[Result[Team]] = {
+
+    httpClient.callJson(url(username), Some(token)).map { json =>
+      Try {
+        json.convertTo[Seq[Team]]
+      } match {
+        case Success(teams) =>
+          teams.filter(_.teamType == Official).headOption match {
+            case Some(team) => ServiceResult.Success(team)
+            case None => {
+              logger.debug("No official team found for username: ", username)
+              ServiceResult.Failure(NotFound)
+            }
+          }
+        case Failure(ex) =>
+          logger.error(s"TeamService unmarshalling failed with exception $ex")
+          ServiceResult.Failure(Ex(ex))
       }
     }
   }
