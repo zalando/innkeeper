@@ -2,7 +2,7 @@ import com.typesafe.sbt.SbtScalariform.{ScalariformKeys, _}
 import com.typesafe.sbt.packager.archetypes.JavaAppPackaging
 import sbt.dsl._
 import spray.revolver.RevolverPlugin.Revolver
-
+import io.gatling.sbt.GatlingPlugin
 import scalariform.formatter.preferences.{SpacesAroundMultiImports, PreserveSpaceBeforeArguments, Preserve, Prevent, DanglingCloseParenthesis, AlignArguments, AlignSingleLineCaseStatements, DoubleIndentClassDeclaration, AlignParameters}
 
 name := """innkeeper"""
@@ -48,7 +48,9 @@ libraryDependencies ++= List(
   "org.scalatest"           %% "scalatest"                            % scalaTestV       % "it,test",
   "org.scalamock"           %% "scalamock-scalatest-support"          % scalaMockV       % "it,test",
   "com.typesafe.akka"       %% "akka-http-testkit"                    % akkaStreamV      % "it,test",
-  "com.typesafe.akka"       %% "akka-stream-testkit"                  % akkaStreamV      % "it,test"
+  "com.typesafe.akka"       %% "akka-stream-testkit"                  % akkaStreamV      % "it,test",
+  "io.gatling.highcharts"    % "gatling-charts-highcharts"            % "2.1.7"          % "it",
+  "io.gatling"               % "gatling-test-framework"               % "2.1.7"          % "it"
 )
 
 lazy val root = project.in(file(".")).configs(IntegrationTest)
@@ -56,7 +58,7 @@ Defaults.itSettings
 scalariformSettingsWithIt
 Revolver.settings
 
-enablePlugins(JavaAppPackaging)
+enablePlugins(JavaAppPackaging, GatlingPlugin)
 
 ScalariformKeys.preferences := ScalariformKeys.preferences.value
   .setPreference(AlignSingleLineCaseStatements, true)
