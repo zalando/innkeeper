@@ -47,8 +47,7 @@ trait OAuthDirectives {
   }
 
   def teamAuthorization(team: Team, route: RouteOut, requestDescription: String)(implicit teamService: TeamService): Directive0 = {
-    // TODO make it configurable
-    if (team.name == "pathfinder" || teamService.routeHasTeam(route, team)) {
+    if (teamService.isAdminTeam(team) || teamService.routeHasTeam(route, team)) {
       pass
     } else {
       reject(IncorrectTeamRejection(requestDescription))

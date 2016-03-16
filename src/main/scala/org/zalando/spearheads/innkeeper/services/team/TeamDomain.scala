@@ -5,7 +5,7 @@ package org.zalando.spearheads.innkeeper.services.team
  */
 case class Team(name: String, teamType: TeamType)
 
-trait TeamType
+sealed trait TeamType
 
 case object Official extends TeamType
 

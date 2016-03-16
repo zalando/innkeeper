@@ -18,7 +18,10 @@ trait TeamService {
 
   def routeHasTeam(route: RouteOut, team: Team): Boolean
 
+  def isAdminTeam(team: Team): Boolean
+
   def getForUsername(username: String, token: String): Result[Team]
+
 }
 
 class ZalandoTeamService @Inject() (
@@ -27,8 +30,9 @@ class ZalandoTeamService @Inject() (
 
   val logger = LoggerFactory.getLogger(this.getClass)
 
-  override def getForUsername(username: String, token: String): Result[Team] = {
+  val adminTeams = config.getStringSet("admin.teams")
 
+  override def getForUsername(username: String, token: String): Result[Team] = {
     (for {
       json <- httpClient.callJson(url(username), Some(token))
       teams <- Try { json.convertTo[Seq[Team]] }
@@ -46,11 +50,10 @@ class ZalandoTeamService @Inject() (
     }
   }
 
-  override def routeHasTeam(
-    route: RouteOut,
-    team: Team): Boolean = route.ownedByTeam.name == team.name
+  override def routeHasTeam(route: RouteOut, team: Team): Boolean = route.ownedByTeam.name == team.name
 
-  private def TEAM_MEMBER_SERVICE_URL = config.getString("team.member.service.url")
+  private def url(username: String) = config.getString("team.member.service.url") + username
 
-  private def url(username: String) = TEAM_MEMBER_SERVICE_URL + username
+  override def isAdminTeam(team: Team): Boolean = adminTeams.contains(team.name)
+
 }
