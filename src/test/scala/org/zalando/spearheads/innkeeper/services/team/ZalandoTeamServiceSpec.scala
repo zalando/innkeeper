@@ -4,7 +4,7 @@ import java.time.LocalDateTime
 import akka.http.scaladsl.model.HttpMethods
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.{FunSpec, Matchers}
-import org.zalando.spearheads.innkeeper.api.{UserName, RouteName, RouteOut, TeamName}
+import org.zalando.spearheads.innkeeper.api._
 import org.zalando.spearheads.innkeeper.services.ServiceResult
 import org.zalando.spearheads.innkeeper.services.ServiceResult.NotFound
 import org.zalando.spearheads.innkeeper.utils.{EnvConfig, HttpClient}
@@ -17,21 +17,28 @@ import scala.util.Try
  */
 class ZalandoTeamServiceSpec extends FunSpec with MockFactory with Matchers {
 
+  val mockConfig = mock[EnvConfig]
+
+  val mockHttpClient = mock[HttpClient]
+
   describe("ZalandoTeamServiceSpec") {
 
     describe("#routeHasTeam") {
+      (mockConfig.getStringSet _).expects("admin.teams").returning(Set("team_admin"))
+      val teamService = new ZalandoTeamService(mockConfig, mockHttpClient)
 
-      val teamService = new ZalandoTeamService(null, null)
-      val route = RouteOut(1, RouteName("name"), null, LocalDateTime.now(),
-        LocalDateTime.now(), TeamName("pathfinder"), UserName("gigel"))
+      val now = LocalDateTime.now()
+      val route = RouteOut(1, RouteName("name"), NewRoute(Matcher(pathMatcher = Some(RegexPathMatcher("/test-*")))),
+        now, now, TeamName("pathfinder"), UserName("gigel"))
 
       val team = Team("pathfinder", Official)
 
       describe("success") {
 
         it("should return true") {
-          teamService.routeHasTeam(route, team) should be(true)
+          teamService.routeHasTeam(route, team) should be (true)
         }
+
       }
 
       describe("failure") {
@@ -39,35 +46,50 @@ class ZalandoTeamServiceSpec extends FunSpec with MockFactory with Matchers {
         describe("when the user is not part of the team which created the route") {
 
           it("should return false") {
-            teamService.routeHasTeam(route.copy(ownedByTeam = TeamName("other")), team) should be(false)
+            teamService.routeHasTeam(route.copy(ownedByTeam = TeamName("other")), team) should be (false)
           }
+
         }
       }
     }
 
-    describe("#getForUsername") {
+    describe("#isAdminTeam") {
+      (mockConfig.getStringSet _).expects("admin.teams").returning(Set("team_admin1", "team_admin2"))
+      val teamService = new ZalandoTeamService(mockConfig, mockHttpClient)
 
-      val TEAM_MEMBER_SERVICE_URL = "http://team.com/member="
-      val TOKEN = "the-token"
-      val USERNAME = "user"
+      describe("success") {
+
+        it("should return true if team belongs to admin teams") {
+          teamService.isAdminTeam(Team("team_admin1", Official)) should be (true)
+        }
+
+        it("should return false if doesn't belong to admin teams") {
+          teamService.isAdminTeam(Team("team_user", Official)) should be (false)
+        }
+
+      }
+    }
+
+    describe("#getForUsername") {
+      val teamMemberServiceUrl = "http://team.com/member="
+      val token = "the-token"
+      val username = "user"
       val teamJson = """[{"id":"pathfinder","type":"official"}]"""
 
-      val config = mock[EnvConfig]
-      val httpClient = mock[HttpClient]
-      val teamService = new ZalandoTeamService(config, httpClient)
+      (mockConfig.getStringSet _).expects("admin.teams").returning(Set("team_admin"))
+      val teamService = new ZalandoTeamService(mockConfig, mockHttpClient)
 
       describe("success") {
 
         it("should return the team") {
-          (config.getString _).expects("team.member.service.url")
-            .returning(TEAM_MEMBER_SERVICE_URL)
+          (mockConfig.getString _).expects("team.member.service.url").returning(teamMemberServiceUrl)
 
-          (httpClient.callJson _).expects(s"${TEAM_MEMBER_SERVICE_URL}$USERNAME", Some(TOKEN), HttpMethods.GET)
+          (mockHttpClient.callJson _).expects(s"$teamMemberServiceUrl$username", Some(token), HttpMethods.GET)
             .returning(Try(teamJson.parseJson))
 
-          teamService.getForUsername(USERNAME, TOKEN) should
-            be(ServiceResult.Success(Team("pathfinder", Official)))
+          teamService.getForUsername(username, token) should be(ServiceResult.Success(Team("pathfinder", Official)))
         }
+
       }
 
       describe("failure") {
@@ -75,42 +97,42 @@ class ZalandoTeamServiceSpec extends FunSpec with MockFactory with Matchers {
         describe("malformed json") {
 
           it("should return a failure") {
-            (config.getString _).expects("team.member.service.url")
-              .returning(TEAM_MEMBER_SERVICE_URL)
+            (mockConfig.getString _).expects("team.member.service.url").returning(teamMemberServiceUrl)
 
-            (httpClient.callJson _).expects(s"${TEAM_MEMBER_SERVICE_URL}$USERNAME", Some(TOKEN), HttpMethods.GET)
+            (mockHttpClient.callJson _).expects(s"$teamMemberServiceUrl$username", Some(token), HttpMethods.GET)
               .returning(Try("""[zzz""".parseJson))
 
-            teamService.getForUsername(USERNAME, TOKEN).isInstanceOf[ServiceResult.Failure] should be(true)
+            teamService.getForUsername(username, token).isInstanceOf[ServiceResult.Failure] should be (true)
           }
+
         }
 
         describe("when the json can't be deserialized") {
 
           it("should return a failure") {
-            (config.getString _).expects("team.member.service.url")
-              .returning(TEAM_MEMBER_SERVICE_URL)
+            (mockConfig.getString _).expects("team.member.service.url").returning(teamMemberServiceUrl)
 
             // missing team id
-            (httpClient.callJson _).expects(s"${TEAM_MEMBER_SERVICE_URL}$USERNAME", Some(TOKEN), HttpMethods.GET)
+            (mockHttpClient.callJson _).expects(s"$teamMemberServiceUrl$username", Some(token), HttpMethods.GET)
               .returning(Try("""[{"type":"official"}]""".parseJson))
 
-            teamService.getForUsername(USERNAME, TOKEN).isInstanceOf[ServiceResult.Failure] should be(true)
+            teamService.getForUsername(username, token).isInstanceOf[ServiceResult.Failure] should be (true)
           }
+
         }
 
         describe("when there is no official team") {
 
           it("should return a failure") {
-            (config.getString _).expects("team.member.service.url")
-              .returning(TEAM_MEMBER_SERVICE_URL)
+            (mockConfig.getString _).expects("team.member.service.url").returning(teamMemberServiceUrl)
 
             // virtual team
-            (httpClient.callJson _).expects(s"${TEAM_MEMBER_SERVICE_URL}$USERNAME", Some(TOKEN), HttpMethods.GET)
+            (mockHttpClient.callJson _).expects(s"$teamMemberServiceUrl$username", Some(token), HttpMethods.GET)
               .returning(Try("""[{"id":"pathfinder","type":"virtual"}]""".parseJson))
 
-            teamService.getForUsername(USERNAME, TOKEN) should be(ServiceResult.Failure(NotFound))
+            teamService.getForUsername(username, token) should be (ServiceResult.Failure(NotFound))
           }
+
         }
       }
     }

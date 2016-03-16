@@ -6,7 +6,7 @@ import scala.collection.JavaConversions._
 import scala.util.Try
 
 /**
- * Tries to get a config depedent on the current environment.
+ * Tries to get a config dependent on the current environment.
  *
  * If it can't find it in the current environment, it will fallback to the default config
  *
@@ -20,6 +20,7 @@ trait EnvConfig {
   def getInt(key: String): Int
 
   def getStringSet(key: String): Set[String]
+
 }
 
 class InnkeeperEnvConfig @Inject() (val config: Config) extends EnvConfig {
