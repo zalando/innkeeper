@@ -19,6 +19,7 @@ import org.zalando.spearheads.innkeeper.services.{ServiceResult, RoutesService}
 import org.zalando.spearheads.innkeeper.api.JsonProtocols._
 import spray.json.DefaultJsonProtocol._
 
+import scala.concurrent.ExecutionContext
 import scala.util.{Failure, Success}
 
 /**
@@ -28,7 +29,8 @@ class DeleteDeletedRoutes @Inject() (
     routesService: RoutesService,
     metrics: RouteMetrics,
     scopes: Scopes,
-    teamService: TeamService,
+    implicit val teamService: TeamService,
+    implicit val executionContext: ExecutionContext,
     implicit val materializer: ActorMaterializer) {
 
   private val logger = LoggerFactory.getLogger(this.getClass)
@@ -40,11 +42,11 @@ class DeleteDeletedRoutes @Inject() (
       dateTimeParameter(deletedBefore) match {
         case Some(dateTime) =>
           hasOneOfTheScopes(authenticatedUser, requestDescription)(scopes.WRITE_REGEX) {
-            team(authenticatedUser, token, requestDescription)(teamService) { team =>
+            team(authenticatedUser, token, requestDescription, { team =>
               isAdminTeam(team, requestDescription)(teamService) {
                 removeDeleteBeforeRoutes(authenticatedUser, dateTime, requestDescription)
               } ~ reject(InnkeeperAuthorizationFailedRejection(requestDescription))
-            }
+            })
           }
         case None =>
           reject(InvalidDateTimeRejection(requestDescription))
