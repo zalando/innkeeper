@@ -35,7 +35,7 @@ class PostRoutes @Inject() (
       logger.info(s"try to $reqDesc")
       entity(as[RouteIn]) { route =>
         logger.debug(s"We Try to $reqDesc unmarshalled route ${route}")
-        team(authenticatedUser, token, "path", team => {
+        team(authenticatedUser, token, "path") { team =>
           logger.debug(s"post /routes team ${team}")
           (isStrictRoute(route.route) & hasOneOfTheScopes(authenticatedUser, s"$reqDesc strict")(scopes.WRITE_STRICT, scopes.WRITE_REGEX)) {
 
@@ -50,7 +50,7 @@ class PostRoutes @Inject() (
             handleWith(saveRoute(UserName(authenticatedUser.username), TeamName(team.name), s"$reqDesc other"))
 
           } ~ reject(AuthorizationFailedRejection)
-        })
+        }
       } ~ {
         reject(UnmarshallRejection(reqDesc))
       }

@@ -24,7 +24,7 @@ trait OAuthDirectives {
   def authenticationToken(requestDescription: String): Directive1[String] =
     headerValue(authorization()) | reject(CredentialsMissingRejection(requestDescription))
 
-  def authenticate(token: String, requestDescription: String, authUserToRoute: AuthenticatedUser => Route)(implicit authService: AuthService, executionContext: ExecutionContext): Route = {
+  def authenticate(token: String, requestDescription: String)(authUserToRoute: AuthenticatedUser => Route)(implicit authService: AuthService, executionContext: ExecutionContext): Route = {
 
     onComplete(authService.authenticate(token)) {
       case Success(userResult) => userResult match {
@@ -47,7 +47,7 @@ trait OAuthDirectives {
     }
   }
 
-  def team(authenticatedUser: AuthenticatedUser, token: String, requestDescription: String, teamToRoute: (Team => Route))(implicit teamService: TeamService, executionContext: ExecutionContext): Route = {
+  def team(authenticatedUser: AuthenticatedUser, token: String, requestDescription: String)(teamToRoute: Team => Route)(implicit teamService: TeamService, executionContext: ExecutionContext): Route = {
 
     authenticatedUser.username match {
       case Some(username) =>

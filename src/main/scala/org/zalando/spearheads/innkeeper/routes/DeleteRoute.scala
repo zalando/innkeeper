@@ -41,7 +41,7 @@ class DeleteRoute @Inject() (
         findRoute(id, routesService, "delete /routes/{}")(executionContext) { route =>
           logger.debug("try to delete /routes/{} route found {}", id, route)
 
-          team(authenticatedUser, token, reqDesc, { team =>
+          team(authenticatedUser, token, reqDesc) { team =>
 
             logger.debug("try to delete /routes/{} team found {}", id, team)
 
@@ -58,7 +58,7 @@ class DeleteRoute @Inject() (
               deleteRoute(id, s"$reqDesc other")
 
             } ~ reject(InnkeeperAuthorizationFailedRejection(reqDesc))
-          })
+          }
         }
       }
     }
