@@ -45,9 +45,10 @@ class ZalandoTeamService @Inject() (
               ServiceResult.Failure(NotFound)
             }
           }
-        case Failure(ex) =>
+        case Failure(ex) => {
           logger.error(s"TeamService unmarshalling failed with exception $ex")
           ServiceResult.Failure(Ex(ex))
+        }
       }
     }
   }

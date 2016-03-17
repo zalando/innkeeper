@@ -7,8 +7,7 @@ import org.scalatest.{FunSpec, Matchers}
 import org.zalando.spearheads.innkeeper.services.ServiceResult
 import org.zalando.spearheads.innkeeper.utils.{EnvConfig, HttpClient}
 import spray.json.pimpString
-
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.global
 
 /**
@@ -37,7 +36,7 @@ class OAuthServiceSpec extends FunSpec with MockFactory with Matchers with Scala
           .returning(Future("""{"scope":["read","write"],"realm":"/employees"}""".parseJson))
 
         authService.authenticate(TOKEN).futureValue should
-          be(ServiceResult.Success(AuthenticatedUser(Scope(Set("read", "write")), Realms.EMPLOYEES)))
+          be (ServiceResult.Success(AuthenticatedUser(Scope(Set("read", "write")), Realms.EMPLOYEES)))
       }
     }
 

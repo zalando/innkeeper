@@ -11,6 +11,7 @@ import org.zalando.spearheads.innkeeper.services.ServiceResult.NotFound
 import org.zalando.spearheads.innkeeper.utils.{EnvConfig, HttpClient}
 import spray.json.pimpString
 import scala.concurrent.{Future, ExecutionContext}
+import scala.language.postfixOps
 
 /**
  * @author dpersa
