@@ -1,17 +1,14 @@
 package org.zalando.spearheads.innkeeper.routes
 
-import akka.http.scaladsl
 import akka.http.scaladsl.model.StatusCodes
-import akka.http.scaladsl.server
 import akka.http.scaladsl.server.Directives.{onComplete, reject, delete, complete}
-import akka.http.scaladsl.server.{AuthorizationFailedRejection, Route}
+import akka.http.scaladsl.server.Route
 import com.google.inject.Inject
 import org.slf4j.LoggerFactory
-import org.zalando.spearheads.innkeeper.Rejections.InnkeeperAuthorizationFailedRejection
+import org.zalando.spearheads.innkeeper.Rejections.{InnkeeperAuthorizationFailedRejection}
 import org.zalando.spearheads.innkeeper.RouteDirectives.{isStrictRoute, isRegexRoute, findRoute}
-import org.zalando.spearheads.innkeeper.api.RouteOut
 import org.zalando.spearheads.innkeeper.metrics.RouteMetrics
-import org.zalando.spearheads.innkeeper.oauth.OAuthDirectives.{teamAuthorization, team, hasOneOfTheScopes}
+import org.zalando.spearheads.innkeeper.oauth.OAuthDirectives.{team, teamAuthorization, hasOneOfTheScopes}
 import org.zalando.spearheads.innkeeper.oauth.{AuthenticatedUser, Scopes}
 import org.zalando.spearheads.innkeeper.services.ServiceResult.NotFound
 import org.zalando.spearheads.innkeeper.services.team.TeamService
@@ -26,11 +23,11 @@ import akka.http.scaladsl.server.RouteConcatenation._
  * @author dpersa
  */
 class DeleteRoute @Inject() (
-    executionContext: ExecutionContext,
     routesService: RoutesService,
     metrics: RouteMetrics,
     scopes: Scopes,
-    implicit val teamService: TeamService) {
+    implicit val teamService: TeamService,
+    implicit val executionContext: ExecutionContext) {
 
   private val logger = LoggerFactory.getLogger(this.getClass)
 
@@ -44,7 +41,8 @@ class DeleteRoute @Inject() (
         findRoute(id, routesService, "delete /routes/{}")(executionContext) { route =>
           logger.debug("try to delete /routes/{} route found {}", id, route)
 
-          team(authenticatedUser, token, reqDesc)(teamService) { team =>
+          team(authenticatedUser, token, reqDesc, { team =>
+
             logger.debug("try to delete /routes/{} team found {}", id, team)
 
             (isStrictRoute(route.route) & teamAuthorization(team, route, reqDesc) & hasOneOfTheScopes(authenticatedUser, reqDesc)(scopes.WRITE_STRICT, scopes.WRITE_REGEX)) {
@@ -60,7 +58,7 @@ class DeleteRoute @Inject() (
               deleteRoute(id, s"$reqDesc other")
 
             } ~ reject(InnkeeperAuthorizationFailedRejection(reqDesc))
-          }
+          })
         }
       }
     }
