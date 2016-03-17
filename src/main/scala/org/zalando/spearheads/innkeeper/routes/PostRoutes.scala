@@ -5,7 +5,7 @@ import akka.http.scaladsl.server.Directives.{reject, handleWith, as, entity, pos
 import akka.http.scaladsl.server.{AuthorizationFailedRejection, Route}
 import com.google.inject.Inject
 import org.slf4j.LoggerFactory
-import org.zalando.spearheads.innkeeper.Rejections.{InternalServerErrorRejection, UnmarshallRejection}
+import org.zalando.spearheads.innkeeper.Rejections.UnmarshallRejection
 import org.zalando.spearheads.innkeeper.RouteDirectives.{isStrictRoute, isRegexRoute}
 import org.zalando.spearheads.innkeeper.api.{TeamName, UserName, RouteOut, RouteIn}
 import org.zalando.spearheads.innkeeper.metrics.RouteMetrics
@@ -16,7 +16,6 @@ import org.zalando.spearheads.innkeeper.services.team.TeamService
 import org.zalando.spearheads.innkeeper.api.JsonProtocols._
 import akka.http.scaladsl.server.Directives._
 import scala.concurrent.{Future, ExecutionContext}
-import scala.util.{Failure, Success}
 
 /**
  * @author dpersa

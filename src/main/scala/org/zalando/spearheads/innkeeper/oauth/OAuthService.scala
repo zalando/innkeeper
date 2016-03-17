@@ -20,8 +20,7 @@ trait AuthService {
 @Singleton
 class OAuthService @Inject() (
     config: EnvConfig,
-    @OAuthServiceClient() httpClient: HttpClient,
-    implicit val executionContext: ExecutionContext) extends AuthService {
+    @OAuthServiceClient() httpClient: HttpClient)(implicit val executionContext: ExecutionContext) extends AuthService {
 
   val logger = LoggerFactory.getLogger(this.getClass)
 

@@ -1,15 +1,12 @@
 package org.zalando.spearheads.innkeeper.routes
 
-import akka.http.scaladsl
 import akka.http.scaladsl.model.StatusCodes
-import akka.http.scaladsl.server
 import akka.http.scaladsl.server.Directives.{onComplete, reject, delete, complete}
-import akka.http.scaladsl.server.{AuthorizationFailedRejection, Route}
+import akka.http.scaladsl.server.Route
 import com.google.inject.Inject
 import org.slf4j.LoggerFactory
-import org.zalando.spearheads.innkeeper.Rejections.{InternalServerErrorRejection, InnkeeperAuthorizationFailedRejection}
+import org.zalando.spearheads.innkeeper.Rejections.{InnkeeperAuthorizationFailedRejection}
 import org.zalando.spearheads.innkeeper.RouteDirectives.{isStrictRoute, isRegexRoute, findRoute}
-import org.zalando.spearheads.innkeeper.api.RouteOut
 import org.zalando.spearheads.innkeeper.metrics.RouteMetrics
 import org.zalando.spearheads.innkeeper.oauth.OAuthDirectives.{team, teamAuthorization, hasOneOfTheScopes}
 import org.zalando.spearheads.innkeeper.oauth.{AuthenticatedUser, Scopes}

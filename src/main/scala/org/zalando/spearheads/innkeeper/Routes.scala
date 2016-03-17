@@ -25,8 +25,9 @@ class Routes @Inject() (
     postRoutes: PostRoutes,
     getUpdatedRoutes: GetUpdatedRoutes,
     getDeletedRoutes: GetDeletedRoutes,
-    metrics: RouteMetrics,
-    implicit val authService: AuthService,
+    metrics: RouteMetrics)(
+    implicit
+    val authService: AuthService,
     implicit val executionContext: ExecutionContext) {
 
   private val logger = LoggerFactory.getLogger(this.getClass)

@@ -5,7 +5,7 @@ import akka.http.scaladsl.server.Directives.{reject, complete, get}
 import akka.http.scaladsl.server.Route
 import com.google.inject.Inject
 import org.slf4j.LoggerFactory
-import org.zalando.spearheads.innkeeper.Rejections.{InvalidDateTimeRejection, InvalidRouteNameRejection}
+import org.zalando.spearheads.innkeeper.Rejections.InvalidDateTimeRejection
 import org.zalando.spearheads.innkeeper.api.JsonService
 import org.zalando.spearheads.innkeeper.metrics.RouteMetrics
 import org.zalando.spearheads.innkeeper.oauth.OAuthDirectives.hasOneOfTheScopes

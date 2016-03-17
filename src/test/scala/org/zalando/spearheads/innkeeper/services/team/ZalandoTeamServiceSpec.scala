@@ -9,11 +9,8 @@ import org.zalando.spearheads.innkeeper.api._
 import org.zalando.spearheads.innkeeper.services.ServiceResult
 import org.zalando.spearheads.innkeeper.services.ServiceResult.NotFound
 import org.zalando.spearheads.innkeeper.utils.{EnvConfig, HttpClient}
-import spray.json.JsonParser.ParsingException
 import spray.json.pimpString
-
 import scala.concurrent.{Future, ExecutionContext}
-import scala.util.Try
 
 /**
  * @author dpersa
@@ -24,11 +21,13 @@ class ZalandoTeamServiceSpec extends FunSpec with MockFactory with Matchers with
 
   val mockHttpClient = mock[HttpClient]
 
+  implicit val executionContext = ExecutionContext.global
+
   describe("ZalandoTeamServiceSpec") {
 
     describe("#routeHasTeam") {
       (mockConfig.getStringSet _).expects("admin.teams").returning(Set("team_admin"))
-      val teamService = new ZalandoTeamService(mockConfig, mockHttpClient, null)
+      val teamService = new ZalandoTeamService(mockConfig, mockHttpClient)
 
       val now = LocalDateTime.now()
       val route = RouteOut(1, RouteName("name"), NewRoute(Matcher(pathMatcher = Some(RegexPathMatcher("/test-*")))),
@@ -41,7 +40,6 @@ class ZalandoTeamServiceSpec extends FunSpec with MockFactory with Matchers with
         it("should return true") {
           teamService.routeHasTeam(route, team) should be (true)
         }
-
       }
 
       describe("failure") {
@@ -51,14 +49,13 @@ class ZalandoTeamServiceSpec extends FunSpec with MockFactory with Matchers with
           it("should return false") {
             teamService.routeHasTeam(route.copy(ownedByTeam = TeamName("other")), team) should be (false)
           }
-
         }
       }
     }
 
     describe("#isAdminTeam") {
       (mockConfig.getStringSet _).expects("admin.teams").returning(Set("team_admin1", "team_admin2"))
-      val teamService = new ZalandoTeamService(mockConfig, mockHttpClient, null)
+      val teamService = new ZalandoTeamService(mockConfig, mockHttpClient)
 
       describe("success") {
 
@@ -69,7 +66,6 @@ class ZalandoTeamServiceSpec extends FunSpec with MockFactory with Matchers with
         it("should return false if doesn't belong to admin teams") {
           teamService.isAdminTeam(Team("team_user", Official)) should be (false)
         }
-
       }
     }
 
@@ -78,10 +74,9 @@ class ZalandoTeamServiceSpec extends FunSpec with MockFactory with Matchers with
       val token = "the-token"
       val username = "user"
       val teamJson = """[{"id":"pathfinder","type":"official"}]"""
-      implicit val executionContext = ExecutionContext.global
 
       (mockConfig.getStringSet _).expects("admin.teams").returning(Set("team_admin"))
-      val teamService = new ZalandoTeamService(mockConfig, mockHttpClient, executionContext)
+      val teamService = new ZalandoTeamService(mockConfig, mockHttpClient)
 
       describe("success") {
 
@@ -93,7 +88,6 @@ class ZalandoTeamServiceSpec extends FunSpec with MockFactory with Matchers with
 
           teamService.getForUsername(username, token).futureValue should be(ServiceResult.Success(Team("pathfinder", Official)))
         }
-
       }
 
       describe("failure") {
@@ -123,7 +117,6 @@ class ZalandoTeamServiceSpec extends FunSpec with MockFactory with Matchers with
 
             teamService.getForUsername(username, token).futureValue.isInstanceOf[ServiceResult.Failure] should be (true)
           }
-
         }
 
         describe("when there is no official team") {
@@ -137,7 +130,6 @@ class ZalandoTeamServiceSpec extends FunSpec with MockFactory with Matchers with
 
             teamService.getForUsername(username, token).futureValue should be (ServiceResult.Failure(NotFound))
           }
-
         }
       }
     }

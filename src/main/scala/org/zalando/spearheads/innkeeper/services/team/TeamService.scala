@@ -25,8 +25,7 @@ trait TeamService {
 
 class ZalandoTeamService @Inject() (
     config: EnvConfig,
-    @TeamServiceClient() httpClient: HttpClient,
-    implicit val executionContext: ExecutionContext) extends TeamService {
+    @TeamServiceClient() httpClient: HttpClient)(implicit val executionContext: ExecutionContext) extends TeamService {
 
   val logger = LoggerFactory.getLogger(this.getClass)
 
