@@ -38,7 +38,7 @@ class ZalandoTeamService @Inject() (
         json.convertTo[Seq[Team]]
       } match {
         case Success(teams) =>
-          teams.filter(_.teamType == Official).headOption match {
+          teams.find(_.teamType == Official) match {
             case Some(team) => ServiceResult.Success(team)
             case None => {
               logger.debug("No official team found for username: ", username)
