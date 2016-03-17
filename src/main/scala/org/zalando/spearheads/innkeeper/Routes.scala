@@ -25,6 +25,7 @@ class Routes @Inject() (
     postRoutes: PostRoutes,
     getUpdatedRoutes: GetUpdatedRoutes,
     getDeletedRoutes: GetDeletedRoutes,
+    deleteDeletedRoutes: DeleteDeletedRoutes,
     metrics: RouteMetrics,
     authService: AuthService,
     implicit val executionContext: ExecutionContext) {
@@ -47,7 +48,7 @@ class Routes @Inject() (
             } ~ path("routes" / LongNumber) { id =>
               getRoute(authenticatedUser, id) ~ deleteRoute(authenticatedUser, id, token)
             } ~ path("deleted-routes" / Rest) { deletedBefore =>
-              getDeletedRoutes(authenticatedUser, deletedBefore)
+              getDeletedRoutes(authenticatedUser, deletedBefore) ~ deleteDeletedRoutes(authenticatedUser, deletedBefore, token)
             }
           }
         } ~ path("status") {

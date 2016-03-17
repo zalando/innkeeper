@@ -36,9 +36,9 @@ class DeleteRoute @Inject() (
 
   def apply(authenticatedUser: AuthenticatedUser, id: Long, token: String): Route = {
     delete {
-      val reqDesc = s"delete /routes/${id}"
+      val reqDesc = s"delete /routes/$id"
 
-      logger.debug(s"try to ${reqDesc}")
+      logger.debug(s"try to $reqDesc")
 
       hasOneOfTheScopes(authenticatedUser, reqDesc)(scopes.WRITE_STRICT, scopes.WRITE_REGEX) {
         findRoute(id, routesService, "delete /routes/{}")(executionContext) { route =>

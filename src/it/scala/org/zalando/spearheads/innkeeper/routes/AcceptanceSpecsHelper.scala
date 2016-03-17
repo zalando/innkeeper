@@ -134,6 +134,12 @@ object AcceptanceSpecsHelper extends ScalaFutures with Matchers {
   def getUpdatedRoutes(localDateTime: String, token: String): HttpResponse =
     doGet(updatedRoutesUri(localDateTime), token)
 
+  def deleteDeletedRoutes(deletedBefore: LocalDateTime, token: String = ""): HttpResponse =
+    deleteDeletedRoutes(RequestParameters.urlDateTimeFormatter.format(deletedBefore), token)
+
+  def deleteDeletedRoutes(deletedBefore: String, token: String): HttpResponse =
+    doDelete(s"$baseUri/deleted-routes/$deletedBefore", token)
+
   def getDeletedRoutes(deletedBefore: LocalDateTime, token: String = ""): HttpResponse =
     getDeletedRoutes(RequestParameters.urlDateTimeFormatter.format(deletedBefore), token)
 
@@ -143,9 +149,18 @@ object AcceptanceSpecsHelper extends ScalaFutures with Matchers {
   def getUpdatedRoutes(localDateTime: LocalDateTime, token: String): HttpResponse =
     getUpdatedRoutes(RequestParameters.urlDateTimeFormatter.format(localDateTime), token)
 
+  private def doDelete(requestUri: String, token: String = ""): HttpResponse = {
+    makeRequest(requestUri, token, HttpMethods.DELETE)
+  }
+
   private def doGet(requestUri: String, token: String = ""): HttpResponse = {
+    makeRequest(requestUri, token)
+  }
+
+  private def makeRequest(requestUri: String, token: String = "", method: HttpMethod = HttpMethods.GET): HttpResponse = {
     val futureResponse = Http().singleRequest(HttpRequest(
       uri = requestUri,
+      method = method,
       headers = headersForToken(token)))
     futureResponse.futureValue
   }
@@ -207,5 +222,7 @@ object AcceptanceSpecTokens {
   val READ_TOKEN = "token-user~1-employees-route.read"
   val WRITE_STRICT_TOKEN = "token-user~1-employees-route.write_strict"
   val WRITE_REGEX_TOKEN = "token-user~1-employees-route.write_regex"
+  val ADMIN_TEAM_WRITE_REGEX_TOKEN = "token-user~3-employees-route.write_regex"
+  val ADMIN_TEAM_WRITE_STRICT_TOKEN = "token-user~3-employees-route.write_strict"
   val INVALID_TOKEN = "invalid"
 }

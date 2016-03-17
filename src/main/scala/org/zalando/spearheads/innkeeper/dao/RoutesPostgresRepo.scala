@@ -123,7 +123,7 @@ class RoutesPostgresRepo @Inject() (
   }
 
   override def selectDeletedBefore(dateTime: LocalDateTime): DatabasePublisher[RouteRow] = {
-    logger.debug(s"select deleted $dateTime")
+    logger.debug(s"select deleted before $dateTime")
 
     val q = for {
       routeRow <- routesTable
@@ -132,6 +132,19 @@ class RoutesPostgresRepo @Inject() (
 
     db.stream {
       q.result
+    }
+  }
+
+  override def deleteMarkedAsDeletedBefore(dateTime: LocalDateTime): Future[Int] = {
+    logger.debug(s"delete deleted before $dateTime")
+
+    db.run {
+      val q = for {
+        routeRow <- routesTable
+        if routeRow.deletedAt.isDefined && routeRow.deletedAt < dateTime
+      } yield routeRow
+
+      q.delete
     }
   }
 
