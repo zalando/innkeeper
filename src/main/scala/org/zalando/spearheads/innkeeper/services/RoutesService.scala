@@ -34,6 +34,8 @@ trait RoutesService {
 
   def findDeletedBefore(deletedBefore: LocalDateTime): Source[RouteOut, NotUsed]
 
+  def removeDeletedBefore(deletedBefore: LocalDateTime): Future[Result[Int]]
+
 }
 
 class DefaultRoutesService @Inject() (
@@ -68,7 +70,6 @@ class DefaultRoutesService @Inject() (
   }
 
   override def remove(id: Long): Future[Result[Boolean]] = {
-
     routesRepo.delete(id).map {
       case false => Failure(NotFound)
       case _     => Success(true)
@@ -116,6 +117,12 @@ class DefaultRoutesService @Inject() (
         routeRowToRoute(id, routeRow)
       }
     }).mapConcat(_.toList)
+  }
+
+  override def removeDeletedBefore(deletedBefore: LocalDateTime): Future[Result[Int]] = {
+    routesRepo.deleteMarkedAsDeletedBefore(deletedBefore).map { affectedRows =>
+      Success(affectedRows)
+    }
   }
 
   private def rowToEventualMaybeRoute(routeRow: RouteRow): Future[Result[RouteOut]] = routeRow.id match {

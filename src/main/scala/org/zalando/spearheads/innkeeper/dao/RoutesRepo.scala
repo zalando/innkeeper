@@ -36,4 +36,12 @@ trait RoutesRepo {
    */
   def selectDeletedBefore(dateTime: LocalDateTime): DatabasePublisher[RouteRow]
 
+  /**
+   * Deletes routes marked as deleted before the specified timestamp.
+   *
+   * @param  dateTime timestamp to compare with deleted_at column
+   * @return future that contains a number of deleted routes
+   */
+  def deleteMarkedAsDeletedBefore(dateTime: LocalDateTime): Future[Int]
+
 }

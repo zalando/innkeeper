@@ -42,8 +42,8 @@ class GetDeletedRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
         val insertedRoute2 = insertRoute("R2")
         insertRoute("R3")
 
-        insertedRoute1.id.foreach(id => deleteRoute(id))
-        insertedRoute2.id.foreach(id => deleteRoute(id))
+        deleteRoute(insertedRoute1.id.get)
+        deleteRoute(insertedRoute2.id.get)
 
         val response = getDeletedRoutes(LocalDateTime.now().plusHours(1L), READ_TOKEN)
         response.status should be (StatusCodes.OK)

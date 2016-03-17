@@ -12,6 +12,7 @@ class RoutesModule extends AbstractModule with ScalaModule {
   override def configure() {
     bind[GetUpdatedRoutes].asEagerSingleton()
     bind[GetDeletedRoutes].asEagerSingleton()
+    bind[DeleteDeletedRoutes].asEagerSingleton()
 
     bind[GetRoute].asEagerSingleton()
     bind[DeleteRoute].asEagerSingleton()

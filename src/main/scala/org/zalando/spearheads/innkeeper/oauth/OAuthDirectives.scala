@@ -80,6 +80,14 @@ trait OAuthDirectives {
     }
   }
 
+  def isAdminTeam(team: Team, requestDescription: String)(teamService: TeamService): Directive0 = {
+    if (teamService.isAdminTeam(team)) {
+      pass
+    } else {
+      reject(IncorrectTeamRejection(requestDescription))
+    }
+  }
+
   def teamAuthorization(team: Team, route: RouteOut, requestDescription: String)(implicit teamService: TeamService): Directive0 = {
     if (teamService.isAdminTeam(team) || teamService.routeHasTeam(route, team)) {
       pass

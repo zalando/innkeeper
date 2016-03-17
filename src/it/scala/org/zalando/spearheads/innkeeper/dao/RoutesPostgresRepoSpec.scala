@@ -9,10 +9,10 @@ import akka.stream.scaladsl.Source
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.time.{Seconds, Span}
 import org.scalatest.{BeforeAndAfter, FunSpec, Matchers}
-import org.zalando.spearheads.innkeeper.api.RouteName
 import org.zalando.spearheads.innkeeper.routes.RoutesRepoHelper
 import RoutesRepoHelper.{insertRoute, routeJson, sampleRoute, deleteRoute}
 import org.zalando.spearheads.innkeeper.routes.RoutesRepoHelper
+import org.zalando.spearheads.innkeeper.routes.RoutesRepoHelper.recreateSchema
 import slick.backend.DatabasePublisher
 import slick.jdbc.meta.MTable
 
@@ -43,8 +43,7 @@ class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers w
   describe("RoutesPostgresRepoSpec") {
 
     before {
-      routesRepo.dropSchema.futureValue
-      routesRepo.createSchema.futureValue
+      recreateSchema
     }
 
     describe("schema") {
@@ -52,13 +51,15 @@ class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers w
 
       it("should createSchema") {
         val tables = db.run(MTable.getTables).futureValue
-        tables.count(_.name.name.equalsIgnoreCase("ROUTES")) should be(1)
+
+        tables.count(_.name.name.equalsIgnoreCase("ROUTES")) should be (1)
       }
 
       it("should dropSchema") {
         routesRepo.dropSchema.futureValue
         val tables = db.run(MTable.getTables).futureValue
-        tables.count(_.name.name.equalsIgnoreCase("ROUTES")) should be(0)
+
+        tables.count(_.name.name.equalsIgnoreCase("ROUTES")) should be (0)
       }
     }
 
@@ -67,16 +68,18 @@ class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers w
       describe("insert") {
         it("should insert a route") {
           val routeRow = insertRoute()
-          routeRow.id.isDefined should be(true)
-          routeRow.routeJson should be(routeJson("/hello"))
+
+          routeRow.id.isDefined should be (true)
+          routeRow.routeJson should be (routeJson("/hello"))
         }
 
         it("should select a route by id") {
           insertRoute()
           val routeRow = routesRepo.selectById(1).futureValue
-          routeRow.isDefined should be(true)
-          routeRow.get.id.isDefined should be(true)
-          routeRow.get.routeJson should be(routeJson("/hello"))
+
+          routeRow.isDefined should be (true)
+          routeRow.get.id.isDefined should be (true)
+          routeRow.get.routeJson should be (routeJson("/hello"))
         }
       }
 
@@ -92,8 +95,8 @@ class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers w
             val routes: List[RouteRow] = routesRepo.selectAll
 
             routes should not be 'empty
-            routes(0) should be(sampleRoute(id = 1, name = "R1", matcher = "/hello1", createdAt = createdAt, activateAt = activateAt))
-            routes(1) should be(sampleRoute(id = 2, name = "R2", matcher = "/hello2", createdAt = createdAt, activateAt = activateAt))
+            routes(0) should be (sampleRoute(id = 1, name = "R1", matcher = "/hello1", createdAt = createdAt, activateAt = activateAt))
+            routes(1) should be (sampleRoute(id = 2, name = "R2", matcher = "/hello2", createdAt = createdAt, activateAt = activateAt))
           }
 
           it("should not select the deleted routes") {
@@ -107,8 +110,8 @@ class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers w
             val routes: List[RouteRow] = routesRepo.selectAll
 
             routes should not be 'empty
-            routes.size should be(3)
-            routes.map(_.id.get).toSet should be(Set(1, 3, 4))
+            routes.size should be (3)
+            routes.map(_.id.get).toSet should be (Set(1, 3, 4))
           }
         }
 
@@ -122,8 +125,9 @@ class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers w
             routesRepo.delete(1)
 
             val routes: List[RouteRow] = routesRepo.selectModifiedSince(createdAt.minus(1, ChronoUnit.MICROS))
-            routes.size should be(3)
-            routes.map(_.id.get).toSet should be(Set(1, 3, 4))
+
+            routes.size should be (3)
+            routes.map(_.id.get).toSet should be (Set(1, 3, 4))
           }
         }
 
@@ -135,8 +139,9 @@ class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers w
             insertRoute("R2")
 
             val routes: List[RouteRow] = routesRepo.selectByName("R2")
-            routes.size should be(2)
-            routes.map(_.id.get).toSet should be(Set(2, 4))
+
+            routes.size should be (2)
+            routes.map(_.id.get).toSet should be (Set(2, 4))
           }
 
           it("should not select the deleted routes") {
@@ -150,8 +155,8 @@ class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers w
             val routes: List[RouteRow] = routesRepo.selectByName("R2")
 
             routes should not be 'empty
-            routes.size should be(1)
-            routes.map(_.id.get).toSet should be(Set(3))
+            routes.size should be (1)
+            routes.map(_.id.get).toSet should be (Set(3))
           }
         }
 
@@ -196,14 +201,14 @@ class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers w
 
           val routeRow = routesRepo.selectById(1).futureValue
 
-          routeRow.isDefined should be(true)
-          routeRow.get.id.isDefined should be(true)
-          routeRow.get.deletedAt.isDefined should be(true)
-          routeRow.get.routeJson should be(routeJson("/hello1"))
+          routeRow.isDefined should be (true)
+          routeRow.get.id.isDefined should be (true)
+          routeRow.get.deletedAt.isDefined should be (true)
+          routeRow.get.routeJson should be (routeJson("/hello1"))
         }
 
         it("should not delete a route that does not exist") {
-          routesRepo.delete(1).futureValue should be(false)
+          routesRepo.delete(1).futureValue should be (false)
         }
 
         it("should not update the deletedAt date of a route which is already marked as deleted") {
@@ -219,6 +224,23 @@ class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers w
           val deletedAt = getDeletedAtForRoute(1)
 
           deletedAt should be (expectedDeletedAt)
+        }
+
+        it("should only delete routes before specified datetime") {
+          val insertedRoute1 = insertRoute("1")
+          val insertedRoute2 = insertRoute("2")
+
+          deleteRoute(insertedRoute1.id.get, Some(LocalDateTime.now()))
+
+          val dateTime = LocalDateTime.now().plusHours(1L)
+          deleteRoute(insertedRoute2.id.get, Some(dateTime))
+
+          val affectedRows = routesRepo.deleteMarkedAsDeletedBefore(dateTime).futureValue
+
+          affectedRows should be (1)
+
+          routesRepo.selectById(insertedRoute1.id.get).futureValue should be (None)
+          routesRepo.selectById(insertedRoute2.id.get).futureValue should be (defined)
         }
       }
     }
