@@ -2,16 +2,20 @@ package org.zalando.spearheads.innkeeper.oauth
 
 import akka.http.scaladsl.model.HttpMethods
 import org.scalamock.scalatest.MockFactory
+import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.{FunSpec, Matchers}
+import org.zalando.spearheads.innkeeper.services.ServiceResult
 import org.zalando.spearheads.innkeeper.utils.{EnvConfig, HttpClient}
 import spray.json.pimpString
-
-import scala.util.{Success, Try}
+import scala.concurrent.Future
+import scala.concurrent.ExecutionContext.global
 
 /**
  * @author dpersa
  */
-class OAuthServiceSpec extends FunSpec with MockFactory with Matchers {
+class OAuthServiceSpec extends FunSpec with MockFactory with Matchers with ScalaFutures {
+
+  implicit val executionContext = global
 
   describe("OAuthServiceSpec") {
 
@@ -29,10 +33,10 @@ class OAuthServiceSpec extends FunSpec with MockFactory with Matchers {
 
       it("should authenticate") {
         (httpClient.callJson _).expects(s"${AUTH_URL}$TOKEN", None, HttpMethods.GET)
-          .returning(Try("""{"scope":["read","write"],"realm":"/employees"}""".parseJson))
+          .returning(Future("""{"scope":["read","write"],"realm":"/employees"}""".parseJson))
 
-        authService.authenticate(TOKEN) should
-          be(Success(AuthenticatedUser(Scope(Set("read", "write")), Realms.EMPLOYEES)))
+        authService.authenticate(TOKEN).futureValue should
+          be (ServiceResult.Success(AuthenticatedUser(Scope(Set("read", "write")), Realms.EMPLOYEES)))
       }
     }
 
@@ -42,9 +46,9 @@ class OAuthServiceSpec extends FunSpec with MockFactory with Matchers {
         it("should fail") {
           // scopes instead of scope
           (httpClient.callJson _).expects(s"${AUTH_URL}$TOKEN", None, HttpMethods.GET)
-            .returning(Try("""{"scopes":["read","write"],"realm":"/employees"}""".parseJson))
+            .returning(Future("""{"scopes":["read","write"],"realm":"/employees"}""".parseJson))
 
-          authService.authenticate(TOKEN).isFailure should be(true)
+          authService.authenticate(TOKEN).futureValue.isInstanceOf[ServiceResult.Failure] should be(true)
         }
       }
     }
