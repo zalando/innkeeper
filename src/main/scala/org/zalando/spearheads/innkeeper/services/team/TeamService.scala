@@ -25,8 +25,7 @@ trait TeamService {
 
 class ZalandoTeamService @Inject() (
     config: EnvConfig,
-    @TeamServiceClient() httpClient: HttpClient,
-    implicit val executionContext: ExecutionContext) extends TeamService {
+    @TeamServiceClient() httpClient: HttpClient)(implicit val executionContext: ExecutionContext) extends TeamService {
 
   val logger = LoggerFactory.getLogger(this.getClass)
 
@@ -46,9 +45,10 @@ class ZalandoTeamService @Inject() (
               ServiceResult.Failure(NotFound)
             }
           }
-        case Failure(ex) =>
+        case Failure(ex) => {
           logger.error(s"TeamService unmarshalling failed with exception $ex")
           ServiceResult.Failure(Ex(ex))
+        }
       }
     }
   }

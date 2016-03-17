@@ -8,8 +8,8 @@ import org.slf4j.LoggerFactory
 import org.zalando.spearheads.innkeeper.Rejections.{InternalServerErrorRejection, CredentialsRejectedRejection, CredentialsMissingRejection, InnkeeperAuthorizationFailedRejection, TeamNotFoundRejection, IncorrectTeamRejection}
 import org.zalando.spearheads.innkeeper.api.RouteOut
 import org.zalando.spearheads.innkeeper.services.ServiceResult
-import org.zalando.spearheads.innkeeper.services.ServiceResult.{NotFound, Result, Ex}
-import scala.concurrent.{ExecutionContext, Future}
+import org.zalando.spearheads.innkeeper.services.ServiceResult.{NotFound, Ex}
+import scala.concurrent.ExecutionContext
 import org.zalando.spearheads.innkeeper.services.team.{Team, TeamService}
 
 import scala.util.{Failure, Success}
@@ -28,14 +28,17 @@ trait OAuthDirectives {
 
     onComplete(authService.authenticate(token)) {
       case Success(userResult) => userResult match {
-        case ServiceResult.Success(team) =>
+        case ServiceResult.Success(team) => {
           authUserToRoute(team)
-        case ServiceResult.Failure(Ex(ex)) =>
+        }
+        case ServiceResult.Failure(Ex(ex)) => {
           logger.error(s"OAuthService failed with exception $ex")
           reject(CredentialsRejectedRejection(requestDescription))
-        case ServiceResult.Failure(_) =>
+        }
+        case ServiceResult.Failure(_) => {
           logger.error(s"OAuthService failed")
           reject(CredentialsRejectedRejection(requestDescription))
+        }
       }
 
       case Failure(ex) =>
@@ -50,24 +53,28 @@ trait OAuthDirectives {
       case Some(username) =>
         onComplete(teamService.getForUsername(username, token)) {
           case Success(teamResult) => teamResult match {
-            case ServiceResult.Success(team) =>
+            case ServiceResult.Success(team) => {
               teamToRoute(team)
-            case ServiceResult.Failure(NotFound) =>
-              logger.error("AuthenticatedUser does not have a team {}", authenticatedUser)
+            }
+            case ServiceResult.Failure(NotFound) => {
+              logger.error(s"AuthenticatedUser does not have a team $authenticatedUser")
               reject(TeamNotFoundRejection(requestDescription))
-            case ServiceResult.Failure(Ex(ex)) =>
+            }
+            case ServiceResult.Failure(Ex(ex)) => {
               logger.error(s"TeamService failed with exception $ex")
               reject(InternalServerErrorRejection(requestDescription))
-            case ServiceResult.Failure(_) =>
+            }
+            case ServiceResult.Failure(_) => {
               logger.error(s"TeamService failed")
               reject(InternalServerErrorRejection(requestDescription))
+            }
           }
           case Failure(ex) =>
             logger.error(s"Error getting the team from the Team Service for $requestDescription")
             reject(InternalServerErrorRejection(requestDescription))
         }
       case None => {
-        logger.error("AuthenticatedUser does not have an username {}", authenticatedUser)
+        logger.error(s"AuthenticatedUser does not have an username $authenticatedUser")
         reject(TeamNotFoundRejection(requestDescription))
       }
     }
