@@ -197,14 +197,28 @@ class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers w
 
           val result = routesRepo.delete(1).futureValue
 
-          result should be(true)
+          result should be (true)
 
           val routeRow = routesRepo.selectById(1).futureValue
 
-          routeRow.isDefined should be (true)
-          routeRow.get.id.isDefined should be (true)
-          routeRow.get.deletedAt.isDefined should be (true)
+          routeRow should be (defined)
+          routeRow.get.id should be (defined)
+          routeRow.get.deletedAt should be (defined)
+          routeRow.get.deletedBy should be (None)
           routeRow.get.routeJson should be (routeJson("/hello1"))
+        }
+
+        it("should set deleted by if it is provided") {
+          val insertRoute1 = insertRoute("1")
+
+          val result = routesRepo.delete(insertRoute1.id.get, Some("user")).futureValue
+
+          result should be (true)
+
+          val routeRow = routesRepo.selectById(1).futureValue
+
+          routeRow should be (defined)
+          routeRow.get.deletedBy should be (Some("user"))
         }
 
         it("should not delete a route that does not exist") {
@@ -216,10 +230,10 @@ class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers w
           insertRoute("2")
 
           val expectedDeletedAt = LocalDateTime.now()
-          routesRepo.delete(1, Some(expectedDeletedAt)).futureValue
+          routesRepo.delete(1, None, Some(expectedDeletedAt)).futureValue
 
           // delete the route again
-          routesRepo.delete(1, Some(expectedDeletedAt.plusHours(1L))).futureValue
+          routesRepo.delete(1, None, Some(expectedDeletedAt.plusHours(1L))).futureValue
 
           val deletedAt = getDeletedAtForRoute(1)
 

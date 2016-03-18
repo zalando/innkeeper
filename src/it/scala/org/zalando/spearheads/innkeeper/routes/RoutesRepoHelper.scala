@@ -73,7 +73,11 @@ object RoutesRepoHelper extends ScalaFutures {
   }
 
   def deleteRoute(id: Long, dateTime: Option[LocalDateTime] = None): Boolean = {
-    routesRepo.delete(id, dateTime).futureValue
+    deleteRoute(id, None, dateTime)
+  }
+
+  def deleteRoute(id: Long, deletedBy: Option[String], dateTime: Option[LocalDateTime]): Boolean = {
+    routesRepo.delete(id, deletedBy, dateTime).futureValue
   }
 
   def recreateSchema = {

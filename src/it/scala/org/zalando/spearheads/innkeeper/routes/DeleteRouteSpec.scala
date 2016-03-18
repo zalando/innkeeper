@@ -1,7 +1,11 @@
 package org.zalando.spearheads.innkeeper.routes
 
+import java.time.LocalDateTime
+
 import akka.http.scaladsl.model.StatusCodes
 import org.scalatest.{BeforeAndAfter, FunSpec, Matchers}
+import org.zalando.spearheads.innkeeper.api.{RouteName, RouteOut}
+import org.zalando.spearheads.innkeeper.dao.RouteRow
 import org.zalando.spearheads.innkeeper.routes.AcceptanceSpecTokens._
 import org.zalando.spearheads.innkeeper.routes.AcceptanceSpecsHelper._
 import org.zalando.spearheads.innkeeper.routes.RoutesRepoHelper.{insertRoute, recreateSchema, insertHostRoute}
@@ -32,7 +36,23 @@ class DeleteRouteSpec extends FunSpec with BeforeAndAfter with Matchers {
             insertRoute("R2", ownedByTeam = "team1")
 
             val response = deleteSlashRoute(2, token)
-            response.status.shouldBe(StatusCodes.OK)
+            response.status should be (StatusCodes.OK)
+          }
+
+          it("should save the user who deleted the route") {
+            val insertRoute1 = insertRoute("R1", ownedByTeam = "team1")
+
+            val deleteResponse = deleteSlashRoute(insertRoute1.id.get, token)
+            deleteResponse.status should be (StatusCodes.OK)
+
+            val readResponse = getDeletedRoutes(LocalDateTime.now().plusHours(1L), READ_TOKEN)
+            readResponse.status should be (StatusCodes.OK)
+
+            val entity = entityString(readResponse)
+            val deletedRoutes = entity.parseJson.convertTo[Seq[RouteOut]]
+
+            deletedRoutes.size should be (1)
+            deletedRoutes.head.deletedBy should be (Some("user~1"))
           }
         }
 

@@ -5,7 +5,7 @@ import akka.http.scaladsl.model.headers.{OAuth2BearerToken, Authorization}
 import akka.http.scaladsl.server._
 import akka.http.scaladsl.server.Directives._
 import org.slf4j.LoggerFactory
-import org.zalando.spearheads.innkeeper.Rejections.{InternalServerErrorRejection, CredentialsRejectedRejection, CredentialsMissingRejection, InnkeeperAuthorizationFailedRejection, TeamNotFoundRejection, IncorrectTeamRejection}
+import org.zalando.spearheads.innkeeper.Rejections._
 import org.zalando.spearheads.innkeeper.api.RouteOut
 import org.zalando.spearheads.innkeeper.services.ServiceResult
 import org.zalando.spearheads.innkeeper.services.ServiceResult.{NotFound, Ex}
@@ -77,6 +77,13 @@ trait OAuthDirectives {
         logger.error(s"AuthenticatedUser does not have an username $authenticatedUser")
         reject(TeamNotFoundRejection(requestDescription))
       }
+    }
+  }
+
+  def username(authorizedUser: AuthenticatedUser, requestDescription: String)(usernameToRoute: String => Route): Route = {
+    authorizedUser.username match {
+      case Some(username) => usernameToRoute(username)
+      case None           => reject(NoUidRejection(requestDescription))
     }
   }
 

@@ -8,7 +8,7 @@ import org.slf4j.LoggerFactory
 import org.zalando.spearheads.innkeeper.Rejections.{InnkeeperAuthorizationFailedRejection}
 import org.zalando.spearheads.innkeeper.RouteDirectives.{isStrictRoute, isRegexRoute, findRoute}
 import org.zalando.spearheads.innkeeper.metrics.RouteMetrics
-import org.zalando.spearheads.innkeeper.oauth.OAuthDirectives.{team, teamAuthorization, hasOneOfTheScopes}
+import org.zalando.spearheads.innkeeper.oauth.OAuthDirectives.{team, teamAuthorization, hasOneOfTheScopes, username}
 import org.zalando.spearheads.innkeeper.oauth.{AuthenticatedUser, Scopes}
 import org.zalando.spearheads.innkeeper.services.ServiceResult.NotFound
 import org.zalando.spearheads.innkeeper.services.team.TeamService
@@ -45,30 +45,32 @@ class DeleteRoute @Inject() (
 
             logger.debug("try to delete /routes/{} team found {}", id, team)
 
-            (isStrictRoute(route.route) & teamAuthorization(team, route, reqDesc) & hasOneOfTheScopes(authenticatedUser, reqDesc)(scopes.WRITE_STRICT, scopes.WRITE_REGEX)) {
+            username(authenticatedUser, reqDesc) { username =>
+              (isStrictRoute(route.route) & teamAuthorization(team, route, reqDesc) & hasOneOfTheScopes(authenticatedUser, reqDesc)(scopes.WRITE_STRICT, scopes.WRITE_REGEX)) {
 
-              deleteRoute(id, s"$reqDesc strict")
+                deleteRoute(id, username, s"$reqDesc strict")
 
-            } ~ (isRegexRoute(route.route) & teamAuthorization(team, route, reqDesc) & hasOneOfTheScopes(authenticatedUser, reqDesc)(scopes.WRITE_REGEX)) {
+              } ~ (isRegexRoute(route.route) & teamAuthorization(team, route, reqDesc) & hasOneOfTheScopes(authenticatedUser, reqDesc)(scopes.WRITE_REGEX)) {
 
-              deleteRoute(id, s"$reqDesc regex")
+                deleteRoute(id, username, s"$reqDesc regex")
 
-            } ~ (teamAuthorization(team, route, reqDesc) & hasOneOfTheScopes(authenticatedUser, reqDesc)(scopes.WRITE_REGEX)) {
+              } ~ (teamAuthorization(team, route, reqDesc) & hasOneOfTheScopes(authenticatedUser, reqDesc)(scopes.WRITE_REGEX)) {
 
-              deleteRoute(id, s"$reqDesc other")
+                deleteRoute(id, username, s"$reqDesc other")
 
-            } ~ reject(InnkeeperAuthorizationFailedRejection(reqDesc))
+              } ~ reject(InnkeeperAuthorizationFailedRejection(reqDesc))
+            }
           }
         }
       }
     }
   }
 
-  private def deleteRoute(id: Long, reqDesc: String) = {
+  private def deleteRoute(id: Long, deletedBy: String, reqDesc: String) = {
     metrics.deleteRoute.time {
       logger.debug(s"$reqDesc deleteRoute($id)")
 
-      onComplete(routesService.remove(id)) {
+      onComplete(routesService.remove(id, deletedBy)) {
         case Success(ServiceResult.Success(_))        => complete("")
         case Success(ServiceResult.Failure(NotFound)) => complete(StatusCodes.NotFound)
         case Success(_)                               => complete(StatusCodes.NotFound)
