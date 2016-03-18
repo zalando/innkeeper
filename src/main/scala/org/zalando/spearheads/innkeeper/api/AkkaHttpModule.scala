@@ -8,8 +8,8 @@ import akka.stream.ActorMaterializer
 import com.google.inject._
 import com.typesafe.config.Config
 import net.codingwell.scalaguice.ScalaModule
-import org.zalando.spearheads.innkeeper.Routes
 import org.zalando.spearheads.innkeeper.api.AkkaHttpModule.ActorMaterializerProvider
+import org.zalando.spearheads.innkeeper.routes.Routes
 
 /**
  * @author dpersa

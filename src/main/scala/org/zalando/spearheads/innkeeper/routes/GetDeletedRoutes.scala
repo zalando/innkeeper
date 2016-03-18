@@ -29,11 +29,12 @@ class GetDeletedRoutes @Inject() (
     get {
       val requestDescription = s"GET /deleted-routes/$deletedBefore"
 
+      logger.info(s"try to $requestDescription")
+
       dateTimeParameter(deletedBefore) match {
         case Some(dateTime) =>
-          hasOneOfTheScopes(authenticatedUser, requestDescription)(scopes.READ) {
+          hasOneOfTheScopes(authenticatedUser, requestDescription, scopes.READ) {
             metrics.getDeletedRoutes.time {
-              logger.info(s"try to $requestDescription")
 
               chunkedResponseOfRoutes(jsonService) {
                 routesService.findDeletedBefore(dateTime)
