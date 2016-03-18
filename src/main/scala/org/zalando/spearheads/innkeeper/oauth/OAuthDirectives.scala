@@ -81,11 +81,9 @@ trait OAuthDirectives {
   }
 
   def username(authorizedUser: AuthenticatedUser, requestDescription: String): Directive1[String] = {
-    Directive[Tuple1[String]] { inner =>
-      authorizedUser.username match {
-        case Some(username) => inner(Tuple1(username))
-        case None           => reject(NoUidRejection(requestDescription))
-      }
+    authorizedUser.username match {
+      case Some(username) => provide(username)
+      case None           => reject(NoUidRejection(requestDescription))
     }
   }
 
