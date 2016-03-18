@@ -46,15 +46,15 @@ class DeleteRoute @Inject() (
             logger.debug("try to delete /routes/{} team found {}", id, team)
 
             username(authenticatedUser, reqDesc) { username =>
-              (isStrictRoute(route.route) & teamAuthorization(team, route, reqDesc) & hasOneOfTheScopes(authenticatedUser, reqDesc)(scopes.WRITE_STRICT, scopes.WRITE_REGEX)) {
+              (isStrictRoute(route.route) & teamAuthorization(team, route, reqDesc) & hasOneOfTheScopes(authenticatedUser, reqDesc, scopes.WRITE_STRICT, scopes.WRITE_REGEX)) {
 
                 deleteRoute(id, username, s"$reqDesc strict")
 
-              } ~ (isRegexRoute(route.route) & teamAuthorization(team, route, reqDesc) & hasOneOfTheScopes(authenticatedUser, reqDesc)(scopes.WRITE_REGEX)) {
+              } ~ (isRegexRoute(route.route) & teamAuthorization(team, route, reqDesc) & hasOneOfTheScopes(authenticatedUser, reqDesc, scopes.WRITE_REGEX)) {
 
                 deleteRoute(id, username, s"$reqDesc regex")
 
-              } ~ (teamAuthorization(team, route, reqDesc) & hasOneOfTheScopes(authenticatedUser, reqDesc)(scopes.WRITE_REGEX)) {
+              } ~ (teamAuthorization(team, route, reqDesc) & hasOneOfTheScopes(authenticatedUser, reqDesc, scopes.WRITE_REGEX)) {
 
                 deleteRoute(id, username, s"$reqDesc other")
 
