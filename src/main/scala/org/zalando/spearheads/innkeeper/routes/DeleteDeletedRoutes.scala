@@ -39,9 +39,11 @@ class DeleteDeletedRoutes @Inject() (
     delete {
       val requestDescription = s"DELETE /deleted-routes/$deletedBefore"
 
+      logger.info(s"try to $requestDescription")
+
       dateTimeParameter(deletedBefore) match {
         case Some(dateTime) =>
-          hasOneOfTheScopes(authenticatedUser, requestDescription)(scopes.WRITE_REGEX) {
+          hasOneOfTheScopes(authenticatedUser, requestDescription, scopes.WRITE_REGEX) {
             team(authenticatedUser, token, requestDescription) { team =>
               isAdminTeam(team, requestDescription)(teamService) {
                 removeDeleteBeforeRoutes(authenticatedUser, dateTime, requestDescription)
@@ -56,7 +58,6 @@ class DeleteDeletedRoutes @Inject() (
 
   private def removeDeleteBeforeRoutes(authenticatedUser: AuthenticatedUser, dateTime: LocalDateTime, requestDescription: String) = {
     metrics.deleteDeletedRoutes.time {
-      logger.info(s"try to $requestDescription")
 
       routesService.findDeletedBefore(dateTime).runForeach { route =>
         logger.info(s"the following route $route will be deleted permanently")

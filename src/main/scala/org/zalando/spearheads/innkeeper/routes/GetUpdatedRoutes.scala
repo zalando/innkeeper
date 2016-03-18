@@ -30,11 +30,12 @@ class GetUpdatedRoutes @Inject() (
     get {
       val reqDesc = s"get /updated-routes/$lastModifiedString"
 
+      logger.info(s"try to $reqDesc")
+
       dateTimeParameter(lastModifiedString) match {
         case Some(lastModified) => {
-          hasOneOfTheScopes(authenticatedUser, reqDesc)(scopes.READ) {
+          hasOneOfTheScopes(authenticatedUser, reqDesc, scopes.READ) {
             metrics.getUpdatedRoutes.time {
-              logger.info(s"try to $reqDesc")
 
               val chunkedStreamSource = jsonService.sourceToJsonSource {
                 routesService.findModifiedSince(lastModified)

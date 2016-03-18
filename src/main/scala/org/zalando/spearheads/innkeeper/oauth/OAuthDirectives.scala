@@ -80,7 +80,7 @@ trait OAuthDirectives {
     }
   }
 
-  def isAdminTeam(team: Team, requestDescription: String)(teamService: TeamService): Directive0 = {
+  def isAdminTeam(team: Team, requestDescription: String)(implicit teamService: TeamService): Directive0 = {
     if (teamService.isAdminTeam(team)) {
       pass
     } else {
@@ -96,7 +96,7 @@ trait OAuthDirectives {
     }
   }
 
-  def hasOneOfTheScopes(authorizedUser: AuthenticatedUser, requestDescription: String)(scope: Scope*): Directive0 = {
+  def hasOneOfTheScopes(authorizedUser: AuthenticatedUser, requestDescription: String, scope: Scope*): Directive0 = {
     val configuredScopeNames = scope.flatMap(_.scopeNames).toSet
     authorizedUser.scope.scopeNames.intersect(configuredScopeNames).isEmpty match {
       case false => pass

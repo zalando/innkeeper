@@ -30,9 +30,11 @@ class GetRoute @Inject() (
     get {
       val reqDesc = s"get /routes/${id}"
 
-      hasOneOfTheScopes(authenticatedUser, reqDesc)(scopes.READ) {
+      logger.info(s"try to $reqDesc")
+
+      hasOneOfTheScopes(authenticatedUser, reqDesc, scopes.READ) {
         metrics.getRoute.time {
-          logger.info(s"try to $reqDesc")
+
           findRoute(id, routesService, reqDesc)(executionContext) { route =>
             complete(route.toJson)
           }

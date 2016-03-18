@@ -35,25 +35,25 @@ class DeleteRoute @Inject() (
     delete {
       val reqDesc = s"delete /routes/$id"
 
-      logger.debug(s"try to $reqDesc")
+      logger.info(s"try to $reqDesc")
 
-      hasOneOfTheScopes(authenticatedUser, reqDesc)(scopes.WRITE_STRICT, scopes.WRITE_REGEX) {
+      hasOneOfTheScopes(authenticatedUser, reqDesc, scopes.WRITE_STRICT, scopes.WRITE_REGEX) {
         findRoute(id, routesService, "delete /routes/{}")(executionContext) { route =>
-          logger.debug("try to delete /routes/{} route found {}", id, route)
+          logger.debug(s"try to delete /routes/$id route found $route")
 
           team(authenticatedUser, token, reqDesc) { team =>
 
             logger.debug("try to delete /routes/{} team found {}", id, team)
 
-            (isStrictRoute(route.route) & teamAuthorization(team, route, reqDesc) & hasOneOfTheScopes(authenticatedUser, reqDesc)(scopes.WRITE_STRICT, scopes.WRITE_REGEX)) {
+            (isStrictRoute(route.route) & teamAuthorization(team, route, reqDesc) & hasOneOfTheScopes(authenticatedUser, reqDesc, scopes.WRITE_STRICT, scopes.WRITE_REGEX)) {
 
               deleteRoute(id, s"$reqDesc strict")
 
-            } ~ (isRegexRoute(route.route) & teamAuthorization(team, route, reqDesc) & hasOneOfTheScopes(authenticatedUser, reqDesc)(scopes.WRITE_REGEX)) {
+            } ~ (isRegexRoute(route.route) & teamAuthorization(team, route, reqDesc) & hasOneOfTheScopes(authenticatedUser, reqDesc, scopes.WRITE_REGEX)) {
 
               deleteRoute(id, s"$reqDesc regex")
 
-            } ~ (teamAuthorization(team, route, reqDesc) & hasOneOfTheScopes(authenticatedUser, reqDesc)(scopes.WRITE_REGEX)) {
+            } ~ (teamAuthorization(team, route, reqDesc) & hasOneOfTheScopes(authenticatedUser, reqDesc, scopes.WRITE_REGEX)) {
 
               deleteRoute(id, s"$reqDesc other")
 

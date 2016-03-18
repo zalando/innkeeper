@@ -2,7 +2,7 @@ package org.zalando.spearheads.innkeeper.routes
 
 import com.google.inject.AbstractModule
 import net.codingwell.scalaguice.ScalaModule
-import org.zalando.spearheads.innkeeper.Routes
+import org.zalando.spearheads.innkeeper.InnkeeperRejectionHandler
 
 /**
  * @author dpersa
@@ -19,6 +19,8 @@ class RoutesModule extends AbstractModule with ScalaModule {
 
     bind[GetRoutes].asEagerSingleton()
     bind[PostRoutes].asEagerSingleton()
+
+    bind[InnkeeperRejectionHandler].asEagerSingleton()
 
     bind[Routes].asEagerSingleton()
   }
