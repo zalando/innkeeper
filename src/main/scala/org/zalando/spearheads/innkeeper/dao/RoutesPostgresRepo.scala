@@ -109,16 +109,16 @@ class RoutesPostgresRepo @Inject() (
     }
   }
 
-  override def delete(id: Long, dateTime: Option[LocalDateTime]): Future[Boolean] = {
-    logger.debug(s"delete $id")
+  override def delete(id: Long, deletedBy: Option[String], dateTime: Option[LocalDateTime]): Future[Boolean] = {
+    logger.debug(s"delete $id by ${deletedBy.getOrElse("unknown")}")
 
     db.run {
-      val deletedAt = for {
+      val q = for {
         routeRow <- routesTable
         if routeRow.id === id && routeRow.deletedAt.isEmpty
-      } yield routeRow.deletedAt
+      } yield (routeRow.deletedAt, routeRow.deletedBy)
 
-      deletedAt.update(dateTime.orElse(Some(LocalDateTime.now()))).map(_ > 0)
+      q.update(dateTime.orElse(Some(LocalDateTime.now())), deletedBy).map(_ > 0)
     }
   }
 

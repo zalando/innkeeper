@@ -5,6 +5,7 @@ import java.time.LocalDateTime
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Sink
+import org.scalamock.matchers.MockParameter
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.{FunSpec, Matchers}
@@ -68,26 +69,28 @@ class RoutesServiceSpec extends FunSpec with Matchers with MockFactory with Scal
   }
 
   describe("#remove") {
+    val username = Some("username")
+
     it("should remove a route") {
-      (routesRepo.delete _).expects(routeId, None).returning(Future(true))
-      val result = routesService.remove(routeId).futureValue
+      (routesRepo.delete _).expects(routeId, username, None).returning(Future(true))
+      val result = routesService.remove(routeId, username.get).futureValue
       result should be(ServiceResult.Success(true))
     }
 
     it("should not find a route") {
-      (routesRepo.delete _).expects(routeId, None).returning(Future(false))
-      val result = routesService.remove(routeId).futureValue
+      (routesRepo.delete _).expects(routeId, username, None).returning(Future(false))
+      val result = routesService.remove(routeId, username.get).futureValue
       result should be(ServiceResult.Failure(NotFound))
     }
 
     it("should fail when trying to delete a route") {
-      (routesRepo.delete _).expects(routeId, None).returning {
+      (routesRepo.delete _).expects(routeId, username, None).returning {
         Future {
           throw new IllegalStateException()
         }
       }
 
-      whenReady(routesService.remove(routeId).failed) { e =>
+      whenReady(routesService.remove(routeId, username.get).failed) { e =>
         e shouldBe a[IllegalStateException]
       }
     }

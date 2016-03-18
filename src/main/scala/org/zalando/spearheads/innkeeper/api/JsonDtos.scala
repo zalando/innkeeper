@@ -40,11 +40,13 @@ object InvalidUsereNameException
     s"Invalid uid for your token")
 
 sealed trait Route {
+
   def name: RouteName
 
   def route: NewRoute
 
   def description: Option[String]
+
 }
 
 case class RouteIn(
@@ -62,7 +64,8 @@ case class RouteOut(
   ownedByTeam: TeamName,
   createdBy: UserName,
   description: Option[String] = None,
-  deletedAt: Option[LocalDateTime] = None) extends Route
+  deletedAt: Option[LocalDateTime] = None,
+  deletedBy: Option[String] = None) extends Route
 
 case class NewRoute(
   matcher: Matcher,
@@ -77,7 +80,9 @@ case class Matcher(
   headerMatchers: Option[Seq[HeaderMatcher]] = Some(Seq.empty))
 
 sealed trait PathMatcher {
+
   def matcher: String
+
 }
 
 case class RegexPathMatcher(matcher: String) extends PathMatcher

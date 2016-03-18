@@ -22,7 +22,7 @@ trait RoutesService {
     createdBy: UserName,
     createdAt: LocalDateTime = LocalDateTime.now()): Future[Result[RouteOut]]
 
-  def remove(id: Long): Future[Result[Boolean]]
+  def remove(id: Long, deletedBy: String): Future[Result[Boolean]]
 
   def findByName(name: RouteName): Source[RouteOut, NotUsed]
 
@@ -69,8 +69,8 @@ class DefaultRoutesService @Inject() (
     config.getInt("defaultNumberOfMinutesToActivateRoute")
   }
 
-  override def remove(id: Long): Future[Result[Boolean]] = {
-    routesRepo.delete(id).map {
+  override def remove(id: Long, deletedBy: String): Future[Result[Boolean]] = {
+    routesRepo.delete(id, Some(deletedBy)).map {
       case false => Failure(NotFound)
       case _     => Success(true)
     }
@@ -140,6 +140,7 @@ class DefaultRoutesService @Inject() (
       ownedByTeam = TeamName(routeRow.ownedByTeam),
       createdBy = UserName(routeRow.createdBy),
       description = routeRow.description,
-      deletedAt = routeRow.deletedAt)
+      deletedAt = routeRow.deletedAt,
+      deletedBy = routeRow.deletedBy)
   }
 }

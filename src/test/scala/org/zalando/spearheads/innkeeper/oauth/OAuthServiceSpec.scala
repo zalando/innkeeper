@@ -17,25 +17,25 @@ class OAuthServiceSpec extends FunSpec with MockFactory with Matchers with Scala
 
   implicit val executionContext = global
 
+  val mockEnvConfig = mock[EnvConfig]
+
+  val mockHttpClient = mock[HttpClient]
+
   describe("OAuthServiceSpec") {
+    val authUrl = "http://auth.com/token="
+    val token = "the-token"
 
-    val AUTH_URL = "http://auth.com/token="
-    val TOKEN = "the-token"
+    (mockEnvConfig.getString _).expects("oauth.url").returning(authUrl)
 
-    val config = mock[EnvConfig]
-    val httpClient = mock[HttpClient]
-    val authService = new OAuthService(config, httpClient)
-
-    (config.getString _).expects("oauth.url")
-      .returning(AUTH_URL)
+    val authService = new OAuthService(mockEnvConfig, mockHttpClient)
 
     describe("success") {
 
       it("should authenticate") {
-        (httpClient.callJson _).expects(s"${AUTH_URL}$TOKEN", None, HttpMethods.GET)
+        (mockHttpClient.callJson _).expects(authUrl + token, None, HttpMethods.GET)
           .returning(Future("""{"scope":["read","write"],"realm":"/employees"}""".parseJson))
 
-        authService.authenticate(TOKEN).futureValue should
+        authService.authenticate(token).futureValue should
           be (ServiceResult.Success(AuthenticatedUser(Scope(Set("read", "write")), Realms.EMPLOYEES)))
       }
     }
@@ -45,12 +45,13 @@ class OAuthServiceSpec extends FunSpec with MockFactory with Matchers with Scala
 
         it("should fail") {
           // scopes instead of scope
-          (httpClient.callJson _).expects(s"${AUTH_URL}$TOKEN", None, HttpMethods.GET)
+          (mockHttpClient.callJson _).expects(authUrl + token, None, HttpMethods.GET)
             .returning(Future("""{"scopes":["read","write"],"realm":"/employees"}""".parseJson))
 
-          authService.authenticate(TOKEN).futureValue.isInstanceOf[ServiceResult.Failure] should be(true)
+          authService.authenticate(token).futureValue.isInstanceOf[ServiceResult.Failure] should be(true)
         }
       }
     }
   }
+
 }

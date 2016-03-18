@@ -23,10 +23,11 @@ trait RoutesRepo {
    * Marks route as deleted.
    *
    * @param   id of the route to be marked as deleted
+   * @param   deletedBy optional name of the user who marked route to be deleted
    * @param   dateTime optional timestamp that will be written into deleted_at column
    * @return  future that contains operation success flag
    */
-  def delete(id: Long, dateTime: Option[LocalDateTime] = None): Future[Boolean]
+  def delete(id: Long, deletedBy: Option[String] = None, dateTime: Option[LocalDateTime] = None): Future[Boolean]
 
   /**
    * Returns routes that were marked as deleted before the specified timestamp.

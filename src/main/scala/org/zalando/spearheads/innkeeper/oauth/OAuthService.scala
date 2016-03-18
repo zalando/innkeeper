@@ -14,7 +14,9 @@ import scala.util.{Failure, Success, Try}
  * @author dpersa
  */
 trait AuthService {
+
   def authenticate(token: String): Future[Result[AuthenticatedUser]]
+
 }
 
 @Singleton
@@ -24,19 +26,20 @@ class OAuthService @Inject() (
 
   val logger = LoggerFactory.getLogger(this.getClass)
 
-  override def authenticate(token: String): Future[Result[AuthenticatedUser]] = {
+  private val oauthUrl = config.getString("oauth.url")
 
+  override def authenticate(token: String): Future[Result[AuthenticatedUser]] = {
     httpClient.callJson(url(token), None).map { json =>
       Try { json.convertTo[AuthenticatedUser] } match {
         case Success(user) => ServiceResult.Success(user)
-        case Failure(ex) =>
+        case Failure(ex) => {
           logger.error(s"OAuthService unmarshalling failed with exception $ex")
           ServiceResult.Failure(Ex(ex))
+        }
       }
     }
   }
 
-  private lazy val OAUTH_URL = config.getString("oauth.url")
+  private def url(token: String) = oauthUrl + token
 
-  private def url(token: String) = OAUTH_URL + token
 }
