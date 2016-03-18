@@ -34,18 +34,18 @@ class PostRoutes @Inject() (
       val reqDesc = "post /routes"
       logger.info(s"try to $reqDesc")
       entity(as[RouteIn]) { route =>
-        logger.debug(s"We Try to $reqDesc unmarshalled route ${route}")
+        logger.info(s"We Try to $reqDesc unmarshalled route ${route}")
         team(authenticatedUser, token, "path") { team =>
           logger.debug(s"post /routes team ${team}")
-          (isStrictRoute(route.route) & hasOneOfTheScopes(authenticatedUser, s"$reqDesc strict")(scopes.WRITE_STRICT, scopes.WRITE_REGEX)) {
+          (isStrictRoute(route.route) & hasOneOfTheScopes(authenticatedUser, s"$reqDesc strict", scopes.WRITE_STRICT, scopes.WRITE_REGEX)) {
 
             handleWith(saveRoute(UserName(authenticatedUser.username), TeamName(team.name), s"$reqDesc strict"))
 
-          } ~ (isRegexRoute(route.route) & hasOneOfTheScopes(authenticatedUser, s"$reqDesc regex")(scopes.WRITE_REGEX)) {
+          } ~ (isRegexRoute(route.route) & hasOneOfTheScopes(authenticatedUser, s"$reqDesc regex", scopes.WRITE_REGEX)) {
 
             handleWith(saveRoute(UserName(authenticatedUser.username), TeamName(team.name), s"$reqDesc regex"))
 
-          } ~ hasOneOfTheScopes(authenticatedUser, s"$reqDesc regex")(scopes.WRITE_REGEX) {
+          } ~ hasOneOfTheScopes(authenticatedUser, s"$reqDesc regex", scopes.WRITE_REGEX) {
 
             handleWith(saveRoute(UserName(authenticatedUser.username), TeamName(team.name), s"$reqDesc other"))
 

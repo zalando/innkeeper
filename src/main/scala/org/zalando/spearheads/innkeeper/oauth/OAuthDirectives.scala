@@ -5,7 +5,7 @@ import akka.http.scaladsl.model.headers.{OAuth2BearerToken, Authorization}
 import akka.http.scaladsl.server._
 import akka.http.scaladsl.server.Directives._
 import org.slf4j.LoggerFactory
-import org.zalando.spearheads.innkeeper.Rejections._
+import org.zalando.spearheads.innkeeper.Rejections.{InternalServerErrorRejection, CredentialsRejectedRejection, CredentialsMissingRejection, InnkeeperAuthorizationFailedRejection, TeamNotFoundRejection, IncorrectTeamRejection}
 import org.zalando.spearheads.innkeeper.api.RouteOut
 import org.zalando.spearheads.innkeeper.services.ServiceResult
 import org.zalando.spearheads.innkeeper.services.ServiceResult.{NotFound, Ex}
@@ -87,7 +87,7 @@ trait OAuthDirectives {
     }
   }
 
-  def isAdminTeam(team: Team, requestDescription: String)(teamService: TeamService): Directive0 = {
+  def isAdminTeam(team: Team, requestDescription: String)(implicit teamService: TeamService): Directive0 = {
     if (teamService.isAdminTeam(team)) {
       pass
     } else {
@@ -103,7 +103,7 @@ trait OAuthDirectives {
     }
   }
 
-  def hasOneOfTheScopes(authorizedUser: AuthenticatedUser, requestDescription: String)(scope: Scope*): Directive0 = {
+  def hasOneOfTheScopes(authorizedUser: AuthenticatedUser, requestDescription: String, scope: Scope*): Directive0 = {
     val configuredScopeNames = scope.flatMap(_.scopeNames).toSet
     authorizedUser.scope.scopeNames.intersect(configuredScopeNames).isEmpty match {
       case false => pass
