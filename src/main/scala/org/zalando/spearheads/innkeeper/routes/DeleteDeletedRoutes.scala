@@ -9,7 +9,7 @@ import akka.http.scaladsl.server.Route
 import akka.http.scaladsl.server.Directives._
 import akka.stream.ActorMaterializer
 import org.slf4j.LoggerFactory
-import org.zalando.spearheads.innkeeper.Rejections.{InnkeeperAuthorizationFailedRejection, InvalidDateTimeRejection}
+import org.zalando.spearheads.innkeeper.Rejections.{InternalServerErrorRejection, InnkeeperAuthorizationFailedRejection, InvalidDateTimeRejection}
 import org.zalando.spearheads.innkeeper.metrics.RouteMetrics
 import org.zalando.spearheads.innkeeper.oauth.OAuthDirectives._
 import org.zalando.spearheads.innkeeper.oauth.{Scopes, AuthenticatedUser}
@@ -68,8 +68,7 @@ class DeleteDeletedRoutes @Inject() (
           logger.info(s"user '${authenticatedUser.username.getOrElse("unknown")}' deleted $affectedRows routes")
           complete("")
         }
-        case Success(ServiceResult.Failure(_)) => complete(StatusCodes.InternalServerError)
-        case Failure(_)                        => complete(StatusCodes.InternalServerError)
+        case Success(ServiceResult.Failure(_)) | Failure(_) => reject(InternalServerErrorRejection(requestDescription))
       }
     }
   }

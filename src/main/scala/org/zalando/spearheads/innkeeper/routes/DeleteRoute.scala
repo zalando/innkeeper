@@ -5,7 +5,7 @@ import akka.http.scaladsl.server.Directives.{onComplete, reject, delete, complet
 import akka.http.scaladsl.server.Route
 import com.google.inject.Inject
 import org.slf4j.LoggerFactory
-import org.zalando.spearheads.innkeeper.Rejections.{InnkeeperAuthorizationFailedRejection}
+import org.zalando.spearheads.innkeeper.Rejections.{InternalServerErrorRejection, RouteNotFoundRejection, InnkeeperAuthorizationFailedRejection}
 import org.zalando.spearheads.innkeeper.RouteDirectives.{isStrictRoute, isRegexRoute, findRoute}
 import org.zalando.spearheads.innkeeper.metrics.RouteMetrics
 import org.zalando.spearheads.innkeeper.oauth.OAuthDirectives.{team, teamAuthorization, hasOneOfTheScopes}
@@ -70,9 +70,9 @@ class DeleteRoute @Inject() (
 
       onComplete(routesService.remove(id)) {
         case Success(ServiceResult.Success(_))        => complete("")
-        case Success(ServiceResult.Failure(NotFound)) => complete(StatusCodes.NotFound)
-        case Success(_)                               => complete(StatusCodes.NotFound)
-        case Failure(_)                               => complete(StatusCodes.InternalServerError)
+        case Success(ServiceResult.Failure(NotFound)) => reject(RouteNotFoundRejection(reqDesc))
+        case Success(_)                               => reject(RouteNotFoundRejection(reqDesc))
+        case Failure(_)                               => reject(InternalServerErrorRejection(reqDesc))
       }
     }
   }
