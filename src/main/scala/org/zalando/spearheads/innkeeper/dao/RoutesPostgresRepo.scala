@@ -110,7 +110,7 @@ class RoutesPostgresRepo @Inject() (
   }
 
   override def delete(id: Long, deletedBy: Option[String], dateTime: Option[LocalDateTime]): Future[Boolean] = {
-    logger.debug(s"delete $id by $deletedBy")
+    logger.debug(s"delete $id by ${deletedBy.getOrElse("unknown")}")
 
     db.run {
       val q = for {
