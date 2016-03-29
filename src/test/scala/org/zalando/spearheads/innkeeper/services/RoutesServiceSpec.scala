@@ -8,6 +8,7 @@ import akka.stream.scaladsl.Sink
 import org.scalamock.matchers.MockParameter
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.concurrent.ScalaFutures
+import org.scalatest.time.{Seconds, Span}
 import org.scalatest.{FunSpec, Matchers}
 import org.zalando.spearheads.innkeeper.FakeDatabasePublisher
 import org.zalando.spearheads.innkeeper.api.JsonProtocols._
@@ -26,13 +27,14 @@ import scala.language.postfixOps
  */
 class RoutesServiceSpec extends FunSpec with Matchers with MockFactory with ScalaFutures {
 
+  override implicit val patienceConfig = PatienceConfig(timeout = Span(1000, Seconds))
   implicit val executionContext = ExecutionContext.global
   implicit val actorSystem = ActorSystem()
   implicit val materializer = ActorMaterializer()
   val routesRepo = mock[RoutesRepo]
   val config = mock[EnvConfig]
 
-  val routesService = new DefaultRoutesService(routesRepo, config, executionContext)
+  val routesService = new DefaultRoutesService(routesRepo, config)
 
   describe("#create") {
 
@@ -115,6 +117,36 @@ class RoutesServiceSpec extends FunSpec with Matchers with MockFactory with Scal
       }
 
       val result = routesService.allRoutes
+      val route = result.runWith(Sink.head)
+
+      an[NoSuchElementException] should be thrownBy {
+        Await.result(route, 100 millis)
+      }
+    }
+  }
+
+  describe("#latestRoutesPerName") {
+    lazy val currentTime = LocalDateTime.now()
+
+    it("should find the latest routes for each name") {
+
+      (routesRepo.selectLatestActiveRoutesPerName _).expects(currentTime).returning {
+        FakeDatabasePublisher[RouteRow](Seq(routeRow))
+      }
+
+      val result = routesService.latestRoutesPerName(currentTime)
+      val route = result.runWith(Sink.head).futureValue
+      route.id should be(routeId)
+      route.name should be(RouteName("THE_ROUTE"))
+      route.description should be(Some("The New Route"))
+    }
+
+    it("should return an empty list if there are no routes") {
+      (routesRepo.selectLatestActiveRoutesPerName _).expects(currentTime).returning {
+        FakeDatabasePublisher[RouteRow](Seq())
+      }
+
+      val result = routesService.latestRoutesPerName(currentTime)
       val route = result.runWith(Sink.head)
 
       an[NoSuchElementException] should be thrownBy {
@@ -262,4 +294,6 @@ class RoutesServiceSpec extends FunSpec with Matchers with MockFactory with Scal
   val routeOut = RouteRow(Some(routeId), routeName.name, newRouteJson, activateAt, ownedByTeam, createdBy, createdAt, Some(description))
 
   val routeRow = new RouteRow(Some(1), routeName.name, newRouteJson, activateAt, ownedByTeam, createdBy, createdAt, Some(description))
+  val routeRow1 = new RouteRow(Some(2), routeName.name + "1", newRouteJson, activateAt, ownedByTeam, createdBy, createdAt.plusMinutes(1), Some(description))
+  val inactiveRouteRow = new RouteRow(Some(3), routeName.name + "2", newRouteJson, activateAt.plusMinutes(5), ownedByTeam, createdBy, createdAt.plusMinutes(2), Some(description))
 }

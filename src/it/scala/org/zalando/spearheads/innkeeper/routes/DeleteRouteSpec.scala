@@ -64,7 +64,7 @@ class DeleteRouteSpec extends FunSpec with BeforeAndAfter with Matchers {
             insertRoute("R2", ownedByTeam = "team1")
 
             val response = deleteSlashRoute(2, token)
-            response.status.shouldBe(StatusCodes.OK)
+            response.status should be(StatusCodes.OK)
           }
         }
       }
@@ -78,7 +78,7 @@ class DeleteRouteSpec extends FunSpec with BeforeAndAfter with Matchers {
             insertRoute("R2", routeType = "REGEX", ownedByTeam = "team1")
 
             val response = deleteSlashRoute(2, token)
-            response.status.shouldBe(StatusCodes.OK)
+            response.status should be(StatusCodes.OK)
           }
         }
       }
@@ -92,7 +92,7 @@ class DeleteRouteSpec extends FunSpec with BeforeAndAfter with Matchers {
             insertHostRoute("R2", "host1.com", ownedByTeam = "team1")
 
             val response = deleteSlashRoute(2, token)
-            response.status.shouldBe(StatusCodes.OK)
+            response.status should be(StatusCodes.OK)
           }
         }
       }
@@ -107,7 +107,7 @@ class DeleteRouteSpec extends FunSpec with BeforeAndAfter with Matchers {
           recreateSchema
           insertRoute("R2", ownedByTeam = "team2")
           val response = deleteSlashRoute(1, token)
-          response.status.shouldBe(StatusCodes.Forbidden)
+          response.status should be(StatusCodes.Forbidden)
         }
       }
 
@@ -115,7 +115,7 @@ class DeleteRouteSpec extends FunSpec with BeforeAndAfter with Matchers {
 
         it("should return the 404 Not Found status code") {
           val response = deleteSlashRoute(1, token)
-          response.status.shouldBe(StatusCodes.NotFound)
+          response.status should be(StatusCodes.NotFound)
         }
       }
 
@@ -126,7 +126,7 @@ class DeleteRouteSpec extends FunSpec with BeforeAndAfter with Matchers {
           insertRoute("R1", ownedByTeam = "team1")
           deleteSlashRoute(1, token)
           val response = deleteSlashRoute(1, token)
-          response.status.shouldBe(StatusCodes.NotFound)
+          response.status should be(StatusCodes.NotFound)
         }
       }
 
@@ -134,7 +134,7 @@ class DeleteRouteSpec extends FunSpec with BeforeAndAfter with Matchers {
 
         it("should return the 401 Unauthorized status") {
           val response = deleteSlashRoute(2)
-          response.status.shouldBe(StatusCodes.Unauthorized)
+          response.status should be(StatusCodes.Unauthorized)
         }
       }
 
@@ -143,7 +143,7 @@ class DeleteRouteSpec extends FunSpec with BeforeAndAfter with Matchers {
 
         it("should return the 403 Forbidden status") {
           val response = deleteSlashRoute(2, token)
-          response.status.shouldBe(StatusCodes.Forbidden)
+          response.status should be(StatusCodes.Forbidden)
         }
       }
 
@@ -155,7 +155,7 @@ class DeleteRouteSpec extends FunSpec with BeforeAndAfter with Matchers {
             recreateSchema
             insertRoute(routeType = "REGEX")
             val response = deleteSlashRoute(1, token)
-            response.status.shouldBe(StatusCodes.Forbidden)
+            response.status should be(StatusCodes.Forbidden)
           }
         }
       }
@@ -168,7 +168,7 @@ class DeleteRouteSpec extends FunSpec with BeforeAndAfter with Matchers {
             recreateSchema
             insertHostRoute(hostMatcher = "host.com")
             val response = deleteSlashRoute(1, token)
-            response.status.shouldBe(StatusCodes.Forbidden)
+            response.status should be(StatusCodes.Forbidden)
           }
         }
       }
@@ -179,7 +179,7 @@ class DeleteRouteSpec extends FunSpec with BeforeAndAfter with Matchers {
 
           it("should return the 403 Forbidden status") {
             val response = deleteSlashRoute(2, token)
-            response.status.shouldBe(StatusCodes.Forbidden)
+            response.status should be(StatusCodes.Forbidden)
           }
         }
       }

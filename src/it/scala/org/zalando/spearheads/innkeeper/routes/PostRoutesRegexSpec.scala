@@ -46,7 +46,7 @@ class PostRoutesRegexSpec extends FunSpec with BeforeAndAfter with Matchers {
           val response = postSlashRoutesRegex(routeName, token)
 
           val routesResponse = getSlashRoutes(READ_TOKEN)
-          response.status.shouldBe(StatusCodes.OK)
+          response.status should be(StatusCodes.OK)
           val entity = entityString(routesResponse)
           val routes = entity.parseJson.convertTo[Seq[RouteOut]]
           routes.size should be(1)

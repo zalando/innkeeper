@@ -18,6 +18,7 @@ class RoutesModule extends AbstractModule with ScalaModule {
     bind[DeleteRoute].asEagerSingleton()
 
     bind[GetRoutes].asEagerSingleton()
+    bind[GetCurrentRoutes].asEagerSingleton()
     bind[PostRoutes].asEagerSingleton()
 
     bind[InnkeeperRejectionHandler].asEagerSingleton()

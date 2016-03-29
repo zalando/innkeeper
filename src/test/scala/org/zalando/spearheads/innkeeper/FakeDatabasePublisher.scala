@@ -15,8 +15,9 @@ class FakeDatabasePublisher[T](val seq: Seq[T]) extends DatabasePublisher[T] {
       override def request(l: Long) = {
         if (iterator.hasNext) {
           subscriber.onNext(iterator.next())
-        } else
+        } else {
           subscriber.onComplete()
+        }
       }
     })
   }

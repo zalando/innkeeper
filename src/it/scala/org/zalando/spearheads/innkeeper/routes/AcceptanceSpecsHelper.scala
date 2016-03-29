@@ -24,6 +24,8 @@ object AcceptanceSpecsHelper extends ScalaFutures with Matchers {
 
   private val routesUri = s"$baseUri/routes"
 
+  private val currentRoutesUri = s"$baseUri/current-routes"
+
   override implicit val patienceConfig = PatienceConfig(timeout = Span(5, Seconds))
 
   implicit val system = ActorSystem("main-actor-system")
@@ -126,6 +128,8 @@ object AcceptanceSpecsHelper extends ScalaFutures with Matchers {
     postSlashRoutes(catchAllRoute(routeName))(token)
 
   def getSlashRoutes(token: String = ""): HttpResponse = doGet(routesUri, token)
+
+  def getSlashCurrentRoutes(token: String = ""): HttpResponse = doGet(currentRoutesUri, token)
 
   def getSlashRoutesByName(name: String, token: String): HttpResponse = doGet(routeByNameUri(name), token)
 
