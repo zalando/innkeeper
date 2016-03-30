@@ -57,7 +57,7 @@ class GetCurrentRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
         response.status should be(StatusCodes.OK)
         val entity = entityString(response)
         val routes = entity.parseJson.convertTo[Seq[RouteOut]]
-        //routes.size should be (3)
+
         routes.map(_.id).toSet should be (Set(1, 4, 6))
       }
     }
