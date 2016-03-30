@@ -78,12 +78,20 @@ class RoutesPostgresRepo @Inject() (
     }
   }
 
-  override def selectModifiedSince(localDateTime: LocalDateTime): DatabasePublisher[RouteRow] = {
-    logger.debug(s"selectModifiedSince $localDateTime")
+  override def selectModifiedSince(since: LocalDateTime, currentTime: LocalDateTime): DatabasePublisher[RouteRow] = {
+    logger.debug(s"selectModifiedSince $since")
 
     val q = for {
       routeRow <- routesTable
-      if routeRow.createdAt > localDateTime || routeRow.deletedAt > localDateTime
+      if (
+        // all routes created since, without the activatedAt in the future
+        routeRow.createdAt > since && routeRow.activateAt < currentTime) ||
+        // all routes deleted since
+        routeRow.deletedAt > since ||
+        // all routes with the activation data between since and now
+        //     - but only if they have the same id as the latest created route with the same name
+        (routeRow.activateAt > since && routeRow.activateAt < currentTime &&
+          routeRow.id.in(latestActiveRouteIdsCreatedForEachName(currentTime)))
     } yield routeRow
 
     db.stream {
@@ -107,18 +115,8 @@ class RoutesPostgresRepo @Inject() (
   override def selectLatestActiveRoutesPerName(currentTime: LocalDateTime): DatabasePublisher[RouteRow] = {
     logger.debug("select latest routes per name")
 
-    val q = (for {
-      routeRow <- routesTable
-      if routeRow.deletedAt.isEmpty && routeRow.activateAt < currentTime
-    } yield (routeRow.id, routeRow.name)).groupBy(_._2)
-
-    val maxIdsQuery = q.map {
-      case (name, query) =>
-        (query.map(_._1).max)
-    }
-
     val join = (for {
-      routeRow <- routesTable.filter(_.id in maxIdsQuery)
+      routeRow <- routesTable.filter(_.id in latestActiveRouteIdsCreatedForEachName(currentTime))
     } yield routeRow)
 
     db.stream {
@@ -164,6 +162,17 @@ class RoutesPostgresRepo @Inject() (
       q.delete
     }
   }
+
+  private def activeRoutesGroupedByName(currentTime: LocalDateTime) = (for {
+    routeRow <- routesTable
+    if routeRow.deletedAt.isEmpty && routeRow.activateAt < currentTime
+  } yield (routeRow.id, routeRow.name)).groupBy(_._2)
+
+  private def latestActiveRouteIdsCreatedForEachName(currentTime: LocalDateTime) =
+    activeRoutesGroupedByName(currentTime).map {
+      case (name, query) =>
+        (query.map(_._1).max)
+    }
 
   private lazy val selectAllQuery = for {
     routeRow <- routesTable
