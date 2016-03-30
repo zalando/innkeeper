@@ -27,7 +27,6 @@ import scala.language.postfixOps
  */
 class RoutesServiceSpec extends FunSpec with Matchers with MockFactory with ScalaFutures {
 
-  override implicit val patienceConfig = PatienceConfig(timeout = Span(1000, Seconds))
   implicit val executionContext = ExecutionContext.global
   implicit val actorSystem = ActorSystem()
   implicit val materializer = ActorMaterializer()
