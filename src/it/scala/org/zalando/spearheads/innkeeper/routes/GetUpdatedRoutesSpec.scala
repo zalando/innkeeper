@@ -29,19 +29,20 @@ class GetUpdatedRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
       }
 
       it("should return the correct routes") {
-        insertRoute("R1")
+        val route1Id = insertRoute("R1").id.get
         insertRoute("R2")
         val createdAt = LocalDateTime.now()
-        insertRoute("R3", createdAt = createdAt)
-        insertRoute("R4", createdAt = createdAt)
+        val route3Id = insertRoute("R3", createdAt = createdAt).id.get
+        insertRoute("R4", createdAt = createdAt, activateAt = createdAt.plusMinutes(5))
+        val route5Id = insertRoute("R5", createdAt = createdAt).id.get
+        val route6Id = insertRoute("R3", createdAt = createdAt).id.get
         routesRepo.delete(1)
 
         val response = getUpdatedRoutes(createdAt.minus(1, ChronoUnit.MICROS), token)
         response.status should be(StatusCodes.OK)
         val entity = entityString(response)
         val routes = entity.parseJson.convertTo[Seq[RouteOut]]
-        routes.size should be(3)
-        routes.map(_.id).toSet should be(Set(1, 3, 4))
+        routes.map(_.id).toSet should be(Set(route1Id, route3Id, route5Id, route6Id))
       }
     }
 

@@ -24,7 +24,7 @@ object RoutesRepoHelper extends ScalaFutures {
     createdBy: String = "testuser",
     ownedByTeam: String = "testteam",
     createdAt: LocalDateTime = LocalDateTime.now(),
-    activateAt: LocalDateTime = LocalDateTime.now().minusMinutes(5)): RouteRow = {
+    activateAt: LocalDateTime = LocalDateTime.now().minusHours(2)): RouteRow = {
 
     routesRepo.insert(RouteRow(
       name = name,

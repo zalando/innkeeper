@@ -113,10 +113,29 @@ class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers w
             insertRoute("R4", createdAt = createdAt)
             deleteRoute(1)
 
-            val routes: List[RouteRow] = routesRepo.selectModifiedSince(createdAt.minus(1, ChronoUnit.MICROS))
+            val routes: List[RouteRow] = routesRepo.selectModifiedSince(createdAt.minus(1, ChronoUnit.MICROS), LocalDateTime.now())
 
             routes.size should be (3)
             routes.map(_.id.get).toSet should be (Set(1, 3, 4))
+          }
+
+          it("should select the right activated routes") {
+            insertRoute("R1")
+            insertRoute("R2", activateAt = LocalDateTime.now().plusHours(2))
+            val createdAt = LocalDateTime.now()
+            // created in the past but not the latest active
+            insertRoute("R1", createdAt = createdAt.minusMinutes(1), activateAt = createdAt)
+            // created in the past, getting active now
+            val route4Id = insertRoute("R3", createdAt = createdAt.minusMinutes(1), activateAt = createdAt).id.get
+            val route5Id = insertRoute("R4", createdAt = createdAt).id.get
+            insertRoute("R5", createdAt = createdAt, activateAt = createdAt.plusHours(2))
+            val route7Id = insertRoute("R1").id.get
+            val route8Id = insertRoute("R4").id.get
+            deleteRoute(5)
+
+            val routes: List[RouteRow] = routesRepo.selectModifiedSince(createdAt.minus(1, ChronoUnit.MICROS), LocalDateTime.now())
+
+            routes.map(_.id.get).toSet should be (Set(route4Id, route5Id, route7Id, route8Id))
           }
         }
 
