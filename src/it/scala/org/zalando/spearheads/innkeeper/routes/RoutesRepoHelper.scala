@@ -23,7 +23,8 @@ object RoutesRepoHelper extends ScalaFutures {
   def insertRoute(name: String = "THE_ROUTE", matcher: String = "/hello", routeType: String = "STRICT",
     createdBy: String = "testuser",
     ownedByTeam: String = "testteam",
-    createdAt: LocalDateTime = LocalDateTime.now()): RouteRow = {
+    createdAt: LocalDateTime = LocalDateTime.now(),
+    activateAt: LocalDateTime = LocalDateTime.now().minusMinutes(5)): RouteRow = {
 
     routesRepo.insert(RouteRow(
       name = name,
@@ -31,7 +32,7 @@ object RoutesRepoHelper extends ScalaFutures {
       createdBy = createdBy,
       ownedByTeam = ownedByTeam,
       createdAt = createdAt,
-      activateAt = createdAt.plusMinutes(5)))
+      activateAt = activateAt))
       .futureValue
   }
 

@@ -37,7 +37,7 @@ class GetUpdatedRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
         routesRepo.delete(1)
 
         val response = getUpdatedRoutes(createdAt.minus(1, ChronoUnit.MICROS), token)
-        response.status.shouldBe(StatusCodes.OK)
+        response.status should be(StatusCodes.OK)
         val entity = entityString(response)
         val routes = entity.parseJson.convertTo[Seq[RouteOut]]
         routes.size should be(3)
@@ -51,7 +51,7 @@ class GetUpdatedRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
 
           it("should return the 401 Unauthorized status") {
             val response = getUpdatedRoutes(LocalDateTime.now(), "")
-            response.status.shouldBe(StatusCodes.Unauthorized)
+            response.status should be(StatusCodes.Unauthorized)
           }
         }
 
@@ -60,7 +60,7 @@ class GetUpdatedRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
 
           it("should return the 403 Forbidden status") {
             val response = getUpdatedRoutes(LocalDateTime.now(), token)
-            response.status.shouldBe(StatusCodes.Forbidden)
+            response.status should be(StatusCodes.Forbidden)
           }
         }
 
@@ -69,7 +69,7 @@ class GetUpdatedRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
 
           it("should return the 403 Forbidden status") {
             val response = getUpdatedRoutes(LocalDateTime.now(), token)
-            response.status.shouldBe(StatusCodes.Forbidden)
+            response.status should be(StatusCodes.Forbidden)
           }
         }
 
@@ -78,7 +78,7 @@ class GetUpdatedRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
 
           it("should return the 400 Bad Request status") {
             val response = getUpdatedRoutes("invalidDate", token)
-            response.status.shouldBe(StatusCodes.BadRequest)
+            response.status should be(StatusCodes.BadRequest)
           }
         }
       }

@@ -73,13 +73,8 @@ class RoutesPostgresRepo @Inject() (
   override def selectAll: DatabasePublisher[RouteRow] = {
     logger.debug("select all")
 
-    val q = for {
-      routeRow <- routesTable
-      if routeRow.deletedAt.isEmpty
-    } yield routeRow
-
     db.stream {
-      q.result
+      selectAllQuery.result
     }
   }
 
@@ -99,13 +94,35 @@ class RoutesPostgresRepo @Inject() (
   override def selectByName(name: String): DatabasePublisher[RouteRow] = {
     logger.debug(s"selectByName $name")
 
-    val q = for {
+    val q = (for {
       routeRow <- routesTable
       if routeRow.name === name && routeRow.deletedAt.isEmpty
-    } yield routeRow
+    } yield routeRow)
 
     db.stream {
       q.result
+    }
+  }
+
+  override def selectLatestActiveRoutesPerName(currentTime: LocalDateTime): DatabasePublisher[RouteRow] = {
+    logger.debug("select latest routes per name")
+
+    val q = (for {
+      routeRow <- routesTable
+      if routeRow.deletedAt.isEmpty && routeRow.activateAt < currentTime
+    } yield (routeRow.id, routeRow.name)).groupBy(_._2)
+
+    val maxIdsQuery = q.map {
+      case (name, query) =>
+        (query.map(_._1).max)
+    }
+
+    val join = (for {
+      routeRow <- routesTable.filter(_.id in maxIdsQuery)
+    } yield routeRow)
+
+    db.stream {
+      join.result
     }
   }
 
@@ -148,4 +165,8 @@ class RoutesPostgresRepo @Inject() (
     }
   }
 
+  private lazy val selectAllQuery = for {
+    routeRow <- routesTable
+    if routeRow.deletedAt.isEmpty
+  } yield routeRow
 }

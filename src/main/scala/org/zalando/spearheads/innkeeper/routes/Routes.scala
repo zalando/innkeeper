@@ -21,6 +21,7 @@ import scala.concurrent.{ExecutionContext, Future}
 class Routes @Inject() (
     getRoute: GetRoute,
     getRoutes: GetRoutes,
+    getCurrentRoutes: GetCurrentRoutes,
     deleteRoute: DeleteRoute,
     postRoutes: PostRoutes,
     getUpdatedRoutes: GetUpdatedRoutes,
@@ -45,6 +46,8 @@ class Routes @Inject() (
 
             path("updated-routes" / Rest) { lastModifiedString =>
               getUpdatedRoutes(authenticatedUser, lastModifiedString)
+            } ~ path("current-routes") {
+              getCurrentRoutes(authenticatedUser)
             } ~ path("routes") {
               getRoutes(authenticatedUser) ~ postRoutes(authenticatedUser, token)
             } ~ path("routes" / LongNumber) { id =>

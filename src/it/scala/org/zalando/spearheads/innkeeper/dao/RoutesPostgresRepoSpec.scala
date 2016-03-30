@@ -29,17 +29,6 @@ class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers w
 
   val routesRepo = RoutesRepoHelper.routesRepo
 
-  private def getDeletedAtForRoute(id: Long) = {
-    val routeRow = routesRepo.selectById(id).futureValue
-    routeRow.get.deletedAt.get
-  }
-
-  private implicit def databasePublisherToList[T](databasePublisher: DatabasePublisher[T]): List[T] = {
-    Source.fromPublisher(databasePublisher).runFold(Seq.empty[T]) {
-      case (seq, item) => seq :+ item
-    }.futureValue.toList
-  }
-
   describe("RoutesPostgresRepoSpec") {
 
     before {
@@ -88,9 +77,9 @@ class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers w
 
           it("should select all routes") {
             val createdAt = LocalDateTime.now()
-            val activateAt = createdAt.plusMinutes(5)
-            insertRoute("R1", "/hello1", createdAt = createdAt)
-            insertRoute("R2", "/hello2", createdAt = createdAt)
+            val activateAt = createdAt.minusMinutes(5)
+            insertRoute("R1", "/hello1", createdAt = createdAt, activateAt = activateAt)
+            insertRoute("R2", "/hello2", createdAt = createdAt, activateAt = activateAt)
 
             val routes: List[RouteRow] = routesRepo.selectAll
 
@@ -105,7 +94,7 @@ class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers w
             val createdAt = LocalDateTime.now()
             insertRoute("R3", createdAt = createdAt)
             insertRoute("R4", createdAt = createdAt)
-            routesRepo.delete(2).futureValue
+            deleteRoute(2)
 
             val routes: List[RouteRow] = routesRepo.selectAll
 
@@ -117,12 +106,12 @@ class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers w
 
         describe("#selectModifiedSince") {
           it("should select the right routes") {
-            insertRoute("1")
-            insertRoute("2")
+            insertRoute("R1")
+            insertRoute("R2")
             val createdAt = LocalDateTime.now()
-            insertRoute("3", createdAt = createdAt)
-            insertRoute("4", createdAt = createdAt)
-            routesRepo.delete(1)
+            insertRoute("R3", createdAt = createdAt)
+            insertRoute("R4", createdAt = createdAt)
+            deleteRoute(1)
 
             val routes: List[RouteRow] = routesRepo.selectModifiedSince(createdAt.minus(1, ChronoUnit.MICROS))
 
@@ -150,7 +139,7 @@ class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers w
             val createdAt = LocalDateTime.now()
             insertRoute("R2", createdAt = createdAt)
             insertRoute("R4", createdAt = createdAt)
-            routesRepo.delete(2).futureValue
+            deleteRoute(2)
 
             val routes: List[RouteRow] = routesRepo.selectByName("R2")
 
@@ -190,12 +179,30 @@ class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers w
         }
       }
 
+      describe("#selectLatestRoutesPerName") {
+
+        it("should select the right routes") {
+          insertRoute("R1")
+          insertRoute("R2", activateAt = LocalDateTime.now().plusMinutes(5))
+          val createdAt = LocalDateTime.now()
+          insertRoute("R3", createdAt = createdAt)
+          insertRoute("R4", createdAt = createdAt)
+          insertRoute("R1")
+          insertRoute("R3")
+          deleteRoute(5)
+
+          val routes: List[RouteRow] = routesRepo.selectLatestActiveRoutesPerName(LocalDateTime.now())
+
+          routes.size should be (3)
+          routes.map(_.id.get).toSet should be (Set(1, 4, 6))
+        }
+      }
+
       describe("delete") {
         it("should delete a route by marking as deleted") {
           insertRoute("1", "/hello1")
           insertRoute("2", "/hello2")
-
-          val result = routesRepo.delete(1).futureValue
+          val result = deleteRoute(1)
 
           result should be (true)
 
@@ -258,5 +265,16 @@ class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers w
         }
       }
     }
+  }
+
+  private def getDeletedAtForRoute(id: Long) = {
+    val routeRow = routesRepo.selectById(id).futureValue
+    routeRow.get.deletedAt.get
+  }
+
+  private implicit def databasePublisherToList[T](databasePublisher: DatabasePublisher[T]): List[T] = {
+    Source.fromPublisher(databasePublisher).runFold(Seq.empty[T]) {
+      case (seq, item) => seq :+ item
+    }.futureValue.toList
   }
 }

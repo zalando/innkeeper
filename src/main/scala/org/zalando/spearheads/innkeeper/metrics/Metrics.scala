@@ -18,6 +18,7 @@ class RouteMetrics @Inject() (val metrics: Metrics) {
 
   val getUpdatedRoutes = metrics.metrics.timer("200.GET.updated-routes")
   val getRoutes = metrics.metrics.timer("200.GET.routes")
+  val getCurrentRoutes = metrics.metrics.timer("200.GET.current-routes")
   val postRoutes = metrics.metrics.timer("201.POST.routes")
   val deleteRoute = metrics.metrics.timer("200.DELETE.route")
   val getRoute = metrics.metrics.timer("200.GET.route")

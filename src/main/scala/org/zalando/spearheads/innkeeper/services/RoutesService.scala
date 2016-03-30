@@ -10,6 +10,7 @@ import org.zalando.spearheads.innkeeper.api._
 import org.zalando.spearheads.innkeeper.dao.{RouteRow, RoutesRepo}
 import org.zalando.spearheads.innkeeper.services.ServiceResult.{Failure, NotFound, Result, Success}
 import org.zalando.spearheads.innkeeper.utils.EnvConfig
+import slick.backend.DatabasePublisher
 import spray.json.{pimpAny, pimpString}
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -30,6 +31,8 @@ trait RoutesService {
 
   def allRoutes: Source[RouteOut, NotUsed]
 
+  def latestRoutesPerName(currentTime: LocalDateTime = LocalDateTime.now()): Source[RouteOut, NotUsed]
+
   def findById(id: Long): Future[Result[RouteOut]]
 
   def findDeletedBefore(deletedBefore: LocalDateTime): Source[RouteOut, NotUsed]
@@ -40,8 +43,7 @@ trait RoutesService {
 
 class DefaultRoutesService @Inject() (
     routesRepo: RoutesRepo,
-    config: EnvConfig,
-    implicit val executionContext: ExecutionContext) extends RoutesService {
+    config: EnvConfig)(implicit val executionContext: ExecutionContext) extends RoutesService {
 
   override def create(
     route: RouteIn,
@@ -76,28 +78,26 @@ class DefaultRoutesService @Inject() (
     }
   }
 
-  override def findByName(name: RouteName): Source[RouteOut, NotUsed] = {
-    Source.fromPublisher(
-      routesRepo.selectByName(name.name).mapResult { routeRow =>
-        routeRow.id.map { id =>
-          routeRowToRoute(id, routeRow)
-        }
-      }
-    ).mapConcat(_.toList)
+  override def findByName(name: RouteName): Source[RouteOut, NotUsed] =
+    routeRowsStreamToRouteOutStream {
+      routesRepo.selectByName(name.name)
+    }
+
+  override def findModifiedSince(localDateTime: LocalDateTime): Source[RouteOut, NotUsed] =
+    routeRowsStreamToRouteOutStream {
+      routesRepo.selectModifiedSince(localDateTime)
+    }
+
+  override def allRoutes: Source[RouteOut, NotUsed] = routeRowsStreamToRouteOutStream {
+    routesRepo.selectAll
   }
 
-  override def findModifiedSince(localDateTime: LocalDateTime): Source[RouteOut, NotUsed] = {
-    Source.fromPublisher(
-      routesRepo.selectModifiedSince(localDateTime).mapResult { routeRow =>
-        routeRow.id.map { id =>
-          routeRowToRoute(id, routeRow)
-        }
-      }
-    ).mapConcat(_.toList)
+  override def latestRoutesPerName(currentTime: LocalDateTime): Source[RouteOut, NotUsed] = routeRowsStreamToRouteOutStream {
+    routesRepo.selectLatestActiveRoutesPerName(currentTime)
   }
 
-  override def allRoutes: Source[RouteOut, NotUsed] = {
-    Source.fromPublisher(routesRepo.selectAll.mapResult { routeRow =>
+  private def routeRowsStreamToRouteOutStream(streamOfRows: => DatabasePublisher[RouteRow]): Source[RouteOut, NotUsed] = {
+    Source.fromPublisher(streamOfRows.mapResult { routeRow =>
       routeRow.id.map { id =>
         routeRowToRoute(id, routeRow)
       }

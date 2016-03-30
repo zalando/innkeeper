@@ -35,38 +35,36 @@ paths:
       security:
         - company:
           - routes.read
-      summary: Returns a list of all the routes.
+      summary: Returns the list of all the routes.
       parameters:
-        - name: offset
+        - name: name
           in: query
-          description: Offset of the returned result set.
+          description: The name of the route to filter for
           required: false
-          type: integer
-          format: int64
-          minimum: 0
-          default: 0
-        - name: limit
-          in: query
-          description: Maximum number of results to return.
-          required: false
-          type: integer
-          format: int64
-          minimum: 1
-          default: 100
+          type: string
       responses:
         '200':
           description: An array of routes
-          headers:
-            X-Total-Count:
-              description: |
-                Total count of entries in the paginated result set.
-              type: integer
-              format: int64
-            Link:
-              description: |
-                Provides a link to prev / next pages when result is paginated.
-                Link: <http://innkeeper.host.eu/routes?offset=5&limit=10>; rel="prev"; title="..."
-              type: string
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/RouteOut'
+        default:
+          description: A processing or an unexpected error.
+          schema:
+            $ref: '#/definitions/Error'
+  '/current-routes':
+    x-swagger-router-controller: "current-routes"
+    get:
+      operationId: getCurrentRoutes
+      security:
+        - company:
+          - routes.read
+      summary: Returns the list of all the active routes.
+      parameters:
+      responses:
+        '200':
+          description: An array of routes
           schema:
             type: array
             items:

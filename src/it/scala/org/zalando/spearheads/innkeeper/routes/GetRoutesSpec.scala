@@ -30,7 +30,7 @@ class GetRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
         insertRoute("R2")
 
         val response = getSlashRoutes(token)
-        response.status.shouldBe(StatusCodes.OK)
+        response.status should be(StatusCodes.OK)
         val entity = entityString(response)
         val routes = entity.parseJson.convertTo[Seq[RouteOut]]
         routes.size should be(2)
@@ -44,7 +44,7 @@ class GetRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
           insertRoute("R1")
 
           val response = getSlashRoutesByName("R1", token)
-          response.status.shouldBe(StatusCodes.OK)
+          response.status should be(StatusCodes.OK)
           val entity = entityString(response)
           val routes = entity.parseJson.convertTo[Seq[RouteOut]]
           routes.size should be(2)
@@ -60,7 +60,7 @@ class GetRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
           deleteRoute(4)
 
           val response = getSlashRoutesByName("R1", token)
-          response.status.shouldBe(StatusCodes.OK)
+          response.status should be(StatusCodes.OK)
           val entity = entityString(response)
           val routes = entity.parseJson.convertTo[Seq[RouteOut]]
           routes.size should be(1)
@@ -75,7 +75,7 @@ class GetRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
 
           it("should return the 401 Unauthorized status") {
             val response = getSlashRoutes()
-            response.status.shouldBe(StatusCodes.Unauthorized)
+            response.status should be(StatusCodes.Unauthorized)
           }
         }
 
@@ -84,7 +84,7 @@ class GetRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
 
           it("should return the 403 Forbidden status") {
             val response = getSlashRoutes(token)
-            response.status.shouldBe(StatusCodes.Forbidden)
+            response.status should be(StatusCodes.Forbidden)
           }
         }
 
@@ -93,7 +93,7 @@ class GetRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
 
           it("should return the 403 Forbidden status") {
             val response = getSlashRoutes(token)
-            response.status.shouldBe(StatusCodes.Forbidden)
+            response.status should be(StatusCodes.Forbidden)
           }
         }
       }
@@ -104,7 +104,7 @@ class GetRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
 
           it("should return the 400 Bad Request status") {
             val response = getSlashRoutesByName("1234INVALID", token)
-            response.status.shouldBe(StatusCodes.BadRequest)
+            response.status should be(StatusCodes.BadRequest)
           }
         }
       }
