@@ -17,6 +17,7 @@ scalacOptions := Seq("-unchecked", "-feature", "-deprecation", "-encoding", "utf
 
 resolvers += "Whisk" at "https://dl.bintray.com/whisk/maven"
 resolvers += "softprops-maven" at "http://dl.bintray.com/content/softprops/maven"
+resolvers += "Clojars" at "http://clojars.org/repo/"
 
 val akkaStreamV      = "2.4.2"
 val scalaTestV       = "3.0.0-M15"
@@ -36,6 +37,8 @@ libraryDependencies ++= List(
 
   "com.typesafe.akka"       %% "akka-slf4j"                           % "2.3.9",
   "ch.qos.logback"           % "logback-classic"                      % "1.1.3",
+  
+  "org.clojars.danpersa"     % "instaskip"                            % "0.1.7",
 
   "com.google.inject"        % "guice"                                % "4.0",
   "net.codingwell"          %% "scala-guice"                          % "4.0.0",
