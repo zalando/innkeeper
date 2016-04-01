@@ -1,4 +1,4 @@
-<h1 style="text-align:center;"><img width="400" alt="Innkeeper" src="https://rawgithub.com/zalando/innkeeper/master/logo.svg"></h1>
+<center><h1><img width="400" alt="Innkeeper" src="https://rawgithub.com/zalando/innkeeper/master/logo.svg"></h1></center>
 
 Innkeeper is a simple route management API for [Skipper](https://github.com/zalando/skipper)
 
