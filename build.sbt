@@ -38,7 +38,7 @@ libraryDependencies ++= List(
   "com.typesafe.akka"       %% "akka-slf4j"                           % "2.3.9",
   "ch.qos.logback"           % "logback-classic"                      % "1.1.3",
   
-  "org.clojars.danpersa"     % "instaskip"                            % "0.1.7",
+  "org.clojars.danpersa"     % "instaskip"                            % "0.2.6",
 
   "com.google.inject"        % "guice"                                % "4.0",
   "net.codingwell"          %% "scala-guice"                          % "4.0.0",
