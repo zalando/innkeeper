@@ -6,7 +6,7 @@ info:
     and define non-wildcard paths to all relevant users in employee realm as
     well as, some service realm clients (e.g. CMS). Creation of wildcard routes
     is reserved for maintainers of this API as it requires special care.
-  version: 2.2.0
+  version: 3.0.0
 host: innkeeper.host.eu
 schemes:
   - https
@@ -28,10 +28,47 @@ securityDefinitions:
       routes.write_regex: |
         All operations on all routes, including ones with regex path matching.
 paths:
-  '/routes':
-    x-swagger-router-controller: "routes"
+  '/hosts':
     get:
-      operationId: getRoutes
+      security:
+        - company:
+          - routes.read
+      summary: Returns the list of available hosts.
+      responses:
+        '200':
+          description: An array of available hosts.
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Host'
+        default:
+          description: A processing or an unexpected error.
+          schema:
+            $ref: '#/definitions/Error'
+  '/paths':
+    post:
+      security:
+        - company:
+          - routes.write_full_path
+      summary: Creates a new path resource that belongs to the team of the creator.
+      parameters:
+        - name: path
+          in: body
+          description: Path to create.
+          required: true
+          schema:
+            $ref: '#/definitions/PathIn'
+      responses:
+        '201':
+          description: The path is created.
+          schema:
+            $ref: '#/definitions/PathOut'
+        default:
+          description: A processing or an unexpected error.
+          schema:
+            $ref: '#/definitions/Error'    
+  '/routes':
+    get:
       security:
         - company:
           - routes.read
@@ -53,28 +90,7 @@ paths:
           description: A processing or an unexpected error.
           schema:
             $ref: '#/definitions/Error'
-  '/current-routes':
-    x-swagger-router-controller: "current-routes"
-    get:
-      operationId: getCurrentRoutes
-      security:
-        - company:
-          - routes.read
-      summary: Returns the list of all the active routes.
-      parameters:
-      responses:
-        '200':
-          description: An array of routes
-          schema:
-            type: array
-            items:
-              $ref: '#/definitions/RouteOut'
-        default:
-          description: A processing or an unexpected error.
-          schema:
-            $ref: '#/definitions/Error'
     post:
-      operationId: createRoute
       security:
         - company:
           - routes.write_full_path
@@ -86,16 +102,12 @@ paths:
           description: Route to add.
           required: true
           schema:
-            $ref: '#/definitions/NewRoute'
+            $ref: '#/definitions/RouteIn'
       responses:
         '201':
           description: The route is created.
           schema:
-            $ref: '#/definitions/RouteIn'
-          headers:
-            Location:
-              type: string
-              description: Location of the newly created route.
+            $ref: '#/definitions/RouteOut'
         '403':
           description: |
             Usually happens in a case of insufficient permissions.
@@ -104,10 +116,26 @@ paths:
         default:
           description: A processing or an unexpected error.
           schema:
+            $ref: '#/definitions/Error'          
+  '/current-routes':
+    get:
+      security:
+        - company:
+          - routes.read
+      summary: Returns the list of all the active routes.
+      responses:
+        '200':
+          description: An array of routes
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/RouteOut'
+        default:
+          description: A processing or an unexpected error.
+          schema:
             $ref: '#/definitions/Error'
   '/routes/{id}':
     get:
-      operationId: getRoute
       security:
         - company:
           - routes.read
@@ -131,7 +159,6 @@ paths:
           schema:
             $ref: '#/definitions/Error'
     delete:
-      operationId: deleteRoute
       security:
         - company:
           - routes.write_full_path
@@ -165,7 +192,6 @@ paths:
             $ref: '#/definitions/Error'
   '/updated-routes/{id}':
     get:
-      operationId: getUpdatedRoutes
       security:
         - company:
           - routes.read
@@ -189,7 +215,6 @@ paths:
             $ref: '#/definitions/Error'
   '/deleted-routes/{id}':
     get:
-      operationId: getDeletedRoutes
       security:
         - company:
           - routes.read
@@ -199,7 +224,8 @@ paths:
           type: string
           required: true
           format: ISO-8601
-      summary: Returns a list of routes that were marked to be deleted before (excluding) specified date
+      summary: |
+        Returns a list of routes that were marked to be deleted before (excluding) specified date
       responses:
         '200':
           description: An array of deleted routes
@@ -234,7 +260,7 @@ paths:
           type: string
           required: true
           format: ISO-8601
-      summery: Deleteing of routes is only allowed to the members of admin teams
+      summary: Deleteing of routes is only allowed to the members of admin teams
       responses:
         '200':
           description: Happens in case of peration was sucessful.
@@ -258,8 +284,8 @@ definitions:
   RouteIn:
     required:
       - name
-      - description
       - route
+      - path_id
     properties:
       name:
         type: string
@@ -273,22 +299,32 @@ definitions:
         description: The ISO-8601 date time when the route will be activated
       route:
         $ref: '#/definitions/NewRoute'
-
+      path_id:
+        type: string
+      host_ids:
+        type: array
+        items:
+          type: string
+        description: |
+          Ids of the hosts to which route has to be applied. This list must be 
+          a sublist of the host ids for the path. 
   RouteOut:
     required:
       - id
       - name
       - route
-      - description
+      - path_id
       - created_at
       - activate_at
+      - owned_by_team
+      - created_by
     properties:
       id:
         type: integer
         format: int64
       name:
         type: string
-        pattern: \[A-Z][A-Z0-9_]*
+        pattern: \[a-zA-Z][a-zA-Z0-9_]*
         description: The name of the route in the ROUTE_NAME format
       description:
         type: string
@@ -302,25 +338,33 @@ definitions:
       deleted_at:
         type: string
         description: The ISO-8601 date time when the route has been deleted
+      owned_by_team:
+        type: string
+      created_by:
+        type: string
       route:
         $ref: '#/definitions/NewRoute'
+      path_id:
+        type: string
   NewRoute:
     required:
       - matcher
+      - filters
       - endpoint
     properties:
       matcher:
         $ref: '#/definitions/Matcher'
         description: |
           Definition of the matcher
-      predicated:
+      predicates:
         $ref: '#/definitions/Predicate'
         description: |
           Definition of predicates to be applied
       filters:
         $ref: '#/definitions/Filter'
         description: |
-          Definition of filters to be applied
+          Definition of filters to be applied. fashionStore() filter is a mandatory filter and 
+          must always present
       endpoint:
         type: string
         description: |
@@ -349,7 +393,8 @@ definitions:
       - name
       - value
     description: |
-      Array of HTTP headers that are used to match the request, the most common one would probable be “Host”.
+      Array of HTTP headers that are used to match the request, the most common one would probable 
+      be “Host”.
     properties:
       type:
         type: string
@@ -366,7 +411,8 @@ definitions:
       value:
         type: string
         description: |
-          Depending on the `type`, this is either a plain string for `STRICT` or ECMA-262 valid regular expression for `REGEXP`.
+          Depending on the `type`, this is either a plain string for `STRICT` or ECMA-262 valid 
+          regular expression for `REGEXP`.
   Matcher:
     properties:
       host_matcher:
@@ -391,17 +437,19 @@ definitions:
         type: array
         $ref: '#/definitions/HeaderMatcher'
   Predicate:
-      required:
-        - name
-        - args
-      properties:
-        name:
+    required:
+      - name
+      - args
+    properties:
+      name:
+        type: string
+        description: |
+          The name of the predicate, as it is definined in Skipper
+      args:
+        description: The arguments for the predicate, can be string or float64
+        type: array
+        items:
           type: string
-          description: |
-            The name of the predicate, as it is definined in Skipper
-        args:
-          type: array
-          description: The arguments for the predicate, can be string or int32
   Filter:
     required:
       - name
@@ -412,8 +460,65 @@ definitions:
         description: |
           The name of the filter, as it is definined in Skipper
       args:
+        description: The arguments for the filter, can be string or float64
         type: array
-        description: The arguments for the filter, can be string or int32
+        items:
+          type: string
+  Host:
+    required:
+      - id
+      - name
+    properties:
+      id:
+        type: string
+        format: int32
+      name:
+        type: string
+    example: |
+      {
+        "id": "1",
+        "name": "zalando.de"
+      }
+  PathIn:
+    required:
+      - uri
+      - host_ids
+    properties:
+      uri:
+        type: string
+      host_ids:
+        type: array
+        items:
+          type: string
+    example: |
+      {
+        "uri": "/cart",
+        "host_ids": ["1", "2"]
+      }
+  PathOut:
+    required:
+      - id
+      - team
+      - uri
+      - host_ids
+    properties:
+      id:
+        type: string
+      team:
+        type: string
+      uri:
+        type: string
+      host_ids:
+        type: array
+        items:
+          type: string
+    example: |
+      {
+        "id": "1",
+        "team": "coast",
+        "uri": "/cart",
+        "host_ids": ["1", "2"]
+      }
   Error:
     required:
       - type
