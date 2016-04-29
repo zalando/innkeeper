@@ -14,3 +14,4 @@ senza*.yaml
 Makefile
 /src/main/resources/application.conf
 atlassian-ide-plugin.xml
+scm-source.json
