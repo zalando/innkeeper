@@ -1,4 +1,4 @@
-FROM zalando/openjdk:8u66-b17-1-3
+FROM registry.opensource.zalan.do/stups/openjdk:8u77-b03-1-20
 MAINTAINER Team Pathfinder <team-pathfinder@zalando.de>
 
 EXPOSE 8080
@@ -6,6 +6,8 @@ EXPOSE 8080
 RUN mkdir -p /opt/innkeeper
 
 ADD target/scala-2.11/innkeeper-assembly-0.0.1.jar /opt/innkeeper/
+
+COPY scm-source.json /scm-source.json
 
 WORKDIR /opt/innkeeper
 
