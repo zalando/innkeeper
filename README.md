@@ -101,6 +101,20 @@ $ VBoxManage controlvm "default" natpf1 "tcp-port5433,tcp,,5433,,5433"
 $ VBoxManage controlvm "default" natpf1 "tcp-port8080,tcp,,8080,,8080"
 ```
 
+# Acceptance Tests
+
+For `docker-machine`, on the first run, use the `-nat` option, to set up the port forwarding.
+
+Copy the `sample.application.conf` file to the `application.conf` file.
+
+    cp src/main/resources/sample.application.conf src/main/resources/application.conf
+
+To run the acceptance tests, use the `acceptance-tests.sh` script.
+
+
+
+There is a '-fast' option, which will skip the building of the docker image.
+
 ### License
 
 Copyright 2015 Zalando SE
