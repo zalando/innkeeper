@@ -547,13 +547,17 @@ definitions:
   PathOut:
     required:
       - id
-      - team
+      - owned_by_team
+      - created_by
       - uri
       - host_ids
+      - created_at
     properties:
       id:
         type: string
-      team:
+      owned_by_team:
+        type: string
+      created_by:
         type: string
       uri:
         type: string
@@ -561,12 +565,17 @@ definitions:
         type: array
         items:
           type: string
+      created_at:
+        type: string
+        format: date-time
     example: |
       {
         "id": "1",
-        "team": "coast",
+        "owned_by_team": "coast",
+        "created_by": "user",
         "uri": "/cart",
-        "host_ids": ["1", "2"]
+        "host_ids": ["1", "2"],
+        "created_at": "1985-04-12T23:20:50.52Z"
       }
   Error:
     required:
