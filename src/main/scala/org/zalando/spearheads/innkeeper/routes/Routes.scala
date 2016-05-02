@@ -27,6 +27,7 @@ class Routes @Inject() (
     getUpdatedRoutes: GetUpdatedRoutes,
     getDeletedRoutes: GetDeletedRoutes,
     deleteDeletedRoutes: DeleteDeletedRoutes,
+    getHosts: GetHosts,
     rejectionHandler: InnkeeperRejectionHandler,
     metrics: RouteMetrics)(
     implicit
@@ -44,7 +45,9 @@ class Routes @Inject() (
           authenticate(token, reqDesc) { authenticatedUser =>
             logger.debug(s"$reqDesc AuthenticatedUser: $authenticatedUser")
 
-            path("updated-routes" / Rest) { lastModifiedString =>
+            path("hosts") {
+              getHosts(authenticatedUser)
+            } ~ path("updated-routes" / Rest) { lastModifiedString =>
               getUpdatedRoutes(authenticatedUser, lastModifiedString)
             } ~ path("current-routes") {
               getCurrentRoutes(authenticatedUser)

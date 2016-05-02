@@ -20,7 +20,7 @@ import scala.language.implicitConversions
  */
 object AcceptanceSpecsHelper extends ScalaFutures with Matchers {
 
-  private val baseUri = "http://localhost:8080"
+  val baseUri = "http://localhost:8080"
 
   private val routesUri = s"$baseUri/routes"
 
@@ -157,7 +157,7 @@ object AcceptanceSpecsHelper extends ScalaFutures with Matchers {
     makeRequest(requestUri, token, HttpMethods.DELETE)
   }
 
-  private def doGet(requestUri: String, token: String = ""): HttpResponse = {
+  def doGet(requestUri: String, token: String = ""): HttpResponse = {
     makeRequest(requestUri, token)
   }
 
