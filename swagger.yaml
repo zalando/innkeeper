@@ -397,19 +397,17 @@ definitions:
         type: string
   NewRoute:
     required:
-      - matcher
+      - predicates
       - filters
       - endpoint
     properties:
-      matcher:
-        $ref: '#/definitions/Matcher'
-        description: |
-          Definition of the matcher
       predicates:
+        type: array
         $ref: '#/definitions/Predicate'
         description: |
           Definition of predicates to be applied
       filters:
+        type: array
         $ref: '#/definitions/Filter'
         description: |
           Definition of filters to be applied. fashionStore() filter is a mandatory filter and 
@@ -418,73 +416,6 @@ definitions:
         type: string
         description: |
           A valid http(s) endpoint that the request should be routed to
-  PathMatcher:
-    required:
-      - type
-      - match
-    properties:
-      type:
-        type: string
-        enum:
-          - STRICT
-          - REGEXP
-        description: |
-          Defines the type of matching that will be used for a path.
-          The usage of REGEXP path is only allowed for users with the routes.write_regex scope
-      match:
-        type: string
-        description: |
-          Depending on the `type`, this is either a plain string for `STRICT`
-          or ECMA-262 valid regular expression for `REGEXP`.
-  HeaderMatcher:
-    required:
-      - type
-      - name
-      - value
-    description: |
-      Array of HTTP headers that are used to match the request, the most common one would probable 
-      be “Host”.
-    properties:
-      type:
-        type: string
-        enum:
-          - STRICT
-          - REGEXP
-        description: |
-          Defines the type of matching that will be used for a header.
-          The usage of REGEXP path is only allowed for users with the routes.write_regex scope
-      name:
-        type: string
-        pattern: \w{1,}(-\w{1,})*
-        description: HTTP header name
-      value:
-        type: string
-        description: |
-          Depending on the `type`, this is either a plain string for `STRICT` or ECMA-262 valid 
-          regular expression for `REGEXP`.
-  Matcher:
-    properties:
-      host_matcher:
-        type: string
-        description: Matches the host of a request
-      path_matcher:
-        $ref: '#/definitions/PathMatcher'
-        description: The path matcher
-      method_matcher:
-        type: string
-        items:
-          enum:
-            - GET
-            - POST
-            - PUT
-            - DELETE
-            - HEAD
-            - OPTIONS
-            - PATCH
-        description: HTTP method to match.
-      header_matcher:
-        type: array
-        $ref: '#/definitions/HeaderMatcher'
   Predicate:
     required:
       - name
