@@ -18,7 +18,7 @@ class GetHostsSpec extends FunSpec with Matchers {
 
     describe("success") {
       it("should return hosts from config file") {
-        val response = doGet(s"$baseUri/hosts", READ_TOKEN)
+        val response = getSlashHosts(READ_TOKEN)
         response.status should be(StatusCodes.OK)
 
         val entity = entityString(response)
@@ -31,13 +31,13 @@ class GetHostsSpec extends FunSpec with Matchers {
 
     describe("failure") {
       it("should return 401 if token was not provided") {
-        val response = doGet(s"$baseUri/hosts")
+        val response = getSlashHosts()
 
         response.status should be(StatusCodes.Unauthorized)
       }
 
       it("should return 403 if wrong token was provided") {
-        val response = doGet(s"$baseUri/hosts", WRITE_STRICT_TOKEN)
+        val response = getSlashHosts(WRITE_STRICT_TOKEN)
 
         response.status should be (StatusCodes.Forbidden)
       }

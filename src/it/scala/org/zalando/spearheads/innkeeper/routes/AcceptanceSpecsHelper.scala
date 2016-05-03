@@ -11,6 +11,7 @@ import org.scalatest.Matchers
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.time.{Seconds, Span}
 import org.zalando.spearheads.innkeeper.api.RouteOut
+import org.zalando.spearheads.innkeeper.routes.AcceptanceSpecTokens._
 
 import scala.collection.immutable.Seq
 import scala.language.implicitConversions
@@ -20,7 +21,7 @@ import scala.language.implicitConversions
  */
 object AcceptanceSpecsHelper extends ScalaFutures with Matchers {
 
-  val baseUri = "http://localhost:8080"
+  private val baseUri = "http://localhost:8080"
 
   private val routesUri = s"$baseUri/routes"
 
@@ -135,8 +136,9 @@ object AcceptanceSpecsHelper extends ScalaFutures with Matchers {
 
   def getSlashRoute(id: Long, token: String = ""): HttpResponse = slashRoute(id, token)
 
-  def getUpdatedRoutes(localDateTime: String, token: String): HttpResponse =
-    doGet(updatedRoutesUri(localDateTime), token)
+  def getSlashHosts(token: String = ""): HttpResponse = doGet(s"$baseUri/hosts", token)
+
+  def getUpdatedRoutes(localDateTime: String, token: String): HttpResponse = doGet(s"$baseUri/updated-routes/$localDateTime", token)
 
   def deleteDeletedRoutes(deletedBefore: LocalDateTime, token: String = ""): HttpResponse =
     deleteDeletedRoutes(RequestParameters.urlDateTimeFormatter.format(deletedBefore), token)
@@ -157,7 +159,7 @@ object AcceptanceSpecsHelper extends ScalaFutures with Matchers {
     makeRequest(requestUri, token, HttpMethods.DELETE)
   }
 
-  def doGet(requestUri: String, token: String = ""): HttpResponse = {
+  private def doGet(requestUri: String, token: String = ""): HttpResponse = {
     makeRequest(requestUri, token)
   }
 
@@ -168,8 +170,6 @@ object AcceptanceSpecsHelper extends ScalaFutures with Matchers {
       headers = headersForToken(token)))
     futureResponse.futureValue
   }
-
-  private def updatedRoutesUri(localDateTime: String) = s"$baseUri/updated-routes/$localDateTime"
 
   def deleteSlashRoute(id: Long, token: String = ""): HttpResponse = slashRoute(id, token, HttpMethods.DELETE)
 
