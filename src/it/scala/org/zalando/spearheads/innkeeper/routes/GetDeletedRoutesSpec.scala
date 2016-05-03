@@ -11,10 +11,8 @@ import org.zalando.spearheads.innkeeper.routes.RoutesRepoHelper._
 import spray.json._
 import spray.json.DefaultJsonProtocol._
 import org.zalando.spearheads.innkeeper.api.JsonProtocols._
+import org.zalando.spearheads.innkeeper.routes.RoutesSpecsHelper._
 
-/**
- * @author Alexey Venderov
- */
 class GetDeletedRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
 
   describe("get /deleted-routes") {

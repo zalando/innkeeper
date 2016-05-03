@@ -46,8 +46,8 @@ trait RouteDirectives {
       }
     }
 
-  def chunkedResponseOfRoutes(jsonService: JsonService)(routeSource: Source[RouteOut, NotUsed]) = {
-    val chunkedStreamSource: Source[ChunkStreamPart, NotUsed] = jsonService.sourceToJsonSource(routeSource)
+  def chunkedResponseOf[T](jsonService: JsonService)(source: Source[T, NotUsed])(implicit jsonWriter: JsonWriter[T]) = {
+    val chunkedStreamSource: Source[ChunkStreamPart, NotUsed] = jsonService.sourceToJsonSource(source)
     complete {
       HttpResponse(entity = HttpEntity.Chunked(MediaTypes.`application/json`, chunkedStreamSource))
     }

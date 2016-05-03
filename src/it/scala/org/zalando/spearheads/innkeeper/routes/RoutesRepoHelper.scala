@@ -1,24 +1,15 @@
 package org.zalando.spearheads.innkeeper.routes
 
 import java.time.LocalDateTime
-
-import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.time.{Seconds, Span}
-import org.zalando.spearheads.innkeeper.dao.MyPostgresDriver.api._
-import org.zalando.spearheads.innkeeper.dao.{RouteRow, RoutesPostgresRepo}
-
-import scala.concurrent.ExecutionContext
+import org.zalando.spearheads.innkeeper.dao.RouteRow
 
 /**
  * @author dpersa
  */
-object RoutesRepoHelper extends ScalaFutures {
+object RoutesRepoHelper extends DaoHelper {
 
   implicit override val patienceConfig = PatienceConfig(timeout = Span(5, Seconds))
-
-  val executionContext = ExecutionContext.global
-  val db = Database.forConfig("test.innkeeperdb")
-  val routesRepo = new RoutesPostgresRepo(db, executionContext)
 
   def insertRoute(name: String = "THE_ROUTE", matcher: String = "/hello", routeType: String = "STRICT",
     createdBy: String = "testuser",
@@ -79,11 +70,6 @@ object RoutesRepoHelper extends ScalaFutures {
 
   def deleteRoute(id: Long, deletedBy: Option[String], dateTime: Option[LocalDateTime]): Boolean = {
     routesRepo.delete(id, deletedBy, dateTime).futureValue
-  }
-
-  def recreateSchema = {
-    routesRepo.dropSchema.futureValue
-    routesRepo.createSchema.futureValue
   }
 
   def routeJson(matcher: String = "/hello", routeType: String = "STRICT") =

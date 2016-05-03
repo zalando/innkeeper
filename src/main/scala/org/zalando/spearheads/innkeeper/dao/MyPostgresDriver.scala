@@ -1,14 +1,17 @@
 package org.zalando.spearheads.innkeeper.dao
 
-import com.github.tminglei.slickpg.PgDate2Support
+import com.github.tminglei.slickpg.{PgArraySupport, PgDate2Support}
 import slick.driver.PostgresDriver
 
-/**
- * @author dpersa
- */
-object MyPostgresDriver extends PostgresDriver with PgDate2Support {
+trait MyPostgresDriver extends PostgresDriver
+    with PgDate2Support
+    with PgArraySupport {
 
-  override val api = new API with DateTimeImplicits
+  override val api = MyApi
 
-  val plainAPI = new API with Date2DateTimePlainImplicits
+  object MyApi extends API with DateTimeImplicits with ArrayImplicits {
+    implicit val intListTypeMapper = new SimpleArrayJdbcType[Int]("int8").to(_.toList)
+  }
 }
+
+object MyPostgresDriver extends MyPostgresDriver

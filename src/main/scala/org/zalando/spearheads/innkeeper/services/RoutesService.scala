@@ -6,7 +6,7 @@ import akka.NotUsed
 import akka.stream.scaladsl.Source
 import com.google.inject.Inject
 import org.zalando.spearheads.innkeeper.api.JsonProtocols._
-import org.zalando.spearheads.innkeeper.api._
+import org.zalando.spearheads.innkeeper.api.{NewRoute, RouteIn, RouteName, RouteOut, TeamName, UserName}
 import org.zalando.spearheads.innkeeper.dao.{RouteRow, RoutesRepo}
 import org.zalando.spearheads.innkeeper.services.ServiceResult.{Failure, NotFound, Result, Success}
 import org.zalando.spearheads.innkeeper.utils.EnvConfig
@@ -130,7 +130,7 @@ class DefaultRoutesService @Inject() (
     case None     => Future(Failure(NotFound))
   }
 
-  private def routeRowToRoute(id: Long, routeRow: RouteRow): RouteOut = {
+  private def routeRowToRoute(id: Long, routeRow: RouteRow) = {
     RouteOut(
       id = id,
       name = RouteName(routeRow.name),

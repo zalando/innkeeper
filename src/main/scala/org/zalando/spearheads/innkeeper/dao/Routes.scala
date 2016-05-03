@@ -16,7 +16,6 @@ case class RouteRow(
   deletedAt: Option[LocalDateTime] = None,
   deletedBy: Option[String] = None)
 
-// A Routes table with 4 columns: id, route_json, created_at, deleted_at
 class RoutesTable(tag: Tag)
     extends Table[RouteRow](tag, "ROUTES") {
 
@@ -31,9 +30,9 @@ class RoutesTable(tag: Tag)
   def deletedBy = column[Option[String]]("DELETED_BY")
   def routeJson = column[String]("ROUTE_JSON")
 
-  def nameIndex = index("NAME_IDX", name)
-  def createdAtIndex = index("CREATED_AT_IDX", createdAt)
-  def deletedAtIndex = index("DELETED_AT_IDX", deletedAt)
+  def nameIndex = index("ROUTES_NAME_IDX", name)
+  def createdAtIndex = index("ROUTES_CREATED_AT_IDX", createdAt)
+  def deletedAtIndex = index("ROUTES_DELETED_AT_IDX", deletedAt)
 
   // Every table needs a * projection with the same type as the table's type parameter
   def * = // scalastyle:ignore
