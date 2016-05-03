@@ -1,9 +1,7 @@
 package org.zalando.spearheads.innkeeper.services
 
-import java.util.Map.Entry
 import javax.inject.Inject
 
-import com.typesafe.config.ConfigValue
 import org.slf4j.LoggerFactory
 import org.zalando.spearheads.innkeeper.services.DefaultHostsService._
 import org.zalando.spearheads.innkeeper.utils.EnvConfig
@@ -20,9 +18,8 @@ trait HostsService {
 }
 
 class DefaultHostsService @Inject() (config: EnvConfig) extends HostsService {
-  private val hosts = loadHosts(config)
 
-  override def getHosts = hosts
+  override val getHosts = loadHosts(config)
 
 }
 
@@ -33,12 +30,9 @@ object DefaultHostsService {
   def loadHosts(config: EnvConfig): Map[String, Int] = {
     logger.debug("loading hosts from the configuration...")
 
-    val hosts = config.getObject("hosts")
-    (for {
-      entry: Entry[String, ConfigValue] <- hosts.entrySet().asScala
-      host = entry.getKey
-      id = entry.getValue.unwrapped().asInstanceOf[Int]
-    } yield (host, id)).toMap
+    val hosts = config.getObject("hosts").asScala
+
+    hosts.mapValues(_.unwrapped().asInstanceOf[Int]).toMap
   }
 
 }
