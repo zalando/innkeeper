@@ -23,6 +23,8 @@ class RoutesModule extends AbstractModule with ScalaModule {
 
     bind[InnkeeperRejectionHandler].asEagerSingleton()
 
+    bind[GetHosts].asEagerSingleton()
+
     bind[Routes].asEagerSingleton()
   }
 

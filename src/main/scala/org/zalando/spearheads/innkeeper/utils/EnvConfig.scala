@@ -1,7 +1,8 @@
 package org.zalando.spearheads.innkeeper.utils
 
-import com.google.inject.Inject;
-import com.typesafe.config.Config
+import com.google.inject.Inject
+import com.typesafe.config.{Config, ConfigObject}
+
 import scala.collection.JavaConversions._
 import scala.util.Try
 
@@ -21,6 +22,8 @@ trait EnvConfig {
 
   def getStringSet(key: String): Set[String]
 
+  def getObject(key: String): ConfigObject
+
 }
 
 class InnkeeperEnvConfig @Inject() (val config: Config) extends EnvConfig {
@@ -29,7 +32,7 @@ class InnkeeperEnvConfig @Inject() (val config: Config) extends EnvConfig {
 
   override def getString(key: String): String = {
     Try {
-      config.getString(s"$env.$key")
+      config.getString(envKey(key))
     }.getOrElse {
       config.getString(key)
     }
@@ -37,7 +40,7 @@ class InnkeeperEnvConfig @Inject() (val config: Config) extends EnvConfig {
 
   override def getInt(key: String): Int = {
     Try {
-      config.getInt(s"$env.$key")
+      config.getInt(envKey(key))
     }.getOrElse {
       config.getInt(key)
     }
@@ -45,9 +48,20 @@ class InnkeeperEnvConfig @Inject() (val config: Config) extends EnvConfig {
 
   override def getStringSet(key: String): Set[String] = {
     Try {
-      config.getStringList(s"$env.$key").toSet
+      config.getStringList(envKey(key)).toSet
     }.getOrElse {
       config.getStringList(key).toSet
     }
   }
+
+  override def getObject(key: String): ConfigObject = {
+    Try {
+      config.getObject(envKey(key))
+    }.getOrElse {
+      config.getObject(key)
+    }
+  }
+
+  private def envKey(key: String): String = s"$env.$key"
+
 }

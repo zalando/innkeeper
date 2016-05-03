@@ -113,3 +113,5 @@ case class Error(
   title: String,
   errorType: String,
   detail: Option[String] = None)
+
+case class Host(id: String, name: String)
