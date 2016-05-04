@@ -7,7 +7,7 @@ import scala.collection.immutable.List
 case class PathRow(
   id: Option[Long] = None,
   uri: String,
-  hostIds: List[Int],
+  hostIds: List[Long],
   ownedByTeam: String,
   createdBy: String,
   createdAt: LocalDateTime = LocalDateTime.now())
@@ -15,7 +15,7 @@ case class PathRow(
 class PathsTable(tag: Tag) extends Table[PathRow](tag, "PATHS") {
   def id = column[Long]("ROUTE_ID", O.PrimaryKey, O.AutoInc)
   def uri = column[String]("URI")
-  def hostIds = column[List[Int]]("HOST_IDS")
+  def hostIds = column[List[Long]]("HOST_IDS")
   def ownedByTeam = column[String]("OWNED_BY_TEAM")
   def createdBy = column[String]("CREATED_BY")
   def createdAt = column[LocalDateTime]("CREATED_AT")

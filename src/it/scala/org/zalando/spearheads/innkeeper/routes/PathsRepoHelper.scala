@@ -24,7 +24,7 @@ object PathsRepoHelper extends ScalaFutures with DaoHelper {
   def samplePath(
     id: Long = 1,
     uri: String = "/uri",
-    hostIds: List[Int] = List(1, 2, 3),
+    hostIds: List[Long] = List(1, 2, 3),
     createdBy: String = "testuser",
     ownedByTeam: String = "testteam",
     createdAt: LocalDateTime = LocalDateTime.now(),

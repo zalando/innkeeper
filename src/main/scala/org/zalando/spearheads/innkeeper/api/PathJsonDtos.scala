@@ -8,17 +8,17 @@ sealed trait Path {
 
   def uri: String
 
-  def hostIds: List[Int]
+  def hostIds: List[Long]
 }
 
 case class PathIn(
   uri: String,
-  hostIds: List[Int]) extends Path
+  hostIds: List[Long]) extends Path
 
 case class PathOut(
   id: Long,
   uri: String,
-  hostIds: List[Int],
+  hostIds: List[Long],
   ownedByTeam: TeamName,
   createdBy: UserName,
   createdAt: LocalDateTime = LocalDateTime.now()) extends Path

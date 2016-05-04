@@ -10,7 +10,7 @@ trait MyPostgresDriver extends PostgresDriver
   override val api = MyApi
 
   object MyApi extends API with DateTimeImplicits with ArrayImplicits {
-    implicit val intListTypeMapper = new SimpleArrayJdbcType[Int]("int8").to(_.toList)
+    implicit val intListTypeMapper = new SimpleArrayJdbcType[Long]("int8").to(_.toList)
   }
 }
 

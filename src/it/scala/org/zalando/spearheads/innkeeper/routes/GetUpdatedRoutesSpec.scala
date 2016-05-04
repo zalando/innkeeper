@@ -13,6 +13,7 @@ import spray.json._
 import spray.json.DefaultJsonProtocol._
 import org.zalando.spearheads.innkeeper.api.JsonProtocols._
 import org.zalando.spearheads.innkeeper.routes.RoutesSpecsHelper._
+import org.zalando.spearheads.innkeeper.routes.RoutesRepoHelper.deleteRoute
 
 class GetUpdatedRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
 
@@ -34,9 +35,9 @@ class GetUpdatedRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
         insertRoute("R4", createdAt = createdAt, activateAt = createdAt.plusMinutes(5))
         val route5Id = insertRoute("R5", createdAt = createdAt).id.get
         val route6Id = insertRoute("R3", createdAt = createdAt).id.get
-        routesRepo.delete(1)
+        deleteRoute(1)
 
-        val response = getUpdatedRoutes(createdAt.minus(1, ChronoUnit.MICROS), token)
+        val response = getUpdatedRoutes(createdAt.minus(1, ChronoUnit.MILLIS), token)
         response.status should be(StatusCodes.OK)
         val entity = entityString(response)
         val routes = entity.parseJson.convertTo[Seq[RouteOut]]

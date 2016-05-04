@@ -435,6 +435,54 @@ class JsonProtocolsSpec extends FunSpec with Matchers {
     }
   }
 
+  describe ("Host") {
+
+    val host = Host("id", "name")
+
+    it ("should marshall") {
+      host.toJson.prettyPrint should be("""{
+                                          |  "id": "id",
+                                          |  "name": "name"
+                                          |}""".stripMargin)
+    }
+  }
+
+  describe("PathIn") {
+
+    val pathIn = PathIn("/hello", List(1, 2, 3))
+
+    it ("should unmarshall") {
+      val result = """{
+        |  "uri": "/hello",
+        |  "host_ids": [1, 2, 3]
+        |}
+      """.stripMargin.parseJson.convertTo[PathIn]
+      result should be(pathIn)
+    }
+  }
+
+  describe("PathOut") {
+    val pathOut = PathOut(
+      id = 1,
+      uri = "/hello",
+      hostIds = List(1, 2, 3),
+      ownedByTeam = TeamName("team"),
+      createdBy = UserName("username"),
+      createdAt = LocalDateTime.of(2015, 10, 10, 10, 10, 10)
+    )
+
+    it ("should marshall") {
+      pathOut.toJson.prettyPrint should be("""{
+                                             |  "created_by": "username",
+                                             |  "owned_by_team": "team",
+                                             |  "host_ids": [1, 2, 3],
+                                             |  "uri": "/hello",
+                                             |  "id": 1,
+                                             |  "created_at": "2015-10-10T10:10:10"
+                                             |}""".stripMargin)
+    }
+  }
+
   describe("Error") {
     it("should unmarshall the Error") {
       val error = """{ "status": 555, "title": "Error Title", "type": "ERR", "detail": "Error Detail" }""".parseJson.convertTo[Error]

@@ -151,7 +151,7 @@ class PathsServiceSpec extends FunSpec with Matchers with MockFactory with Scala
 
   val pathId: Long = 1
   val uri = "/uri"
-  val hostIds = List(1, 2, 3)
+  val hostIds = List(1L, 2L, 3L)
   val createdBy = "user"
   val ownedByTeam = "team"
   val createdAt = LocalDateTime.now()
