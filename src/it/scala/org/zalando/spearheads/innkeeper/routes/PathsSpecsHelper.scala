@@ -7,5 +7,22 @@ object PathsSpecsHelper {
 
   private val pathsUri = s"$baseUri/paths"
 
-  def getSlashPaths(token: String = ""): HttpResponse = doGet(pathsUri, token)
+  private def filteredPathsUri(
+    ownedByTeam: Option[String] = None,
+    uri: Option[String]) = {
+
+    def ownedByTeamToQuery: String = {
+      ownedByTeam.map(t => s"owned_by_team=$t&").getOrElse("")
+    }
+
+    def uriToQuery: String = {
+      uri.map(u => s"uri=$u").getOrElse("")
+    }
+
+    pathsUri + "?" + ownedByTeamToQuery + uriToQuery
+  }
+
+  def getSlashPaths(token: String = "", ownedByTeam: Option[String] = None,
+    uri: Option[String] = None): HttpResponse =
+    doGet(filteredPathsUri(ownedByTeam, uri), token)
 }

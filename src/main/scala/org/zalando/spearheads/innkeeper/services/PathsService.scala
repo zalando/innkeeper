@@ -22,7 +22,7 @@ trait PathsService {
 
   def findByOwnerTeamAndUri(
     ownedByTeamOption: Option[TeamName] = None,
-    uriOption: Option[String]): Source[PathOut, NotUsed]
+    uriOption: Option[String] = None): Source[PathOut, NotUsed]
 
   def allPaths: Source[PathOut, NotUsed]
 }

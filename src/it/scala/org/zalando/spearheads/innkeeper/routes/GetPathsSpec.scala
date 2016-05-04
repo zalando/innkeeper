@@ -11,6 +11,7 @@ import spray.json.pimpString
 import org.zalando.spearheads.innkeeper.routes.PathsSpecsHelper.getSlashPaths
 import org.zalando.spearheads.innkeeper.api.JsonProtocols._
 import spray.json.DefaultJsonProtocol._
+import scala.languageFeature.postfixOps
 
 class GetPathsSpec extends FunSpec with BeforeAndAfter with Matchers {
 
@@ -30,15 +31,59 @@ class GetPathsSpec extends FunSpec with BeforeAndAfter with Matchers {
 
         val response = getSlashPaths(token)
         response.status should be(StatusCodes.OK)
-        val entity = entityString(response)
-        val paths = entity.parseJson.convertTo[Seq[PathOut]]
-        paths.size should be(2)
+        val paths = entityString(response).parseJson.convertTo[Seq[PathOut]]
+        paths.map(_.uri).toSet should be(Set("/hello1", "/hello2"))
       }
 
       describe("when filtering the paths by owner team") {
 
         it("should return the correct paths") {
-          pending
+          insertPaths()
+
+          val response = getSlashPaths(token, Some("team1"))
+          response.status should be(StatusCodes.OK)
+
+          val paths = entityString(response).parseJson.convertTo[Seq[PathOut]]
+          paths.map(_.uri).toSet should be(Set("/hello1", "/hello3"))
+        }
+      }
+
+      describe("when filtering the paths by uri") {
+
+        it("should return the correct paths") {
+          insertPaths()
+
+          val response = getSlashPaths(token, None, Some("/hello1"))
+          response.status should be(StatusCodes.OK)
+
+          val paths = entityString(response).parseJson.convertTo[Seq[PathOut]]
+          paths.map(_.ownedByTeam.name).toSet should be(Set("team1", "team3"))
+        }
+      }
+
+      describe("when filtering the paths by owner team and uri") {
+
+        it("should return the correct paths") {
+          insertPaths()
+
+          val response = getSlashPaths(token, Some("team1"), Some("/hello1"))
+          response.status should be(StatusCodes.OK)
+
+          val paths = entityString(response).parseJson.convertTo[Seq[PathOut]]
+          paths.map(p => (p.ownedByTeam.name, p.uri)).toSet should be(Set(("team1", "/hello1")))
+        }
+      }
+
+      describe("when there are not routes for the specified filters") {
+
+        it ("should return an empty collection") {
+          insertPaths()
+
+          val response = getSlashPaths(token, Some("team5"), Some("/hello1"))
+          response.status should be(StatusCodes.OK)
+
+          val paths = entityString(response).parseJson.convertTo[Seq[PathOut]]
+          paths should be ('empty)
         }
       }
     }
@@ -71,16 +116,14 @@ class GetPathsSpec extends FunSpec with BeforeAndAfter with Matchers {
           }
         }
       }
-
-      describe("paths by owner team") {
-        describe("when an invalid team name is provided") {
-          val token = READ_TOKEN
-
-          it("should return the 400 Bad Request status") {
-            pending
-          }
-        }
-      }
     }
+  }
+
+  private def insertPaths() = {
+    insertPath(samplePath(uri = "/hello1", ownedByTeam = "team1"))
+    insertPath(samplePath(uri = "/hello2", ownedByTeam = "team2"))
+    insertPath(samplePath(uri = "/hello3", ownedByTeam = "team1"))
+    insertPath(samplePath(uri = "/hello4", ownedByTeam = "team2"))
+    insertPath(samplePath(uri = "/hello1", ownedByTeam = "team3"))
   }
 }

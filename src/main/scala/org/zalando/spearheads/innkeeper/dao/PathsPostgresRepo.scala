@@ -48,7 +48,7 @@ class PathsPostgresRepo @Inject() (
     }
 
     val filteredByOwnerTeamAndUri = uriOption match {
-      case Some(uri) => pathsTable.filter(_.uri === uri)
+      case Some(uri) => filteredByOwnedTeam.filter(_.uri === uri)
       case _         => filteredByOwnedTeam
     }
 

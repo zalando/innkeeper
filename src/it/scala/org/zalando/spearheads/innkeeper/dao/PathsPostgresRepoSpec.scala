@@ -90,7 +90,7 @@ class PathsPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers wi
       it ("should select all") {
         insertSampleRoutes()
         val paths: List[PathRow] = pathsRepo.selectByOwnerTeamAndUri(None, None)
-        paths.map(_.uri) should contain theSameElementsAs (List("/hello1", "/hello2", "/hello3", "/hello4"))
+        paths.map(_.uri) should contain theSameElementsAs (List("/hello1", "/hello2", "/hello3", "/hello4", "/hello1"))
       }
     }
   }
@@ -100,5 +100,6 @@ class PathsPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers wi
     insertPath(samplePath(uri = "/hello2", ownedByTeam = "the-team-1"))
     insertPath(samplePath(uri = "/hello3", ownedByTeam = "the-team-2"))
     insertPath(samplePath(uri = "/hello4", ownedByTeam = "the-team-2"))
+    insertPath(samplePath(uri = "/hello1", ownedByTeam = "the-team-3"))
   }
 }
