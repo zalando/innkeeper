@@ -11,9 +11,8 @@ import org.zalando.spearheads.innkeeper.routes.RoutesRepoHelper.{deleteRoute, in
 import spray.json.pimpString
 import spray.json.DefaultJsonProtocol._
 import org.zalando.spearheads.innkeeper.api.JsonProtocols._
-/**
- * @author dpersa
- */
+import org.zalando.spearheads.innkeeper.routes.RoutesSpecsHelper._
+
 class GetCurrentRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
 
   val routesRepo = RoutesRepoHelper.routesRepo

@@ -28,6 +28,7 @@ class Routes @Inject() (
     getDeletedRoutes: GetDeletedRoutes,
     deleteDeletedRoutes: DeleteDeletedRoutes,
     getHosts: GetHosts,
+    pathsRoutes: PathsRoutes,
     rejectionHandler: InnkeeperRejectionHandler,
     metrics: RouteMetrics)(
     implicit
@@ -57,7 +58,7 @@ class Routes @Inject() (
               getRoute(authenticatedUser, id) ~ deleteRoute(authenticatedUser, id, token)
             } ~ path("deleted-routes" / Rest) { deletedBefore =>
               getDeletedRoutes(authenticatedUser, deletedBefore) ~ deleteDeletedRoutes(authenticatedUser, deletedBefore, token)
-            }
+            } ~ pathsRoutes(authenticatedUser)
           }
         } ~ path("status") {
           complete("Ok")

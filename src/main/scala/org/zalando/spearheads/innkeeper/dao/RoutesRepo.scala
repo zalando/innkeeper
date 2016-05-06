@@ -11,8 +11,6 @@ import scala.concurrent.Future
  */
 trait RoutesRepo {
 
-  def createSchema: Future[Unit]
-  def dropSchema: Future[Unit]
   def insert(route: RouteRow): Future[RouteRow]
   def selectById(id: Long): Future[Option[RouteRow]]
   def selectAll: DatabasePublisher[RouteRow]

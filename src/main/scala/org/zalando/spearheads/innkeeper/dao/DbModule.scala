@@ -25,6 +25,8 @@ class DbModule extends AbstractModule with ScalaModule {
   override def configure() {
     bind[Database].toProvider[DbProvider].asEagerSingleton()
     bind[ExecutionContext].toProvider[ExecutionContextProvider].asEagerSingleton()
+    bind[InnkeeperSchema].to[InnkeeperPostgresSchema].asEagerSingleton()
     bind[RoutesRepo].to[RoutesPostgresRepo].asEagerSingleton()
+    bind[PathsRepo].to[PathsPostgresRepo].asEagerSingleton()
   }
 }

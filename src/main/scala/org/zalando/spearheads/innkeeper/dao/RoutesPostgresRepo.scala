@@ -1,13 +1,10 @@
 package org.zalando.spearheads.innkeeper.dao
 
 import java.time.LocalDateTime
-
 import com.google.inject.{Inject, Singleton}
 import org.slf4j.LoggerFactory
 import slick.backend.DatabasePublisher
 import org.zalando.spearheads.innkeeper.dao.MyPostgresDriver.api._
-import slick.jdbc.meta.MTable
-
 import scala.concurrent.{Future, ExecutionContext}
 
 /**
@@ -26,34 +23,6 @@ class RoutesPostgresRepo @Inject() (
   private lazy val insertRouteQuery = routesTable returning routesTable.map(_.id) into
     ((routeRow: RouteRow, id) => routeRow.copy(id = Some(id)))
 
-  override def createSchema: Future[Unit] = {
-    logger.debug("create schema")
-
-    db.run(
-      MTable.getTables("ROUTES")
-    ).flatMap { tables =>
-        if (tables.isEmpty) {
-          db.run(routesTable.schema.create)
-        } else {
-          db.run(DBIO.seq())
-        }
-      }
-  }
-
-  override def dropSchema: Future[Unit] = {
-    logger.debug("drop schema")
-
-    db.run(
-      MTable.getTables("ROUTES")
-    ).flatMap { tables =>
-        if (tables.nonEmpty) {
-          db.run(routesTable.schema.drop)
-        } else {
-          db.run(DBIO.seq())
-        }
-      }
-  }
-
   override def insert(route: RouteRow): Future[RouteRow] = {
     logger.debug(s"insert route $route")
 
@@ -71,7 +40,7 @@ class RoutesPostgresRepo @Inject() (
   }
 
   override def selectAll: DatabasePublisher[RouteRow] = {
-    logger.debug("select all")
+    logger.debug("selectAll")
 
     db.stream {
       selectAllQuery.result

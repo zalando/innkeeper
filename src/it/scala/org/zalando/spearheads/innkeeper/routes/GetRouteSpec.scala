@@ -9,10 +9,8 @@ import org.zalando.spearheads.innkeeper.api.{UserName, TeamName, RouteName, Rout
 import spray.json._
 import spray.json.DefaultJsonProtocol._
 import org.zalando.spearheads.innkeeper.api.JsonProtocols._
+import org.zalando.spearheads.innkeeper.routes.RoutesSpecsHelper._
 
-/**
- * @author dpersa
- */
 class GetRouteSpec extends FunSpec with BeforeAndAfter with Matchers {
 
   val routesRepo = RoutesRepoHelper.routesRepo

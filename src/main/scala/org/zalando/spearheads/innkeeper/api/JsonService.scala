@@ -4,7 +4,7 @@ import akka.NotUsed
 import akka.http.scaladsl.model.HttpEntity.ChunkStreamPart
 import akka.stream.scaladsl.Source
 import com.google.inject.Singleton
-import spray.json._
+import spray.json.{JsonWriter, pimpAny}
 
 /**
  * @author dpersa
@@ -14,7 +14,7 @@ class JsonService {
 
   def sourceToJsonSource[T](source: Source[T, NotUsed])(implicit writer: JsonWriter[T]): Source[ChunkStreamPart, NotUsed] = {
 
-    val commaSeparatedRoutes: Source[ChunkStreamPart, NotUsed] =
+    val commaSeparatedObjects: Source[ChunkStreamPart, NotUsed] =
       source
         .map(t => Some(t.toJson.compactPrint))
         .scan[Option[ChunkStreamPart]](None)({
@@ -24,7 +24,7 @@ class JsonService {
         .mapConcat(_.toList)
 
     Source.single(ChunkStreamPart("["))
-      .concat(commaSeparatedRoutes)
+      .concat(commaSeparatedObjects)
       .concat(Source.single(ChunkStreamPart("]")))
   }
 }
