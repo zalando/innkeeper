@@ -20,36 +20,49 @@ class InnkeeperPostgresSchema @Inject() (
 
   private val logger = LoggerFactory.getLogger(this.getClass)
 
-  private val routesTable = TableQuery[RoutesTable]
-  private val pathsTable = TableQuery[PathsTable]
+  private val tables = Seq(
+    Routes,
+    Paths
+  )
+
+  private val getTablesAction = MTable.getTables(
+    cat = None,
+    schemaPattern = Some("public"),
+    namePattern = None,
+    types = Some(Seq("TABLE"))
+  )
 
   override def createSchema: Future[Unit] = {
     logger.debug("create schema")
 
-    db.run(
-      MTable.getTables("ROUTES")
-    ).flatMap { tables =>
-        if (tables.isEmpty) {
-          db.run(routesTable.schema.create)
-          db.run(pathsTable.schema.create)
-        } else {
-          db.run(DBIO.seq())
-        }
-      }
+    db.run(getTablesAction).flatMap { existingTables =>
+      val existingTableNames = existingTables.map(_.name.name)
+
+      val createSchemaAction = tables
+        .filter(table => !existingTableNames.contains(table.baseTableRow.tableName))
+        .map(_.schema)
+        .reduceOption(_ ++ _)
+        .map(_.create)
+        .getOrElse(DBIO.seq())
+
+      db.run(createSchemaAction)
+    }
   }
 
   override def dropSchema: Future[Unit] = {
     logger.debug("drop schema")
 
-    db.run(
-      MTable.getTables("ROUTES")
-    ).flatMap { tables =>
-        if (tables.nonEmpty) {
-          db.run(routesTable.schema.drop)
-          db.run(pathsTable.schema.drop)
-        } else {
-          db.run(DBIO.seq())
-        }
-      }
+    db.run(getTablesAction).flatMap { existingTables =>
+      val existingTableNames = existingTables.map(_.name.name)
+
+      val dropSchemaAction = tables
+        .filter(table => existingTableNames.contains(table.baseTableRow.tableName))
+        .map(_.schema)
+        .reduceOption(_ ++ _)
+        .map(_.drop)
+        .getOrElse(DBIO.seq())
+
+      db.run(dropSchemaAction)
+    }
   }
 }
