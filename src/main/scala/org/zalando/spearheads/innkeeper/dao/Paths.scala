@@ -4,6 +4,8 @@ import java.time.LocalDateTime
 import org.zalando.spearheads.innkeeper.dao.MyPostgresDriver.api._
 import scala.collection.immutable.List
 
+object Paths extends TableQuery(new PathsTable(_))
+
 case class PathRow(
   id: Option[Long] = None,
   uri: String,

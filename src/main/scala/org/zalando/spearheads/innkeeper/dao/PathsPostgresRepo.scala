@@ -15,9 +15,7 @@ class PathsPostgresRepo @Inject() (
 
   private val logger = LoggerFactory.getLogger(this.getClass)
 
-  private val pathsTable = TableQuery[PathsTable]
-
-  private lazy val insertPathQuery = pathsTable returning pathsTable.map(_.id) into
+  private lazy val insertPathQuery = Paths returning Paths.map(_.id) into
     ((pathRow: PathRow, id) => pathRow.copy(id = Some(id)))
 
   override def insert(route: PathRow): Future[PathRow] = {
@@ -32,7 +30,7 @@ class PathsPostgresRepo @Inject() (
     logger.debug(s"selectById $id")
 
     db.run {
-      pathsTable.filter(_.id === id).result
+      Paths.filter(_.id === id).result
     }.map(_.headOption)
   }
 
@@ -43,8 +41,8 @@ class PathsPostgresRepo @Inject() (
     logger.debug(s"selectByTeamOrUri $ownedByTeamOption $uriOption")
 
     val filteredByOwnedTeam = ownedByTeamOption match {
-      case Some(ownedByTeam) => pathsTable.filter(_.ownedByTeam === ownedByTeam)
-      case _                 => pathsTable
+      case Some(ownedByTeam) => Paths.filter(_.ownedByTeam === ownedByTeam)
+      case _                 => Paths
     }
 
     val filteredByOwnerTeamAndUri = uriOption match {
@@ -66,6 +64,6 @@ class PathsPostgresRepo @Inject() (
   }
 
   private lazy val selectAllQuery = for {
-    pathRow <- pathsTable
+    pathRow <- Paths
   } yield pathRow
 }
