@@ -13,7 +13,7 @@ import scala.concurrent.{ExecutionContext, Future}
 trait PathsService {
 
   def create(
-    route: PathIn,
+    path: PathIn,
     ownedByTeam: TeamName,
     createdBy: UserName,
     createdAt: LocalDateTime = LocalDateTime.now()): Future[Result[PathOut]]

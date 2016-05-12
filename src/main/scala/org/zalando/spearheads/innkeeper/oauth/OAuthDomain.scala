@@ -6,12 +6,13 @@ import org.zalando.spearheads.innkeeper.utils.EnvConfig
 /**
  * @author dpersa
  */
-case class Scope(val scopeNames: Set[String]) extends AnyVal
+case class Scope(scopeNames: Set[String]) extends AnyVal
 
 @Singleton
 class Scopes @Inject() (val config: EnvConfig) {
 
   val READ = Scope(config.getStringSet("oauth.scope.read"))
+  val WRITE = Scope(config.getStringSet("oauth.scope.write"))
   val WRITE_STRICT = Scope(config.getStringSet("oauth.scope.writeStrict"))
   val WRITE_REGEX = Scope(config.getStringSet("oauth.scope.writeRegex"))
 }
