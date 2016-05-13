@@ -466,6 +466,8 @@ definitions:
     properties:
       uri:
         type: string
+        description: empty uri are not allowed
+        pattern: .+
       host_ids:
         type: array
         items:
