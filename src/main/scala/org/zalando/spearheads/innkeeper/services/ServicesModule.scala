@@ -12,5 +12,7 @@ class ServicesModule extends AbstractModule with ScalaModule {
   override def configure() {
     bind[RoutesService].to[DefaultRoutesService].asEagerSingleton()
     bind[TeamService].to[ZalandoTeamService].asEagerSingleton()
+    bind[HostsService].to[DefaultHostsService].asEagerSingleton()
+    bind[PathsService].to[DefaultPathsService].asEagerSingleton()
   }
 }

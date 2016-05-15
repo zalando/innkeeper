@@ -11,6 +11,6 @@ target
 project/play-fork-run.sbt
 project/sbt-ui.sbt
 senza*.yaml
-Makefile
 /src/main/resources/application.conf
 atlassian-ide-plugin.xml
+scm-source.json

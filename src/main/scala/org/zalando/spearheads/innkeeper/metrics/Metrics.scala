@@ -16,6 +16,7 @@ class Metrics @Inject() (val metricRegistry: MetricRegistry) extends Instrumente
 
 class RouteMetrics @Inject() (val metrics: Metrics) {
 
+  // routes
   val getUpdatedRoutes = metrics.metrics.timer("200.GET.updated-routes")
   val getRoutes = metrics.metrics.timer("200.GET.routes")
   val getCurrentRoutes = metrics.metrics.timer("200.GET.current-routes")
@@ -24,6 +25,14 @@ class RouteMetrics @Inject() (val metrics: Metrics) {
   val getRoute = metrics.metrics.timer("200.GET.route")
   val getDeletedRoutes = metrics.metrics.timer("200.GET.deleted-routes")
   val deleteDeletedRoutes = metrics.metrics.timer("200.DELETE.deleted-routes")
+
+  // paths
+  val getPaths = metrics.metrics.timer("200.GET.paths")
+
+  // hosts
+  val getHosts = metrics.metrics.timer("200.GET.hosts")
+
+  // other
   val non2xxResponses = metrics.metrics.timer("NON2XX.ALL.responses")
 
 }

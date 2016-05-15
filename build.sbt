@@ -3,7 +3,7 @@ import com.typesafe.sbt.packager.archetypes.JavaAppPackaging
 import sbt.dsl._
 import spray.revolver.RevolverPlugin.Revolver
 import io.gatling.sbt.GatlingPlugin
-import scalariform.formatter.preferences.{SpacesAroundMultiImports, PreserveSpaceBeforeArguments, Preserve, Prevent, DanglingCloseParenthesis, AlignArguments, AlignSingleLineCaseStatements, DoubleIndentClassDeclaration, AlignParameters}
+import scalariform.formatter.preferences.{SpacesAroundMultiImports, PreserveSpaceBeforeArguments, Preserve, DanglingCloseParenthesis, AlignSingleLineCaseStatements, DoubleIndentClassDeclaration}
 
 name := """innkeeper"""
 organization  := "org.zalando.spearheads"
@@ -11,44 +11,44 @@ version       := "0.0.1"
 
 mainClass in Compile := Some("org.zalando.spearheads.innkeeper.Innkeeper")
 
-scalaVersion := "2.11.7"
+scalaVersion := "2.11.8"
 
 scalacOptions := Seq("-unchecked", "-feature", "-deprecation", "-encoding", "utf8")
 
 resolvers += "Whisk" at "https://dl.bintray.com/whisk/maven"
 resolvers += "softprops-maven" at "http://dl.bintray.com/content/softprops/maven"
 
-val akkaStreamV      = "2.4.2"
+val akkaV            = "2.4.4"
 val scalaTestV       = "3.0.0-M15"
 val scalaMockV       = "3.2.2"
-val slickPgV         = "0.11.2"
+val slickPgV         = "0.13.0"
 val slickV           = "3.1.1"
 
 libraryDependencies ++= List(
-  "org.scala-lang.modules"  %% "scala-xml"                            % "1.0.4",
-  
+  "org.scala-lang.modules"  %% "scala-xml"                            % "1.0.5",
+
   "com.typesafe.slick"      %% "slick"                                % slickV,
   "com.typesafe.slick"      %% "slick-hikaricp"                       % slickV exclude("com.zaxxer", "HikariCP-java6"),
 
-  "com.typesafe.akka"       %% "akka-stream"                          % akkaStreamV,
-  "com.typesafe.akka"       %% "akka-http-core"                       % akkaStreamV,
-  "com.typesafe.akka"       %% "akka-http-spray-json-experimental"    % akkaStreamV,
+  "com.typesafe.akka"       %% "akka-stream"                          % akkaV,
+  "com.typesafe.akka"       %% "akka-http-core"                       % akkaV,
+  "com.typesafe.akka"       %% "akka-http-spray-json-experimental"    % akkaV,
 
-  "com.typesafe.akka"       %% "akka-slf4j"                           % "2.3.9",
-  "ch.qos.logback"           % "logback-classic"                      % "1.1.3",
+  "com.typesafe.akka"       %% "akka-slf4j"                           % akkaV,
+  "ch.qos.logback"           % "logback-classic"                      % "1.1.7",
 
   "com.google.inject"        % "guice"                                % "4.0",
   "net.codingwell"          %% "scala-guice"                          % "4.0.0",
   "org.postgresql"           % "postgresql"                           % "9.4-1206-jdbc42",
   "com.github.tminglei"     %% "slick-pg"                             % slickPgV,
   "com.github.tminglei"     %% "slick-pg_date2"                       % slickPgV,
-  "com.zaxxer"               % "HikariCP"                             % "2.4.3",
+  "com.zaxxer"               % "HikariCP"                             % "2.4.5",
   "nl.grons"                %% "metrics-scala"                        % "3.5.2",
 
   "org.scalatest"           %% "scalatest"                            % scalaTestV       % "it,test",
   "org.scalamock"           %% "scalamock-scalatest-support"          % scalaMockV       % "it,test",
-  "com.typesafe.akka"       %% "akka-http-testkit"                    % akkaStreamV      % "it,test",
-  "com.typesafe.akka"       %% "akka-stream-testkit"                  % akkaStreamV      % "it,test",
+  "com.typesafe.akka"       %% "akka-http-testkit"                    % akkaV            % "it,test",
+  "com.typesafe.akka"       %% "akka-stream-testkit"                  % akkaV            % "it,test",
   "io.gatling.highcharts"    % "gatling-charts-highcharts"            % "2.1.7"          % "it",
   "io.gatling"               % "gatling-test-framework"               % "2.1.7"          % "it"
 )

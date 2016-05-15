@@ -10,20 +10,26 @@ import org.zalando.spearheads.innkeeper.InnkeeperRejectionHandler
 class RoutesModule extends AbstractModule with ScalaModule {
 
   override def configure() {
+    bind[Routes].asEagerSingleton()
+
+    // routes
+    bind[GetRoutes].asEagerSingleton()
+    bind[GetRoute].asEagerSingleton()
+    bind[GetCurrentRoutes].asEagerSingleton()
     bind[GetUpdatedRoutes].asEagerSingleton()
     bind[GetDeletedRoutes].asEagerSingleton()
     bind[DeleteDeletedRoutes].asEagerSingleton()
-
-    bind[GetRoute].asEagerSingleton()
     bind[DeleteRoute].asEagerSingleton()
-
-    bind[GetRoutes].asEagerSingleton()
-    bind[GetCurrentRoutes].asEagerSingleton()
     bind[PostRoutes].asEagerSingleton()
 
+    // hosts
+    bind[GetHosts].asEagerSingleton()
+
+    // paths
+    bind[PathsRoutes].asEagerSingleton()
+    bind[GetPaths].asEagerSingleton()
+
+    // other
     bind[InnkeeperRejectionHandler].asEagerSingleton()
-
-    bind[Routes].asEagerSingleton()
   }
-
 }

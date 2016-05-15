@@ -4,8 +4,13 @@ if [ "$1" != "-fast" ]; then
   echo "full build"
 
   sbt assembly
+  echo
+
   docker --version
   docker-compose --version
+  echo
+
+  source generate-scm-source.sh
   docker-compose build
 fi
 

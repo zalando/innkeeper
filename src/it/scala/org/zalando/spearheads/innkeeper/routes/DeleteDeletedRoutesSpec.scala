@@ -8,6 +8,7 @@ import org.zalando.spearheads.innkeeper.api.{RouteName, RouteOut}
 import org.zalando.spearheads.innkeeper.routes.AcceptanceSpecsHelper._
 import org.zalando.spearheads.innkeeper.routes.AcceptanceSpecTokens._
 import org.zalando.spearheads.innkeeper.routes.RoutesRepoHelper._
+import org.zalando.spearheads.innkeeper.routes.RoutesSpecsHelper._
 import spray.json._
 import spray.json.DefaultJsonProtocol._
 import org.zalando.spearheads.innkeeper.api.JsonProtocols._
