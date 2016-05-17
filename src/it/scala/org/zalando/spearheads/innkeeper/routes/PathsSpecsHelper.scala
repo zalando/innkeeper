@@ -3,6 +3,7 @@ package org.zalando.spearheads.innkeeper.routes
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.headers.{Authorization, OAuth2BearerToken}
+import org.zalando.spearheads.innkeeper.dao.PathRow
 import org.zalando.spearheads.innkeeper.routes.AcceptanceSpecsHelper._
 
 import scala.collection.immutable.Seq
@@ -10,6 +11,7 @@ import scala.collection.immutable.Seq
 object PathsSpecsHelper {
 
   private val pathsUri = s"$baseUri/paths"
+  private def pathUri(id: Long) = s"$pathsUri/$id"
 
   private def filteredPathsUri(
     ownedByTeam: Option[String] = None,
@@ -25,6 +27,8 @@ object PathsSpecsHelper {
 
     pathsUri + "?" + ownedByTeamToQuery + uriToQuery
   }
+
+  def getSlashPath(id: Long, token: String = ""): HttpResponse = slashPath(id, token)
 
   def getSlashPaths(token: String = "", ownedByTeam: Option[String] = None,
     uri: Option[String] = None): HttpResponse =
@@ -43,6 +47,21 @@ object PathsSpecsHelper {
       headers = headers)
 
     val futureResponse = Http().singleRequest(request)
+    futureResponse.futureValue
+  }
+
+  private def slashPath(
+    id: Long,
+    token: Option[String] = None,
+    method: HttpMethod = HttpMethods.GET): HttpResponse = {
+
+    val futureResponse = Http().singleRequest(
+      HttpRequest(
+        uri = pathUri(id),
+        method = method,
+        headers = headersForToken(token)
+      )
+    )
     futureResponse.futureValue
   }
 

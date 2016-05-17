@@ -28,6 +28,7 @@ class RouteMetrics @Inject() (val metrics: Metrics) {
 
   // paths
   val getPaths = metrics.metrics.timer("200.GET.paths")
+  val getPath = metrics.metrics.timer("200.GET.path")
   val postPaths = metrics.metrics.timer("201.POST.paths")
 
   // hosts
