@@ -15,7 +15,7 @@ case class PathRow(
   createdAt: LocalDateTime = LocalDateTime.now())
 
 class PathsTable(tag: Tag) extends Table[PathRow](tag, "PATHS") {
-  def id = column[Long]("ROUTE_ID", O.PrimaryKey, O.AutoInc)
+  def id = column[Long]("PATH_ID", O.PrimaryKey, O.AutoInc)
   def uri = column[String]("URI")
   def hostIds = column[List[Long]]("HOST_IDS")
   def ownedByTeam = column[String]("OWNED_BY_TEAM")

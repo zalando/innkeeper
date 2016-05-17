@@ -18,11 +18,11 @@ class PathsPostgresRepo @Inject() (
   private lazy val insertPathQuery = Paths returning Paths.map(_.id) into
     ((pathRow: PathRow, id) => pathRow.copy(id = Some(id)))
 
-  override def insert(route: PathRow): Future[PathRow] = {
-    logger.debug(s"insert route $route")
+  override def insert(path: PathRow): Future[PathRow] = {
+    logger.debug(s"insert route $path")
 
     db.run {
-      insertPathQuery += route
+      insertPathQuery += path
     }
   }
 
