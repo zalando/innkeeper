@@ -58,7 +58,7 @@ class Routes @Inject() (
               getRoute(authenticatedUser, id) ~ deleteRoute(authenticatedUser, id, token)
             } ~ path("deleted-routes" / Rest) { deletedBefore =>
               getDeletedRoutes(authenticatedUser, deletedBefore) ~ deleteDeletedRoutes(authenticatedUser, deletedBefore, token)
-            } ~ pathsRoutes(authenticatedUser)
+            } ~ pathsRoutes(authenticatedUser, token)
           }
         } ~ path("status") {
           complete("Ok")
