@@ -25,6 +25,12 @@ object Rejections {
     def code: String = "RNF"
   }
 
+  case class PathNotFoundRejection(requestDescription: String) extends Rejection with InnkeeperRejection {
+    def statusCode: StatusCode = StatusCodes.NotFound
+    def message: String = "Path not found"
+    def code: String = "PNF"
+  }
+
   case class IncorrectTeamRejection(requestDescription: String) extends Rejection with InnkeeperRejection {
     def statusCode: StatusCode = StatusCodes.Forbidden
     def message: String = "User not member of a team which is not allowed to do this call"
