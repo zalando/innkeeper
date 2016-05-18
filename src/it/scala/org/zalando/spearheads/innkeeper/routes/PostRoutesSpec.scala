@@ -22,7 +22,7 @@ class PostRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
         recreateSchema
       }
 
-      describe("when a token with the write_regex scope is provided") {
+      describe("when a token with the write scope is provided") {
         val token = WRITE_TOKEN
 
         it("should create the new route") {

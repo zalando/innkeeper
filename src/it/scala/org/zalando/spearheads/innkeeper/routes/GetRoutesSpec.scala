@@ -2,7 +2,7 @@ package org.zalando.spearheads.innkeeper.routes
 
 import akka.http.scaladsl.model.StatusCodes
 import org.scalatest.{BeforeAndAfter, FunSpec, Matchers}
-import org.zalando.spearheads.innkeeper.routes.AcceptanceSpecTokens.{INVALID_TOKEN, READ_TOKEN, WRITE_STRICT_TOKEN}
+import org.zalando.spearheads.innkeeper.routes.AcceptanceSpecTokens.{INVALID_TOKEN, READ_TOKEN, WRITE_TOKEN}
 import org.zalando.spearheads.innkeeper.routes.AcceptanceSpecsHelper._
 import org.zalando.spearheads.innkeeper.routes.RoutesRepoHelper.{recreateSchema, insertRoute, deleteRoute}
 import org.zalando.spearheads.innkeeper.api.RouteOut
@@ -86,8 +86,8 @@ class GetRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
           }
         }
 
-        describe("when a token without the read scope is provided") {
-          val token = WRITE_STRICT_TOKEN
+        describe("when a token without the write scope is provided") {
+          val token = WRITE_TOKEN
 
           it("should return the 403 Forbidden status") {
             val response = getSlashRoutes(token)

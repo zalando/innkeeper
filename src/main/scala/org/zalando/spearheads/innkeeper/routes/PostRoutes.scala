@@ -36,7 +36,7 @@ class PostRoutes @Inject() (
         logger.info(s"We Try to $reqDesc unmarshalled route ${route}")
         team(authenticatedUser, token, "path") { team =>
           logger.debug(s"post /routes team ${team}")
-          hasOneOfTheScopes(authenticatedUser, s"$reqDesc regex", scopes.WRITE) {
+          hasOneOfTheScopes(authenticatedUser, reqDesc, scopes.WRITE) {
 
             handleWith(saveRoute(UserName(authenticatedUser.username), TeamName(team.name), s"$reqDesc other"))
 

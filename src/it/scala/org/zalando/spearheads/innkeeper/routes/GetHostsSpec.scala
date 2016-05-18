@@ -9,9 +9,6 @@ import spray.json._
 import spray.json.DefaultJsonProtocol._
 import org.zalando.spearheads.innkeeper.api.JsonProtocols._
 
-/**
- * @author Alexey Venderov
- */
 class GetHostsSpec extends FunSpec with Matchers {
 
   describe("get /hosts") {
@@ -37,7 +34,7 @@ class GetHostsSpec extends FunSpec with Matchers {
       }
 
       it("should return 403 if wrong token was provided") {
-        val response = getSlashHosts(WRITE_STRICT_TOKEN)
+        val response = getSlashHosts(WRITE_TOKEN)
 
         response.status should be (StatusCodes.Forbidden)
       }

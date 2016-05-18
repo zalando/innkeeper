@@ -13,8 +13,7 @@ class Scopes @Inject() (val config: EnvConfig) {
 
   val READ = Scope(config.getStringSet("oauth.scope.read"))
   val WRITE = Scope(config.getStringSet("oauth.scope.write"))
-  val WRITE_STRICT = Scope(config.getStringSet("oauth.scope.writeStrict"))
-  val WRITE_REGEX = Scope(config.getStringSet("oauth.scope.writeRegex"))
+  val ADMIN = Scope(config.getStringSet("oauth.scope.admin"))
 }
 
 object Realms {

@@ -23,9 +23,9 @@ securityDefinitions:
     scopes:
       routes.read: |
         Reading (listing) all the routes
-      routes.write_full_path: |
+      routes.write: |
         All operations on routes with strict path matching.
-      routes.write_regex: |
+      routes.admin: |
         All operations on all routes, including ones with regex path matching.
 paths:
   '/hosts':
@@ -49,7 +49,7 @@ paths:
     post:
       security:
         - company:
-          - routes.write_full_path
+          - routes.write
       summary: Creates a new path resource that belongs to the team of the creator.
       parameters:
         - name: path
@@ -142,8 +142,7 @@ paths:
     post:
       security:
         - company:
-          - routes.write_full_path
-          - routes.write_regex
+          - routes.write
       summary: Creating a route with specified name.
       parameters:
         - name: route
@@ -210,8 +209,7 @@ paths:
     delete:
       security:
         - company:
-          - routes.write_full_path
-          - routes.write_regex
+          - routes.write
       summary: Deletes a route
       parameters:
         - name: id
@@ -302,7 +300,7 @@ paths:
       operationId: deleteDeletedRoutes
       security:
         - company:
-          - routes.write_regex
+          - routes.write
       parameters:
         - name: id
           in: path

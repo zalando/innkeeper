@@ -43,12 +43,10 @@ class DeleteDeletedRoutes @Inject() (
 
       dateTimeParameter(deletedBefore) match {
         case Some(dateTime) =>
-          hasOneOfTheScopes(authenticatedUser, requestDescription, scopes.WRITE_REGEX) {
-            team(authenticatedUser, token, requestDescription) { team =>
-              isAdminTeam(team, requestDescription)(teamService) {
-                removeDeleteBeforeRoutes(authenticatedUser, dateTime, requestDescription)
-              } ~ reject(InnkeeperAuthorizationFailedRejection(requestDescription))
-            }
+          team(authenticatedUser, token, requestDescription) { team =>
+            (isAdminTeam(team, requestDescription)(teamService) | hasOneOfTheScopes(authenticatedUser, requestDescription, scopes.ADMIN)) {
+              removeDeleteBeforeRoutes(authenticatedUser, dateTime, requestDescription)
+            } ~ reject(InnkeeperAuthorizationFailedRejection(requestDescription))
           }
         case None =>
           reject(InvalidDateTimeRejection(requestDescription))
