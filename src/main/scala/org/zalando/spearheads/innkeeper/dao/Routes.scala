@@ -4,6 +4,8 @@ import java.time.LocalDateTime
 
 import org.zalando.spearheads.innkeeper.dao.MyPostgresDriver.api._
 
+object Routes extends TableQuery(new RoutesTable(_))
+
 case class RouteRow(
   id: Option[Long] = None,
   name: String,

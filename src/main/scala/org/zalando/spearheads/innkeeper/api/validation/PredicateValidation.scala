@@ -44,7 +44,7 @@ private class HeaderPredicateValidator extends PredicateValidator {
 }
 
 private[this] object HeaderPredicateValidator {
-  val invalidMessage = "Header should have two string string parameters (name, value)"
+  val invalidMessage = "Header should have two string parameters (name, value)"
 }
 
 @Singleton

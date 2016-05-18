@@ -1,7 +1,5 @@
 package org.zalando.spearheads.innkeeper.routes
 
-import java.time.LocalDateTime
-
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model._
@@ -10,8 +8,6 @@ import akka.stream.ActorMaterializer
 import org.scalatest.Matchers
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.time.{Seconds, Span}
-import org.zalando.spearheads.innkeeper.api.RouteOut
-import org.zalando.spearheads.innkeeper.routes.AcceptanceSpecTokens._
 
 import scala.collection.immutable.Seq
 import scala.language.implicitConversions
@@ -71,9 +67,12 @@ object AcceptanceSpecsHelper extends ScalaFutures with Matchers {
 }
 
 object AcceptanceSpecTokens {
-  val READ_TOKEN = "token-user~1-employees-route.read"
-  val WRITE_TOKEN = "token-user~1-employees-route.write"
-  val ADMIN_TOKEN = "token-user~1-employees-route.admin"
-  val ADMIN_TEAM_TOKEN = "token-user~3-employees-route.read"
+  val READ_TOKEN = generateToken("token", "user~1", "employees", "route.read")
+  val WRITE_TOKEN = generateToken("token", "user~1", "employees", "route.write")
+  val ADMIN_TOKEN = generateToken("token", "user~1", "employees", "route.admin")
+  val ADMIN_TEAM_TOKEN = generateToken("token", "user~3", "employees", "route.read")
   val INVALID_TOKEN = "invalid"
+
+  def generateToken(token: String, userName: String, teamName: String, scope: String) =
+    s"$token-$userName-$teamName-$scope"
 }

@@ -18,9 +18,7 @@ class RoutesPostgresRepo @Inject() (
 
   private val logger = LoggerFactory.getLogger(this.getClass)
 
-  private val routesTable = TableQuery[RoutesTable]
-
-  private lazy val insertRouteQuery = routesTable returning routesTable.map(_.id) into
+  private lazy val insertRouteQuery = Routes returning Routes.map(_.id) into
     ((routeRow: RouteRow, id) => routeRow.copy(id = Some(id)))
 
   override def insert(route: RouteRow): Future[RouteRow] = {
@@ -35,7 +33,7 @@ class RoutesPostgresRepo @Inject() (
     logger.debug(s"selectById $id")
 
     db.run {
-      routesTable.filter(_.id === id).result
+      Routes.filter(_.id === id).result
     }.map(_.headOption)
   }
 
@@ -51,7 +49,7 @@ class RoutesPostgresRepo @Inject() (
     logger.debug(s"selectModifiedSince $since")
 
     val q = for {
-      routeRow <- routesTable
+      routeRow <- Routes
       if (
         // all routes created since, without the activatedAt in the future
         routeRow.createdAt > since && routeRow.activateAt < currentTime) ||
@@ -72,7 +70,7 @@ class RoutesPostgresRepo @Inject() (
     logger.debug(s"selectByName $name")
 
     val q = (for {
-      routeRow <- routesTable
+      routeRow <- Routes
       if routeRow.name === name && routeRow.deletedAt.isEmpty
     } yield routeRow)
 
@@ -85,7 +83,7 @@ class RoutesPostgresRepo @Inject() (
     logger.debug("select latest routes per name")
 
     val join = (for {
-      routeRow <- routesTable.filter(_.id in latestActiveRouteIdsCreatedForEachName(currentTime))
+      routeRow <- Routes.filter(_.id in latestActiveRouteIdsCreatedForEachName(currentTime))
     } yield routeRow)
 
     db.stream {
@@ -98,7 +96,7 @@ class RoutesPostgresRepo @Inject() (
 
     db.run {
       val q = for {
-        routeRow <- routesTable
+        routeRow <- Routes
         if routeRow.id === id && routeRow.deletedAt.isEmpty
       } yield (routeRow.deletedAt, routeRow.deletedBy)
 
@@ -110,7 +108,7 @@ class RoutesPostgresRepo @Inject() (
     logger.debug(s"select deleted before $dateTime")
 
     val q = for {
-      routeRow <- routesTable
+      routeRow <- Routes
       if routeRow.deletedAt.isDefined && routeRow.deletedAt < dateTime
     } yield routeRow
 
@@ -124,7 +122,7 @@ class RoutesPostgresRepo @Inject() (
 
     db.run {
       val q = for {
-        routeRow <- routesTable
+        routeRow <- Routes
         if routeRow.deletedAt.isDefined && routeRow.deletedAt < dateTime
       } yield routeRow
 
@@ -133,7 +131,7 @@ class RoutesPostgresRepo @Inject() (
   }
 
   private def activeRoutesGroupedByName(currentTime: LocalDateTime) = (for {
-    routeRow <- routesTable
+    routeRow <- Routes
     if routeRow.deletedAt.isEmpty && routeRow.activateAt < currentTime
   } yield (routeRow.id, routeRow.name)).groupBy(_._2)
 
@@ -144,7 +142,7 @@ class RoutesPostgresRepo @Inject() (
     }
 
   private lazy val selectAllQuery = for {
-    routeRow <- routesTable
+    routeRow <- Routes
     if routeRow.deletedAt.isEmpty
   } yield routeRow
 }
