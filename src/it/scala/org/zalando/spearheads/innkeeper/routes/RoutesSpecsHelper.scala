@@ -17,7 +17,7 @@ object RoutesSpecsHelper {
 
   private val currentRoutesUri = s"$baseUri/current-routes"
 
-  private def postSlashRoutes(route: String)(token: String): HttpResponse = {
+  def postSlashRoutes(route: String)(token: String): HttpResponse = {
 
     val entity = HttpEntity(ContentType(MediaTypes.`application/json`), route)
 

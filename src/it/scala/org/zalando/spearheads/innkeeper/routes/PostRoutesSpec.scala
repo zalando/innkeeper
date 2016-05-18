@@ -5,7 +5,7 @@ import org.scalatest.{BeforeAndAfter, FunSpec, Matchers}
 import org.zalando.spearheads.innkeeper.routes.AcceptanceSpecTokens._
 import org.zalando.spearheads.innkeeper.routes.AcceptanceSpecsHelper._
 import org.zalando.spearheads.innkeeper.routes.RoutesRepoHelper._
-import org.zalando.spearheads.innkeeper.api.{UserName, TeamName, RouteName, RouteOut}
+import org.zalando.spearheads.innkeeper.api.{UserName, TeamName, RouteName, RouteOut, Error}
 import spray.json.pimpString
 import spray.json.DefaultJsonProtocol._
 import org.zalando.spearheads.innkeeper.api.JsonProtocols._
@@ -61,6 +61,26 @@ class PostRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
           val routeName = "invalid-route-name"
           val response = postRouteToSlashRoutes(routeName, token)
           response.status should be(StatusCodes.BadRequest)
+        }
+      }
+
+      describe("when an invalid predicate is provided") {
+        val token = WRITE_TOKEN
+
+        val invalidPredicateRoute = s"""{
+                                         |  "name": "route",
+                                         |  "route": {
+                                         |    "predicates": [{
+                                         |     "name": "method",
+                                         |     "args": ["GOT"]
+                                         |    }]
+                                         |  }
+                                         |}""".stripMargin
+
+        it("should return the 400 Bad Request status") {
+          val response = postSlashRoutes(invalidPredicateRoute)(token)
+          response.status should be(StatusCodes.BadRequest)
+          entityString(response).parseJson.convertTo[Error].errorType should be("IRF")
         }
       }
 
