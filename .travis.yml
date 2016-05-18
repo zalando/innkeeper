@@ -22,7 +22,7 @@ before_install:
 
 script:
   - cp src/main/resources/travis.application.conf src/main/resources/application.conf
-  - ./acceptance-tests.sh
+  - ./scripts/acceptance-tests.sh
 
 notifications:
   email:
