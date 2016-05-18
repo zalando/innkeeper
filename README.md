@@ -32,13 +32,6 @@ To run the integration test suite, run `sbt it:test`.
 ```bash    
 curl -i -XPOST localhost:8080/routes -d '{
     "route": {
-      "matcher": {
-        "path_matcher": {
-          "match": "/hello-*",
-          "type": "REGEX"
-        },
-        "header_matchers": []
-      },
       "predicates": [],
       "filters": []
     },
@@ -67,8 +60,8 @@ Here are more [examples](EXAMPLES.md)
 A client can have different scopes when calling Innkeeper:
 
   - read -> the client is allowed to read the routes
-  - writeStrict -> the client is allowed to create only routes with a full path matcher
-  - writeRegex -> the client with this scope is allowed to create routes with a regex matcher
+  - write -> the client is allowed to create only routes with a full path matcher
+  - admin -> the client with this scope is allowed to create routes with a regex matcher
 
 # Postgres
 

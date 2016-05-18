@@ -17,7 +17,7 @@ object RoutesSpecsHelper {
 
   private val currentRoutesUri = s"$baseUri/current-routes"
 
-  def postSlashRoutes(route: String)(token: String): HttpResponse = {
+  private def postSlashRoutes(route: String)(token: String): HttpResponse = {
 
     val entity = HttpEntity(ContentType(MediaTypes.`application/json`), route)
 
@@ -33,14 +33,8 @@ object RoutesSpecsHelper {
     futureResponse.futureValue
   }
 
-  def postPathMatcherSlashRoutes(routeType: String)(routeName: String, token: String): HttpResponse =
-    postSlashRoutes(pathMatcherRoute(routeName, routeType))(token)
-
-  def postHostMatcherSlashRoutes(routeName: String, host: String, token: String): HttpResponse =
-    postSlashRoutes(hostMatcherRoute(routeName, host))(token)
-
-  def postCatchAllSlashRoutes(routeName: String, token: String): HttpResponse =
-    postSlashRoutes(catchAllRoute(routeName))(token)
+  def postRouteToSlashRoutes(routeName: String, token: String): HttpResponse =
+    postSlashRoutes(route(routeName))(token)
 
   def getSlashRoutes(token: String = ""): HttpResponse = doGet(routesUri, token)
 
@@ -84,64 +78,21 @@ object RoutesSpecsHelper {
     futureResponse.futureValue
   }
 
-  def hostMatcherRoute(routeName: String, host: String) = s"""{
-                                                              |  "name": "${routeName}",
-                                                              |  "description": "this is a route",
-                                                              |  "activate_at": "2015-10-10T10:10:10",
-                                                              |  "route": {
-                                                              |    "matcher": {
-                                                              |      "host_matcher": "${host}"
-                                                              |    },
-                                                              |    "predicates": [{
-                                                              |     "name": "somePredicate",
-                                                              |     "args": ["HelloPredicate", 123, 0.99]
-                                                              |    }],
-                                                              |    "filters": [{
-                                                              |     "name": "someFilter",
-                                                              |     "args": ["HelloFilter", 123, 0.99]
-                                                              |    }]
-                                                              |  }
-                                                              |}""".stripMargin
-
-  def catchAllRoute(routeName: String) = s"""{
-                                             |  "name": "${routeName}",
-                                             |  "description": "this is a route",
-                                             |  "activate_at": "2015-10-10T10:10:10",
-                                             |  "route": {
-                                             |    "matcher": {
-                                             |    },
-                                             |    "predicates": [{
-                                             |     "name": "somePredicate",
-                                             |     "args": ["HelloPredicate", 123, 0.99]
-                                             |    }],
-                                             |    "filters": [{
-                                             |     "name": "someFilter",
-                                             |     "args": ["HelloFilter", 123, 0.99]
-                                             |    }]
-                                             |  }
-                                             |}""".stripMargin
-
-  def pathMatcherRoute(routeName: String, routeType: String) = s"""{
-                                                                   |  "name": "${routeName}",
-                                                                   |  "description": "this is a route",
-                                                                   |  "activate_at": "2015-10-10T10:10:10",
-                                                                   |  "route": {
-                                                                   |    "matcher": {
-                                                                   |      "path_matcher": {
-                                                                   |        "match": "/hello-*",
-                                                                   |        "type": "${routeType}"
-                                                                   |      }
-                                                                   |    },
-                                                                   |    "predicates": [{
-                                                                   |     "name": "somePredicate",
-                                                                   |     "args": ["HelloPredicate", 123, 0.99]
-                                                                   |    }],
-                                                                   |    "filters": [{
-                                                                   |     "name": "someFilter",
-                                                                   |     "args": ["HelloFilter", 123, 0.99]
-                                                                   |    }]
-                                                                   |  }
-                                                                   |}""".stripMargin
+  def route(routeName: String) = s"""{
+                                |  "name": "${routeName}",
+                                |  "description": "this is a route",
+                                |  "activate_at": "2015-10-10T10:10:10",
+                                |  "route": {
+                                |    "predicates": [{
+                                |     "name": "method",
+                                |     "args": ["GET"]
+                                |    }],
+                                |    "filters": [{
+                                |     "name": "someFilter",
+                                |     "args": ["HelloFilter", 123, 0.99]
+                                |    }]
+                                |  }
+                                |}""".stripMargin
 
   def routeFiltersShouldBeCorrect(route: RouteOut) = {
     route.route.filters should be ('defined)
@@ -155,9 +106,7 @@ object RoutesSpecsHelper {
   def routePredicatesShouldBeCorrect(route: RouteOut) = {
     route.route.predicates should be ('defined)
     route.route.predicates.get should not be ('empty)
-    route.route.predicates.get.head.name should be ("somePredicate")
-    route.route.predicates.get.head.args.head should be (Right("HelloPredicate"))
-    route.route.predicates.get.head.args(1) should be (Left(123))
-    route.route.predicates.get.head.args(2) should be (Left(0.99))
+    route.route.predicates.get.head.name should be ("method")
+    route.route.predicates.get.head.args.head should be (Right("GET"))
   }
 }

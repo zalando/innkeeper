@@ -8,28 +8,6 @@ private trait PredicateValidator extends Validator[Predicate] {
   def predicateName: String
 }
 
-private class HostPredicateValidator extends PredicateValidator {
-  override val predicateName = "host"
-
-  override def validate(predicate: Predicate): ValidationResult = {
-    predicate match {
-      case Predicate("host", Seq(Right(string))) => Valid
-      case _ => Invalid("Host should have one string parameter")
-    }
-  }
-}
-
-private class PathPredicateValidator extends PredicateValidator {
-  override val predicateName = "path"
-
-  override def validate(predicate: Predicate): ValidationResult = {
-    predicate match {
-      case Predicate("path", Seq(Right(string))) => Valid
-      case _ => Invalid("Host should have one string parameter")
-    }
-  }
-}
-
 private class MethodPredicateValidator extends PredicateValidator {
   override val predicateName = "method"
 
@@ -39,16 +17,19 @@ private class MethodPredicateValidator extends PredicateValidator {
         if (MethodPredicateValidator.methodNames.contains(string)) {
           Valid
         } else {
-          Invalid("Invalid method name")
+          Invalid(MethodPredicateValidator.invalidMethodMessage)
         }
-      case _ => Invalid("Method should have one string parameter")
+      case _ => Invalid(MethodPredicateValidator.invalidMessage)
     }
   }
 }
 
-private object MethodPredicateValidator {
+private[this] object MethodPredicateValidator {
   val methodNames = Set("GET", "POST", "PUT", "HEAD", "DELETE",
     "PATCH", "OPTIONS", "CONNECT", "TRACE")
+
+  val invalidMessage = "Path should have one string parameter"
+  val invalidMethodMessage = "Invalid method name"
 }
 
 private class HeaderPredicateValidator extends PredicateValidator {
@@ -57,24 +38,27 @@ private class HeaderPredicateValidator extends PredicateValidator {
   override def validate(predicate: Predicate): ValidationResult = {
     predicate match {
       case Predicate("header", Seq(Right(name), Right(value))) => Valid
-      case _ => Invalid("Header should have two string string parameters (name, value)")
+      case _                                                   => Invalid(HeaderPredicateValidator.invalidMessage)
     }
   }
 }
 
+private[this] object HeaderPredicateValidator {
+  val invalidMessage = "Header should have two string string parameters (name, value)"
+}
+
 @Singleton
 class PredicateValidationService {
-  private val validators = Seq(new MethodPredicateValidator(),
-    new PathPredicateValidator(),
-    new HeaderPredicateValidator(),
-    new HostPredicateValidator())
+  private val validators = Seq(
+    new MethodPredicateValidator(),
+    new HeaderPredicateValidator())
 
   private val validatorsByName = validators.map(p => (p.predicateName, p)).toMap
 
   def validate(predicate: Predicate): ValidationResult = {
     validatorsByName.get(predicate.name) match {
       case Some(validator) => validator.validate(predicate)
-      case _ => Valid
+      case _               => Valid
     }
   }
 }

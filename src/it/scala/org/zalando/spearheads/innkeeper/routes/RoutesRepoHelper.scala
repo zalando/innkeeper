@@ -4,14 +4,11 @@ import java.time.LocalDateTime
 import org.scalatest.time.{Seconds, Span}
 import org.zalando.spearheads.innkeeper.dao.RouteRow
 
-/**
- * @author dpersa
- */
 object RoutesRepoHelper extends DaoHelper {
 
   implicit override val patienceConfig = PatienceConfig(timeout = Span(5, Seconds))
 
-  def insertRoute(name: String = "THE_ROUTE", matcher: String = "/hello", routeType: String = "STRICT",
+  def insertRoute(name: String = "THE_ROUTE", method: String = "GET",
     createdBy: String = "testuser",
     ownedByTeam: String = "testteam",
     createdAt: LocalDateTime = LocalDateTime.now(),
@@ -19,7 +16,7 @@ object RoutesRepoHelper extends DaoHelper {
 
     routesRepo.insert(RouteRow(
       name = name,
-      routeJson = routeJson(matcher, routeType),
+      routeJson = routeJson(method),
       createdBy = createdBy,
       ownedByTeam = ownedByTeam,
       createdAt = createdAt,
@@ -27,28 +24,10 @@ object RoutesRepoHelper extends DaoHelper {
       .futureValue
   }
 
-  def insertHostRoute(
-    name: String = "THE_ROUTE",
-    hostMatcher: String = "host.com",
-    createdBy: String = "testuser",
-    ownedByTeam: String = "testteam",
-    createdAt: LocalDateTime = LocalDateTime.now()): RouteRow = {
-
-    routesRepo.insert(RouteRow(
-      name = name,
-      routeJson = hostRouteJson(hostMatcher),
-      createdBy = createdBy,
-      ownedByTeam = ownedByTeam,
-      createdAt = createdAt,
-      activateAt = createdAt.plusMinutes(5)))
-      .futureValue
-  }
-
   def sampleRoute(
     id: Long = 0,
     name: String = "THE_ROUTE",
-    matcher: String = "/hello",
-    routeType: String = "STRICT",
+    method: String = "GET",
     createdBy: String = "testuser",
     ownedByTeam: String = "testteam",
     createdAt: LocalDateTime = LocalDateTime.now(),
@@ -57,7 +36,7 @@ object RoutesRepoHelper extends DaoHelper {
     RouteRow(
       id = Some(id),
       name = name,
-      routeJson = routeJson(matcher, routeType),
+      routeJson = routeJson(method),
       createdBy = createdBy,
       ownedByTeam = ownedByTeam,
       createdAt = createdAt,
@@ -72,28 +51,15 @@ object RoutesRepoHelper extends DaoHelper {
     routesRepo.delete(id, deletedBy, dateTime).futureValue
   }
 
-  def routeJson(matcher: String = "/hello", routeType: String = "STRICT") =
+  def routeJson(method: String = "POST") =
     s"""{
-        |  "matcher": {
-        |    "path_matcher": {
-        |      "match": "$matcher",
-        |      "type": "$routeType"
-        |    }
-        |  },
         |  "predicates": [{
-        |      "name": "somePredicate",
-        |      "args": ["HelloPredicate", 123, 0.99]
+        |      "name": "method",
+        |      "args": ["$method"]
         |  }],
         |  "filters": [{
         |      "name": "someFilter",
         |      "args": ["HelloFilter", 123, 0.99]
         |  }]
-        |}""".stripMargin
-
-  def hostRouteJson(hostMatcher: String) =
-    s"""{
-        |  "matcher": {
-        |    "host_matcher": "$hostMatcher"
-        |  }
         |}""".stripMargin
 }

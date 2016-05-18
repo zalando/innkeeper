@@ -6,7 +6,6 @@ import akka.http.scaladsl.server.{AuthorizationFailedRejection, Route}
 import com.google.inject.Inject
 import org.slf4j.LoggerFactory
 import org.zalando.spearheads.innkeeper.Rejections.UnmarshallRejection
-import org.zalando.spearheads.innkeeper.RouteDirectives.{isStrictRoute, isRegexRoute}
 import org.zalando.spearheads.innkeeper.api.{TeamName, UserName, RouteOut, RouteIn}
 import org.zalando.spearheads.innkeeper.metrics.RouteMetrics
 import org.zalando.spearheads.innkeeper.oauth.OAuthDirectives.{team, hasOneOfTheScopes}
@@ -37,15 +36,7 @@ class PostRoutes @Inject() (
         logger.info(s"We Try to $reqDesc unmarshalled route ${route}")
         team(authenticatedUser, token, "path") { team =>
           logger.debug(s"post /routes team ${team}")
-          (isStrictRoute(route.route) & hasOneOfTheScopes(authenticatedUser, s"$reqDesc strict", scopes.WRITE_STRICT, scopes.WRITE_REGEX)) {
-
-            handleWith(saveRoute(UserName(authenticatedUser.username), TeamName(team.name), s"$reqDesc strict"))
-
-          } ~ (isRegexRoute(route.route) & hasOneOfTheScopes(authenticatedUser, s"$reqDesc regex", scopes.WRITE_REGEX)) {
-
-            handleWith(saveRoute(UserName(authenticatedUser.username), TeamName(team.name), s"$reqDesc regex"))
-
-          } ~ hasOneOfTheScopes(authenticatedUser, s"$reqDesc regex", scopes.WRITE_REGEX) {
+          hasOneOfTheScopes(authenticatedUser, s"$reqDesc regex", scopes.WRITE) {
 
             handleWith(saveRoute(UserName(authenticatedUser.username), TeamName(team.name), s"$reqDesc other"))
 

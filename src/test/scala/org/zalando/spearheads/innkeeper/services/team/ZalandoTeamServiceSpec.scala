@@ -4,13 +4,14 @@ import java.time.LocalDateTime
 import akka.http.scaladsl.model.HttpMethods
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.concurrent.ScalaFutures
+import scala.collection.immutable.Seq
 import org.scalatest.{FunSpec, Matchers}
 import org.zalando.spearheads.innkeeper.api._
 import org.zalando.spearheads.innkeeper.services.ServiceResult
 import org.zalando.spearheads.innkeeper.services.ServiceResult.NotFound
 import org.zalando.spearheads.innkeeper.utils.{EnvConfig, HttpClient}
 import spray.json.pimpString
-import scala.concurrent.{Future, ExecutionContext}
+import scala.concurrent.{ExecutionContext, Future}
 import scala.language.postfixOps
 
 /**
@@ -31,8 +32,9 @@ class ZalandoTeamServiceSpec extends FunSpec with MockFactory with Matchers with
       val teamService = new ZalandoTeamService(mockConfig, mockHttpClient)
 
       val now = LocalDateTime.now()
-      val route = RouteOut(1, RouteName("name"), NewRoute(Matcher(pathMatcher = Some(RegexPathMatcher("/test-*")))),
-        now, now, TeamName("pathfinder"), UserName("gigel"))
+      val route = RouteOut(1, RouteName("name"), NewRoute(
+        predicates = Some(Seq(
+          Predicate("somePredicate", Seq(Right("Hello"), Left(123.0)))))), createdAt = now, activateAt = now, TeamName("pathfinder"), UserName("gigel"))
 
       val team = Team("pathfinder", Official)
 
