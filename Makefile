@@ -2,7 +2,7 @@ version=0.0.7
 
 docker:
 	sbt assembly
-	./docker-build.sh pierone.stups.zalan.do/pathfinder/innkeeper $(version)
+	./scripts/docker-build.sh pierone.stups.zalan.do/pathfinder/innkeeper $(version)
 
 docker-push:
 	docker push pierone.stups.zalan.do/pathfinder/innkeeper:$(version)
@@ -14,7 +14,7 @@ docker-run:
 
 docker-snapshot:
 	sbt assembly
-	./docker-build.sh pierone.stups.zalan.do/pathfinder/innkeeper latest-SNAPSHOT
+	./scripts/docker-build.sh pierone.stups.zalan.do/pathfinder/innkeeper latest-SNAPSHOT
 
 docker-push-snapshot:
 	docker push pierone.stups.zalan.do/pathfinder/innkeeper:latest-SNAPSHOT
@@ -32,3 +32,14 @@ test-db:
 
 docker-remove:
 	docker rm $(docker ps -q -f status=exited)
+
+kill-all-docker:
+	./scripts/kill-all.sh
+
+acceptance-tests:
+	./scripts/acceptance-tests.sh
+
+
+acceptance-tests-fast:
+	./scripts/acceptance-tests.sh -fast
+
