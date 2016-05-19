@@ -1,13 +1,6 @@
 ```bash
 curl -ik -XPOST https://innkeeper.pathfinder-staging.zalan.do./routes -d '{
     "route": {
-      "matcher": {
-        "path_matcher": {
-          "match": "/hello-*_",
-          "type": "REGEX"
-        },
-        "header_matchers": []
-      },
       "predicates": [],
       "filters": []
     },
@@ -22,23 +15,6 @@ curl -vk https://innkeeper.pathfinder-staging.zalan.do./routes -H 'Authorization
 
 curl -ik -XPOST https://innkeeper.pathfinder-staging.zalan.do./routes -d '{
   "route": {
-    "matcher": {
-      "host_matcher": "example.com",
-      "path_matcher": {
-        "match": "/hello-*",
-        "type": "REGEX"
-      },
-      "method_matcher": "POST",
-      "header_matchers": [{
-        "name": "X-Host",
-        "value": "www.*_",
-        "type": "REGEX"
-      }, {
-        "name": "X-Port",
-        "value": "8080",
-        "type": "STRICT"
-      }]
-    },
     "predicates": [{
           "name": "somePredicate",
           "args": ["Hello", 123]

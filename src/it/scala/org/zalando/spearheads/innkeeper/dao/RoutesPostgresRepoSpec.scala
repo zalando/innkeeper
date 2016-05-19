@@ -27,7 +27,7 @@ class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers w
         val routeRow = insertRoute()
 
         routeRow.id.isDefined should be (true)
-        routeRow.routeJson should be (routeJson("/hello"))
+        routeRow.routeJson should be (routeJson("GET"))
       }
     }
 
@@ -38,7 +38,7 @@ class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers w
 
         routeRow.isDefined should be (true)
         routeRow.get.id should be ('defined)
-        routeRow.get.routeJson should be (routeJson("/hello"))
+        routeRow.get.routeJson should be (routeJson("GET"))
       }
     }
 
@@ -47,14 +47,14 @@ class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers w
       it("should select all routes") {
         val createdAt = LocalDateTime.now()
         val activateAt = createdAt.minusMinutes(5)
-        insertRoute("R1", "/hello1", createdAt = createdAt, activateAt = activateAt)
-        insertRoute("R2", "/hello2", createdAt = createdAt, activateAt = activateAt)
+        insertRoute("R1", "GET", createdAt = createdAt, activateAt = activateAt)
+        insertRoute("R2", "POST", createdAt = createdAt, activateAt = activateAt)
 
         val routes: List[RouteRow] = routesRepo.selectAll
 
         routes should not be 'empty
-        routes(0) should be (sampleRoute(id = 1, name = "R1", matcher = "/hello1", createdAt = createdAt, activateAt = activateAt))
-        routes(1) should be (sampleRoute(id = 2, name = "R2", matcher = "/hello2", createdAt = createdAt, activateAt = activateAt))
+        routes(0) should be (sampleRoute(id = 1, name = "R1", method = "GET", createdAt = createdAt, activateAt = activateAt))
+        routes(1) should be (sampleRoute(id = 2, name = "R2", method = "POST", createdAt = createdAt, activateAt = activateAt))
       }
 
       it("should not select the deleted routes") {
@@ -187,8 +187,8 @@ class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers w
 
     describe("delete") {
       it("should delete a route by marking as deleted") {
-        insertRoute("1", "/hello1")
-        insertRoute("2", "/hello2")
+        insertRoute("1", "POST")
+        insertRoute("2", "GET")
         val result = deleteRoute(1)
 
         result should be (true)
@@ -199,7 +199,7 @@ class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers w
         routeRow.get.id should be (defined)
         routeRow.get.deletedAt should be (defined)
         routeRow.get.deletedBy should be (None)
-        routeRow.get.routeJson should be (routeJson("/hello1"))
+        routeRow.get.routeJson should be (routeJson("POST"))
       }
 
       it("should set deleted by if it is provided") {

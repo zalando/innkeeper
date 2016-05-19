@@ -3,6 +3,7 @@ package org.zalando.spearheads.innkeeper
 import com.google.inject.{Guice, Injector}
 import net.codingwell.scalaguice.InjectorExtensions._
 import org.slf4j.LoggerFactory
+import org.zalando.spearheads.innkeeper.api.validation.ValidationModule
 import org.zalando.spearheads.innkeeper.api.{AkkaHttp, AkkaHttpModule, AkkaModule}
 import org.zalando.spearheads.innkeeper.dao.{DbModule, InnkeeperSchema, RoutesRepo}
 import org.zalando.spearheads.innkeeper.oauth.OAuthModule
@@ -27,6 +28,7 @@ object Innkeeper extends App {
     new UtilsModule(),
     new ServicesModule(),
     new OAuthModule(),
+    new ValidationModule(),
     new AkkaModule(),
     new RoutesModule(),
     new AkkaHttpModule()

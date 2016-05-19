@@ -5,6 +5,7 @@ import java.time.LocalDateTime
 import org.scalatest.{FunSpec, Matchers}
 import spray.json.{DeserializationException, _}
 import JsonProtocols._
+import org.scalatest.matchers.Matcher
 
 import scala.collection.immutable.Seq
 
@@ -12,51 +13,6 @@ import scala.collection.immutable.Seq
  * @author dpersa
  */
 class JsonProtocolsSpec extends FunSpec with Matchers {
-
-  describe("HeaderMatcher") {
-
-    describe("StrictHeaderMatcher") {
-      it("should unmarshall the StrictHeaderMatcher") {
-        val headerMatcher = """{"name": "someName", "value": "some value", "type": "STRICT"}""".parseJson.convertTo[HeaderMatcher]
-        headerMatcher.name should be("someName")
-        headerMatcher.value should be("some value")
-        headerMatcher.isInstanceOf[StrictHeaderMatcher] should be(true)
-      }
-
-      it("should marshall the StrictHeaderMatcher") {
-        val headerMatcherJson = StrictHeaderMatcher("someName", "some value").toJson
-        headerMatcherJson.compactPrint should be("""{"name":"someName","value":"some value","type":"STRICT"}""")
-      }
-    }
-
-    describe("RegexHeaderMatcher") {
-      it("should unmarshall the RegexHeaderMatcher") {
-        val headerMatcher = """{"name": "someName", "value": "some value", "type": "REGEX"}""".parseJson.convertTo[HeaderMatcher]
-        headerMatcher.name should be("someName")
-        headerMatcher.value should be("some value")
-        headerMatcher.isInstanceOf[RegexHeaderMatcher] should be(true)
-      }
-
-      it("should marshall the RegexHeaderMatcher") {
-        val headerMatcherJson = RegexHeaderMatcher("someName", "some value").toJson
-        headerMatcherJson.compactPrint should be("""{"name":"someName","value":"some value","type":"REGEX"}""")
-      }
-    }
-
-    it("should not unmarshall the HeaderMatcher when the matcher type is empty") {
-
-      intercept[DeserializationException] {
-        """{"name": "someName", "value": "some value", "type": ""}""".parseJson.convertTo[HeaderMatcher]
-      }
-    }
-
-    it("should not unmarshall the HeaderMatcher when the matcher type is missing") {
-
-      intercept[DeserializationException] {
-        """{"name": "someName", "value": "some value"}""".parseJson.convertTo[HeaderMatcher]
-      }
-    }
-  }
 
   describe("Predicate") {
     it("should unmarshall the predicate") {
@@ -90,155 +46,15 @@ class JsonProtocolsSpec extends FunSpec with Matchers {
     }
   }
 
-  describe("PathMatcher") {
-
-    describe("RegexPathMatcher") {
-      it("should unmarshall the RegexPathMatcher") {
-        val pathMatcher = """{ "match": "/hello", "type": "REGEX" }""".parseJson.convertTo[PathMatcher]
-        pathMatcher.matcher should be("/hello")
-        pathMatcher.isInstanceOf[RegexPathMatcher] should be(true)
-      }
-
-      it("should marshall the RegexPathMatcher") {
-        val matcherJson = RegexPathMatcher("someName").toJson
-        matcherJson.compactPrint should be("""{"match":"someName","type":"REGEX"}""")
-      }
-    }
-
-    describe("StrictPathMatcher") {
-      it("should unmarshall the StrictPathMatcher") {
-        val pathMatcher = """{ "match": "/hello", "type": "STRICT" }""".parseJson.convertTo[PathMatcher]
-        pathMatcher.matcher should be("/hello")
-        pathMatcher.isInstanceOf[StrictPathMatcher] should be(true)
-      }
-
-      it("should marshall the StrictPathMatcher") {
-        val matcherJson = StrictPathMatcher("someName").toJson
-        matcherJson.compactPrint should be("""{"match":"someName","type":"STRICT"}""")
-      }
-    }
-
-    it("should not unmarshall the PathMatcher when the matcher type is empty") {
-
-      intercept[DeserializationException] {
-        """{ "match": "/hello", "type": "" }""".parseJson.convertTo[PathMatcher]
-      }
-    }
-
-    it("should not unmarshall the PathMatcher when the matcher type is missing") {
-
-      intercept[DeserializationException] {
-        """{ "match": "/hello" }""".parseJson.convertTo[PathMatcher]
-      }
-    }
-  }
-
-  describe("Matcher") {
-    it("should unmarshall the Matcher") {
-      val matcher = """{
-                      |  "host_matcher": "example.com",
-                      |  "path_matcher": {
-                      |    "match": "/hello-*",
-                      |    "type": "REGEX"
-                      |  },
-                      |  "method_matcher": "POST",
-                      |  "header_matchers": [{
-                      |    "name": "X-Host",
-                      |    "value": "www.*",
-                      |    "type": "REGEX"
-                      |  }, {
-                      |    "name": "X-Port",
-                      |    "value": "8080",
-                      |    "type": "STRICT"
-                      |  }]
-                      |}""".stripMargin.parseJson.convertTo[Matcher]
-
-      matcher.hostMatcher should be(Some("example.com"))
-      matcher.pathMatcher should be(Some(RegexPathMatcher("/hello-*")))
-      matcher.methodMatcher should be(Some("POST"))
-      matcher.headerMatchers should be(Some(Seq(
-        RegexHeaderMatcher("X-Host", "www.*"),
-        StrictHeaderMatcher("X-Port", "8080"))
-      ))
-    }
-
-    it("should not unmarshall an empty Matcher") {
-      val matcher = """{}""".stripMargin.parseJson.convertTo[Matcher]
-      matcher.hostMatcher should be(None)
-      matcher.pathMatcher should be(None)
-      matcher.methodMatcher should be(None)
-      matcher.headerMatchers should be(Some(Seq()))
-    }
-
-    it("should marshall the Matcher") {
-      val matcherJson = Matcher(
-        hostMatcher = Some("example.com"),
-        pathMatcher = Some(RegexPathMatcher("/hello-*")),
-        methodMatcher = Some("POST"),
-        headerMatchers = Some(Seq(
-          RegexHeaderMatcher("X-Host", "www.*"),
-          StrictHeaderMatcher("X-Port", "8080"))
-        )
-      ).toJson
-
-      matcherJson.prettyPrint should be(
-        """{
-          |  "host_matcher": "example.com",
-          |  "path_matcher": {
-          |    "match": "/hello-*",
-          |    "type": "REGEX"
-          |  },
-          |  "method_matcher": "POST",
-          |  "header_matchers": [{
-          |    "name": "X-Host",
-          |    "value": "www.*",
-          |    "type": "REGEX"
-          |  }, {
-          |    "name": "X-Port",
-          |    "value": "8080",
-          |    "type": "STRICT"
-          |  }]
-          |}""".stripMargin
-      )
-    }
-
-    it("should marshall an empty Matcher") {
-      Matcher().toJson.prettyPrint should be(
-        """{
-          |  "header_matchers": []
-          |}""".stripMargin
-      )
-    }
-  }
-
   describe("New") {
     it("should unmarshall a simple NewRoute") {
-      val route = """{
-                    |  "matcher": {
-                    |    "path_matcher": {
-                    |      "match": "/hello-*",
-                    |      "type": "REGEX"
-                    |    }
-                    |  }
-                    |}""".stripMargin.parseJson.convertTo[NewRoute]
-      route.matcher.headerMatchers.isDefined should be(true)
-      route.matcher.headerMatchers.get should be(Seq.empty)
-      route.matcher.pathMatcher.get should be(RegexPathMatcher("/hello-*"))
+      val route = """{ }""".stripMargin.parseJson.convertTo[NewRoute]
       route.filters.get should (be(Seq.empty))
       route.predicates.get should (be(Seq.empty))
     }
 
     it("should marshall the NewRoute") {
       val routeJson = NewRoute(
-        matcher = Matcher(
-          hostMatcher = Some("example.com"),
-          pathMatcher = Some(RegexPathMatcher("/hello-*")),
-          methodMatcher = Some("POST"),
-          headerMatchers = Some(Seq(
-            RegexHeaderMatcher("X-Host", "www.*"),
-            StrictHeaderMatcher("X-Port", "8080"))
-          )
-        ),
         predicates = Some(Seq(
           Predicate("somePredicate", Seq(Right("Hello"), Left(123))),
           Predicate("someOtherPredicate", Seq(Right("Hello"), Left(123), Right("World")))
@@ -252,23 +68,6 @@ class JsonProtocolsSpec extends FunSpec with Matchers {
 
       routeJson.prettyPrint should be {
         """{
-          |  "matcher": {
-          |    "host_matcher": "example.com",
-          |    "path_matcher": {
-          |      "match": "/hello-*",
-          |      "type": "REGEX"
-          |    },
-          |    "method_matcher": "POST",
-          |    "header_matchers": [{
-          |      "name": "X-Host",
-          |      "value": "www.*",
-          |      "type": "REGEX"
-          |    }, {
-          |      "name": "X-Port",
-          |      "value": "8080",
-          |      "type": "STRICT"
-          |    }]
-          |  },
           |  "predicates": [{
           |    "name": "somePredicate",
           |    "args": ["Hello", 123.0]
@@ -289,22 +88,15 @@ class JsonProtocolsSpec extends FunSpec with Matchers {
     }
 
     it("should marshall a minimal NewRoute") {
-      val routeJson = NewRoute(
-        matcher = Matcher(
-          pathMatcher = Some(RegexPathMatcher("/hello-*"))
-        )
-      ).toJson
+      val routeJson = NewRoute(predicates = Some(Seq(
+        Predicate("somePredicate", Seq(Right("Hello"), Left(123)))))).toJson
 
       routeJson.prettyPrint should be {
         """{
-          |  "matcher": {
-          |    "path_matcher": {
-          |      "match": "/hello-*",
-          |      "type": "REGEX"
-          |    },
-          |    "header_matchers": []
-          |  },
-          |  "predicates": [],
+          |  "predicates": [{
+          |    "name": "somePredicate",
+          |    "args": ["Hello", 123.0]
+          |  }],
           |  "filters": []
           |}""".stripMargin
       }
@@ -314,9 +106,8 @@ class JsonProtocolsSpec extends FunSpec with Matchers {
   describe("RouteIn") {
 
     val newRoute = NewRoute(
-      matcher = Matcher(
-        pathMatcher = Some(RegexPathMatcher("/hello-*"))
-      )
+      predicates = Some(Seq(
+        Predicate("somePredicate", Seq(Right("Hello"), Left(123)))))
     )
 
     val routeIn = RouteIn(
@@ -332,12 +123,10 @@ class JsonProtocolsSpec extends FunSpec with Matchers {
                     |  "description": "this is a route",
                     |  "activate_at": "2015-10-10T10:10:10",
                     |  "route": {
-                    |    "matcher": {
-                    |      "path_matcher": {
-                    |        "match": "/hello-*",
-                    |        "type": "REGEX"
-                    |      }
-                    |    }
+                    |    "predicates": [{
+                    |      "name": "somePredicate",
+                    |      "args": ["Hello", 123.0]
+                    |    }]
                     |  }
                     |}""".stripMargin.parseJson.convertTo[RouteIn]
       route should be(routeIn)
@@ -348,14 +137,10 @@ class JsonProtocolsSpec extends FunSpec with Matchers {
         """{
           |  "name": "THE_ROUTE",
           |  "route": {
-          |    "matcher": {
-          |      "path_matcher": {
-          |        "match": "/hello-*",
-          |        "type": "REGEX"
-          |      },
-          |      "header_matchers": []
-          |    },
-          |    "predicates": [],
+          |    "predicates": [{
+          |      "name": "somePredicate",
+          |      "args": ["Hello", 123.0]
+          |    }],
           |    "filters": []
           |  },
           |  "activate_at": "2015-10-10T10:10:10",
@@ -368,9 +153,8 @@ class JsonProtocolsSpec extends FunSpec with Matchers {
   describe("RouteOut") {
 
     val newRoute = NewRoute(
-      matcher = Matcher(
-        pathMatcher = Some(RegexPathMatcher("/hello-*"))
-      )
+      predicates = Some(Seq(
+        Predicate("somePredicate", Seq(Right("Hello"), Left(123)))))
     )
 
     val routeOut = RouteOut(
@@ -396,12 +180,10 @@ class JsonProtocolsSpec extends FunSpec with Matchers {
                     |  "deleted_at": "2015-10-10T10:10:10",
                     |  "owned_by_team": "team",
                     |  "route": {
-                    |    "matcher": {
-                    |      "path_matcher": {
-                    |        "match": "/hello-*",
-                    |        "type": "REGEX"
-                    |      }
-                    |    }
+                    |    "predicates": [{
+                    |       "name": "somePredicate",
+                    |       "args": ["Hello", 123.0]
+                    |    }]
                     |  }
                     |}""".stripMargin.parseJson.convertTo[RouteOut]
       route should be(routeOut)
@@ -419,14 +201,10 @@ class JsonProtocolsSpec extends FunSpec with Matchers {
           |  "id": 1,
           |  "created_at": "2015-10-10T10:10:10",
           |  "route": {
-          |    "matcher": {
-          |      "path_matcher": {
-          |        "match": "/hello-*",
-          |        "type": "REGEX"
-          |      },
-          |      "header_matchers": []
-          |    },
-          |    "predicates": [],
+          |    "predicates": [{
+          |      "name": "somePredicate",
+          |      "args": ["Hello", 123.0]
+          |    }],
           |    "filters": []
           |  },
           |  "deleted_at": "2015-10-10T10:10:10"

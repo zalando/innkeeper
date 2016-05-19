@@ -69,10 +69,8 @@ object AcceptanceSpecsHelper extends ScalaFutures with Matchers {
 object AcceptanceSpecTokens {
   val READ_TOKEN = generateToken("token", "user~1", "employees", "route.read")
   val WRITE_TOKEN = generateToken("token", "user~1", "employees", "route.write")
-  val WRITE_STRICT_TOKEN = generateToken("token", "user~1", "employees", "route.write_strict")
-  val WRITE_REGEX_TOKEN = generateToken("token", "user~1", "employees", "route.write_regex")
-  val ADMIN_TEAM_WRITE_REGEX_TOKEN = generateToken("token", "user~3", "employees", "route.write_regex")
-  val ADMIN_TEAM_WRITE_STRICT_TOKEN = generateToken("token", "user~3", "employees", "route.write_strict")
+  val ADMIN_TOKEN = generateToken("token", "user~1", "employees", "route.admin")
+  val ADMIN_TEAM_TOKEN = generateToken("token", "user~3", "employees", "route.read")
   val INVALID_TOKEN = "invalid"
 
   def generateToken(token: String, userName: String, teamName: String, scope: String) =

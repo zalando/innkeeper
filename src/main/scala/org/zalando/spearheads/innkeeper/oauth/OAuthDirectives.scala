@@ -1,14 +1,15 @@
 package org.zalando.spearheads.innkeeper.oauth
 
 import akka.http.scaladsl.model.HttpHeader
-import akka.http.scaladsl.model.headers.{OAuth2BearerToken, Authorization}
+import akka.http.scaladsl.model.headers.{Authorization, OAuth2BearerToken}
 import akka.http.scaladsl.server._
 import akka.http.scaladsl.server.Directives._
 import org.slf4j.LoggerFactory
 import org.zalando.spearheads.innkeeper.Rejections._
-import org.zalando.spearheads.innkeeper.api.RouteOut
+import org.zalando.spearheads.innkeeper.api.validation.{RouteValidationService, Valid, Invalid}
+import org.zalando.spearheads.innkeeper.api.{NewRoute, RouteOut}
 import org.zalando.spearheads.innkeeper.services.ServiceResult
-import org.zalando.spearheads.innkeeper.services.ServiceResult.{NotFound, Ex}
+import org.zalando.spearheads.innkeeper.services.ServiceResult.{Ex, NotFound}
 import scala.concurrent.ExecutionContext
 import org.zalando.spearheads.innkeeper.services.team.{Team, TeamService}
 
@@ -100,6 +101,13 @@ trait OAuthDirectives {
       pass
     } else {
       reject(IncorrectTeamRejection(requestDescription))
+    }
+  }
+
+  def isValidRoute(route: NewRoute, requestDescription: String)(implicit routeValidationService: RouteValidationService): Directive0 = {
+    routeValidationService.validate(route) match {
+      case Valid        => pass
+      case Invalid(msg) => reject(InvalidRouteFormatRejection(requestDescription, msg))
     }
   }
 

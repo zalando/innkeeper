@@ -22,20 +22,6 @@ import akka.http.scaladsl.util.FastFuture._
  */
 trait RouteDirectives {
 
-  def isRegexRoute(route: NewRoute): Directive0 = {
-    route.matcher.pathMatcher match {
-      case Some(RegexPathMatcher(_)) => pass
-      case _                         => reject(AuthorizationFailedRejection)
-    }
-  }
-
-  def isStrictRoute(route: NewRoute): Directive0 = {
-    route.matcher.pathMatcher match {
-      case Some(StrictPathMatcher(_)) => pass
-      case _                          => reject(AuthorizationFailedRejection)
-    }
-  }
-
   def findRoute(id: Long, routesService: RoutesService, requestDescription: String)(implicit executionContext: ExecutionContext): Directive1[RouteOut] =
     Directive[Tuple1[RouteOut]] { inner => ctx =>
       {

@@ -38,7 +38,7 @@ class PostPaths @Inject() (
 
           hasOneOfTheScopes(authenticatedUser, reqDesc, scopes.WRITE) {
             handleWith(savePath(UserName(authenticatedUser.username), TeamName(team.name), reqDesc))
-          } ~ reject(AuthorizationFailedRejection)
+          }
         }
       } ~ {
         reject(UnmarshallRejection(reqDesc))

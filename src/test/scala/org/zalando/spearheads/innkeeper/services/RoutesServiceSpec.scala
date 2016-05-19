@@ -1,6 +1,7 @@
 package org.zalando.spearheads.innkeeper.services
 
 import java.time.LocalDateTime
+
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Sink
@@ -9,18 +10,16 @@ import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.{FunSpec, Matchers}
 import org.zalando.spearheads.innkeeper.FakeDatabasePublisher
 import org.zalando.spearheads.innkeeper.api.JsonProtocols._
-import org.zalando.spearheads.innkeeper.api.{Matcher, NewRoute, RegexPathMatcher, RouteIn, RouteName, RouteOut, TeamName, UserName}
+import org.zalando.spearheads.innkeeper.api.{NewRoute, Predicate, RouteIn, RouteName, RouteOut, TeamName, UserName}
 import org.zalando.spearheads.innkeeper.dao.{RouteRow, RoutesRepo}
 import org.zalando.spearheads.innkeeper.services.ServiceResult.NotFound
 import org.zalando.spearheads.innkeeper.utils.EnvConfig
 import spray.json.pimpAny
+import scala.collection.immutable.Seq
 import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.language.postfixOps
 import scala.concurrent.duration.DurationInt
 
-/**
- * @author dpersa
- */
 class RoutesServiceSpec extends FunSpec with Matchers with MockFactory with ScalaFutures {
 
   implicit val executionContext = ExecutionContext.global
@@ -273,10 +272,8 @@ class RoutesServiceSpec extends FunSpec with Matchers with MockFactory with Scal
   val description = "The New Route"
 
   val newRoute = NewRoute(
-    matcher = Matcher(
-      pathMatcher = Some(RegexPathMatcher("/hello-*"))
-    )
-  )
+    predicates = Some(Seq(
+      Predicate("somePredicate", Seq(Right("Hello"), Left(123.0))))))
 
   val newRouteJson = newRoute.toJson.compactPrint
 
