@@ -8,6 +8,7 @@ object Routes extends TableQuery(new RoutesTable(_))
 
 case class RouteRow(
   id: Option[Long] = None,
+  pathId: Long,
   name: String,
   routeJson: String,
   activateAt: LocalDateTime,
@@ -22,6 +23,7 @@ class RoutesTable(tag: Tag)
     extends Table[RouteRow](tag, "ROUTES") {
 
   def id = column[Long]("ROUTE_ID", O.PrimaryKey, O.AutoInc)
+  def pathId = column[Long]("PATH_ID")
   def name = column[String]("NAME")
   def description = column[Option[String]]("DESCRIPTION")
   def createdAt = column[LocalDateTime]("CREATED_AT")
@@ -36,7 +38,9 @@ class RoutesTable(tag: Tag)
   def createdAtIndex = index("ROUTES_CREATED_AT_IDX", createdAt)
   def deletedAtIndex = index("ROUTES_DELETED_AT_IDX", deletedAt)
 
+  lazy val pathFk = foreignKey("route_path_fk", pathId, Paths)(_.id)
+
   // Every table needs a * projection with the same type as the table's type parameter
   def * = // scalastyle:ignore
-    (id.?, name, routeJson, activateAt, ownedByTeam, createdBy, createdAt, description, deletedAt, deletedBy) <> (RouteRow.tupled, RouteRow.unapply)
+    (id.?, pathId, name, routeJson, activateAt, ownedByTeam, createdBy, createdAt, description, deletedAt, deletedBy) <> (RouteRow.tupled, RouteRow.unapply)
 }

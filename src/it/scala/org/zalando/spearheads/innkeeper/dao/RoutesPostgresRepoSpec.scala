@@ -47,14 +47,15 @@ class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers w
       it("should select all routes") {
         val createdAt = LocalDateTime.now()
         val activateAt = createdAt.minusMinutes(5)
+
         insertRoute("R1", "GET", createdAt = createdAt, activateAt = activateAt)
         insertRoute("R2", "POST", createdAt = createdAt, activateAt = activateAt)
 
         val routes: List[RouteRow] = routesRepo.selectAll
 
         routes should not be 'empty
-        routes(0) should be (sampleRoute(id = 1, name = "R1", method = "GET", createdAt = createdAt, activateAt = activateAt))
-        routes(1) should be (sampleRoute(id = 2, name = "R2", method = "POST", createdAt = createdAt, activateAt = activateAt))
+        routes(0) should be (sampleRoute(id = routes(0).id.get, pathId = routes(0).pathId, name = "R1", method = "GET", createdAt = createdAt, activateAt = activateAt))
+        routes(1) should be (sampleRoute(id = routes(1).id.get, pathId = routes(1).pathId, name = "R2", method = "POST", createdAt = createdAt, activateAt = activateAt))
       }
 
       it("should not select the deleted routes") {

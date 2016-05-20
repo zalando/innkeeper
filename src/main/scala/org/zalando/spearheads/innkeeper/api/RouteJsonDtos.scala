@@ -34,6 +34,7 @@ sealed trait Route {
 }
 
 case class RouteIn(
+  pathId: Long,
   name: RouteName,
   route: NewRoute,
   activateAt: Option[LocalDateTime],
@@ -41,6 +42,7 @@ case class RouteIn(
 
 case class RouteOut(
   id: Long,
+  pathId: Long,
   name: RouteName,
   route: NewRoute,
   createdAt: LocalDateTime,

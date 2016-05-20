@@ -32,7 +32,7 @@ class ZalandoTeamServiceSpec extends FunSpec with MockFactory with Matchers with
       val teamService = new ZalandoTeamService(mockConfig, mockHttpClient)
 
       val now = LocalDateTime.now()
-      val route = RouteOut(1, RouteName("name"), NewRoute(
+      val route = RouteOut(1, 1L, RouteName("name"), NewRoute(
         predicates = Some(Seq(
           Predicate("somePredicate", Seq(Right("Hello"), Left(123.0)))))), createdAt = now, activateAt = now, TeamName("pathfinder"), UserName("gigel"))
 

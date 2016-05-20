@@ -53,6 +53,7 @@ class DefaultRoutesService @Inject() (
 
     val routeRow = RouteRow(
       id = None,
+      pathId = route.pathId,
       name = route.name.name,
       routeJson = route.route.toJson.compactPrint,
       activateAt = route.activateAt.getOrElse(createdAt.plusMinutes {
@@ -133,6 +134,7 @@ class DefaultRoutesService @Inject() (
   private def routeRowToRoute(id: Long, routeRow: RouteRow) = {
     RouteOut(
       id = id,
+      pathId = routeRow.pathId,
       name = RouteName(routeRow.name),
       route = routeRow.routeJson.parseJson.convertTo[NewRoute],
       createdAt = routeRow.createdAt,

@@ -27,7 +27,7 @@ class PostRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
 
         it("should create the new route") {
           val routeName = "route_1"
-          val response = postRouteToSlashRoutes(routeName, token)
+          val response = postRoute(routeName, token)
           response.status should be(StatusCodes.OK)
           val entity = entityString(response)
           val route = entity.parseJson.convertTo[RouteOut]
@@ -41,7 +41,7 @@ class PostRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
 
         it("should not create more routes") {
           val routeName = "route_1"
-          val response = postRouteToSlashRoutes(routeName, token)
+          val response = postRoute(routeName, token)
 
           val routesResponse = getSlashRoutes(READ_TOKEN)
           response.status should be(StatusCodes.OK)
@@ -59,7 +59,7 @@ class PostRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
 
         it("should return the 400 Bad Request status") {
           val routeName = "invalid-route-name"
-          val response = postRouteToSlashRoutes(routeName, token)
+          val response = postRoute(routeName, token)
           response.status should be(StatusCodes.BadRequest)
         }
       }
@@ -67,8 +67,12 @@ class PostRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
       describe("when an invalid predicate is provided") {
         val token = WRITE_TOKEN
 
+        val insertedPath = PathsRepoHelper.insertPath()
+        val pathId = insertedPath.id.get
+
         val invalidPredicateRoute = s"""{
                                          |  "name": "route",
+                                         |  "path_id": $pathId,
                                          |  "route": {
                                          |    "predicates": [{
                                          |     "name": "method",
@@ -87,7 +91,7 @@ class PostRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
       describe("when no token is provided") {
 
         it("should return the 401 Unauthorized status") {
-          val response = postRouteToSlashRoutes(routeName, "")
+          val response = postRoute(routeName, "")
           response.status should be(StatusCodes.Unauthorized)
         }
       }
@@ -96,7 +100,7 @@ class PostRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
         val token = INVALID_TOKEN
 
         it("should return the 403 Forbidden status") {
-          val response = postRouteToSlashRoutes(routeName, token)
+          val response = postRoute(routeName, token)
           response.status should be(StatusCodes.Forbidden)
         }
       }
@@ -105,19 +109,26 @@ class PostRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
         val token = READ_TOKEN
 
         it("should return the 403 Forbidden status") {
-          val response = postRouteToSlashRoutes(routeName, token)
+          val response = postRoute(routeName, token)
           response.status should be(StatusCodes.Forbidden)
         }
       }
 
       describe("when a which doesn't have an associated uid") {
-        val token = "token--employees-route.write"
+        val token = AcceptanceSpecTokens.generateToken("token", "", "employees", "route.write")
 
         it("should return the 403 Forbidden status") {
-          val response = postRouteToSlashRoutes(routeName, token)
+          val response = postRoute(routeName, token)
           response.status should be(StatusCodes.Forbidden)
         }
       }
     }
+  }
+
+  private def postRoute(routeName: String, token: String) = {
+    val insertedPath = PathsRepoHelper.insertPath()
+    val pathId = insertedPath.id.get
+
+    postRouteToSlashRoutes(routeName, pathId, token)
   }
 }

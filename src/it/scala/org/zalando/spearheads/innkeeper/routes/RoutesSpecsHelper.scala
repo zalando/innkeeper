@@ -33,8 +33,8 @@ object RoutesSpecsHelper {
     futureResponse.futureValue
   }
 
-  def postRouteToSlashRoutes(routeName: String, token: String): HttpResponse =
-    postSlashRoutes(route(routeName))(token)
+  def postRouteToSlashRoutes(routeName: String, pathId: Long, token: String): HttpResponse =
+    postSlashRoutes(route(routeName, pathId))(token)
 
   def getSlashRoutes(token: String = ""): HttpResponse = doGet(routesUri, token)
 
@@ -78,8 +78,9 @@ object RoutesSpecsHelper {
     futureResponse.futureValue
   }
 
-  def route(routeName: String) = s"""{
-                                |  "name": "${routeName}",
+  def route(routeName: String, pathId: Long) = s"""{
+                                |  "name": "$routeName",
+                                |  "path_id": $pathId,
                                 |  "description": "this is a route",
                                 |  "activate_at": "2015-10-10T10:10:10",
                                 |  "route": {

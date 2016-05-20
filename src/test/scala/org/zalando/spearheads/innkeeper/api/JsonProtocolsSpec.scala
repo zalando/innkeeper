@@ -111,6 +111,7 @@ class JsonProtocolsSpec extends FunSpec with Matchers {
     )
 
     val routeIn = RouteIn(
+      1L,
       RouteName("THE_ROUTE"),
       newRoute,
       Some(LocalDateTime.of(2015, 10, 10, 10, 10, 10)),
@@ -127,15 +128,19 @@ class JsonProtocolsSpec extends FunSpec with Matchers {
                     |      "name": "somePredicate",
                     |      "args": ["Hello", 123.0]
                     |    }]
-                    |  }
+                    |  },
+                    |  "path_id": 1
                     |}""".stripMargin.parseJson.convertTo[RouteIn]
       route should be(routeIn)
     }
 
     it("should marshall the RouteIn") {
+      println(routeIn.toJson.prettyPrint)
       routeIn.toJson.prettyPrint should be {
         """{
           |  "name": "THE_ROUTE",
+          |  "description": "this is a route",
+          |  "activate_at": "2015-10-10T10:10:10",
           |  "route": {
           |    "predicates": [{
           |      "name": "somePredicate",
@@ -143,8 +148,7 @@ class JsonProtocolsSpec extends FunSpec with Matchers {
           |    }],
           |    "filters": []
           |  },
-          |  "activate_at": "2015-10-10T10:10:10",
-          |  "description": "this is a route"
+          |  "path_id": 1
           |}""".stripMargin
       }
     }
@@ -159,6 +163,7 @@ class JsonProtocolsSpec extends FunSpec with Matchers {
 
     val routeOut = RouteOut(
       1,
+      1L,
       RouteName("THE_ROUTE"),
       newRoute,
       LocalDateTime.of(2015, 10, 10, 10, 10, 10),
@@ -176,6 +181,7 @@ class JsonProtocolsSpec extends FunSpec with Matchers {
                     |  "description": "this is a route",
                     |  "activate_at": "2015-10-10T10:10:10",
                     |  "id": 1,
+                    |  "path_id": 1,
                     |  "created_at": "2015-10-10T10:10:10",
                     |  "deleted_at": "2015-10-10T10:10:10",
                     |  "owned_by_team": "team",
@@ -207,7 +213,8 @@ class JsonProtocolsSpec extends FunSpec with Matchers {
           |    }],
           |    "filters": []
           |  },
-          |  "deleted_at": "2015-10-10T10:10:10"
+          |  "deleted_at": "2015-10-10T10:10:10",
+          |  "path_id": 1
           |}""".stripMargin
       }
     }
