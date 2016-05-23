@@ -2,7 +2,7 @@ package org.zalando.spearheads.innkeeper.api.validation
 
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.{FunSpec, Matchers}
-import org.zalando.spearheads.innkeeper.api.{NewRoute, Predicate}
+import org.zalando.spearheads.innkeeper.api.{NewRoute, Predicate, StringArg}
 
 import scala.collection.immutable.Seq
 
@@ -15,10 +15,10 @@ class RouteValidationServiceSpec extends FunSpec with Matchers with MockFactory 
 
     describe("when there are more invalid predicates") {
       it("should return the first one") {
-        val predicate1 = Predicate("method", Seq(Right("GET")))
-        val predicate2 = Predicate("method", Seq(Right("AHA")))
-        val predicate3 = Predicate("method", Seq(Right("WHAT")))
-        val predicate4 = Predicate("method", Seq(Right("HEAD")))
+        val predicate1 = Predicate("method", Seq(StringArg("GET")))
+        val predicate2 = Predicate("method", Seq(StringArg("AHA")))
+        val predicate3 = Predicate("method", Seq(StringArg("WHAT")))
+        val predicate4 = Predicate("method", Seq(StringArg("HEAD")))
         val route = NewRoute(Some(Seq(predicate1, predicate2, predicate3, predicate4)))
 
         (predicateValidationService.validate _).expects(predicate1).returns(Valid)
@@ -33,7 +33,7 @@ class RouteValidationServiceSpec extends FunSpec with Matchers with MockFactory 
 
     describe("when there are only valid predicates") {
       it("should return the first one") {
-        val predicate1 = Predicate("method", Seq(Right("GET")))
+        val predicate1 = Predicate("method", Seq(StringArg("GET")))
         val route = NewRoute(Some(Seq(predicate1)))
 
         (predicateValidationService.validate _).expects(predicate1).returns(Valid)

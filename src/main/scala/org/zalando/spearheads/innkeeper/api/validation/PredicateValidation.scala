@@ -1,7 +1,8 @@
 package org.zalando.spearheads.innkeeper.api.validation
 
 import com.google.inject.Singleton
-import org.zalando.spearheads.innkeeper.api.Predicate
+import org.zalando.spearheads.innkeeper.api.{Predicate, StringArg}
+
 import scala.collection.immutable.Seq
 
 private trait PredicateValidator extends Validator[Predicate] {
@@ -13,7 +14,7 @@ private class MethodPredicateValidator extends PredicateValidator {
 
   override def validate(predicate: Predicate): ValidationResult = {
     predicate match {
-      case Predicate("method", Seq(Right(string))) =>
+      case Predicate("method", Seq(StringArg(string))) =>
         if (MethodPredicateValidator.methodNames.contains(string)) {
           Valid
         } else {
@@ -37,8 +38,10 @@ private class HeaderPredicateValidator extends PredicateValidator {
 
   override def validate(predicate: Predicate): ValidationResult = {
     predicate match {
-      case Predicate("header", Seq(Right(name), Right(value))) => Valid
-      case _                                                   => Invalid(HeaderPredicateValidator.invalidMessage)
+      case Predicate("header", Seq(StringArg(name), StringArg(value))) =>
+        Valid
+      case _ =>
+        Invalid(HeaderPredicateValidator.invalidMessage)
     }
   }
 }

@@ -2,10 +2,36 @@ package org.zalando.spearheads.innkeeper.api
 
 import org.zalando.spearheads.innkeeper.api.LocalDateTimeProtocol.LocalDateTimeFormat
 import spray.json.DefaultJsonProtocol._
-import spray.json.{JsString, JsValue, RootJsonFormat, pimpAny, DeserializationException}
+import spray.json.{DeserializationException, JsObject, JsString, JsValue, RootJsonFormat, pimpAny}
+
 import scala.collection.immutable.Seq
 
 object JsonProtocols {
+
+  implicit object ArgFormat extends RootJsonFormat[Arg] {
+    override def write(arg: Arg): JsValue = {
+
+      val argType = arg match {
+        case arg: StringArg  => Arg.string
+        case arg: NumericArg => Arg.number
+        case arg: RegexArg   => Arg.regex
+      }
+
+      JsObject(Map(
+        "value" -> JsString(arg.value),
+        "type" -> JsString(argType)))
+    }
+
+    def read(value: JsValue) = value.asJsObject.getFields("value", "type") match {
+      case Seq(JsString(value), JsString(Arg.string)) =>
+        new StringArg(value)
+      case Seq(JsString(value), JsString(Arg.`number`)) =>
+        new NumericArg(value)
+      case Seq(JsString(value), JsString(Arg.regex)) =>
+        new RegexArg(value)
+      case _ => throw new DeserializationException("Arg expected")
+    }
+  }
 
   implicit val filterFormat = jsonFormat(Filter, "name", "args")
 

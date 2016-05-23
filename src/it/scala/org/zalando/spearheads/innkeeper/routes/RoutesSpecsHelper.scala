@@ -4,7 +4,7 @@ import java.time.LocalDateTime
 
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.{ContentType, HttpEntity, HttpMethod, HttpMethods, HttpRequest, HttpResponse, MediaTypes}
-import org.zalando.spearheads.innkeeper.api.RouteOut
+import org.zalando.spearheads.innkeeper.api.{NumericArg, RouteOut, StringArg}
 import org.zalando.spearheads.innkeeper.routes.AcceptanceSpecsHelper._
 
 object RoutesSpecsHelper {
@@ -86,11 +86,23 @@ object RoutesSpecsHelper {
                                 |  "route": {
                                 |    "predicates": [{
                                 |     "name": "method",
-                                |     "args": ["GET"]
+                                |     "args": [{
+                                |       "value": "GET",
+                                |       "type": "string"
+                                |      }]
                                 |    }],
                                 |    "filters": [{
-                                |     "name": "someFilter",
-                                |     "args": ["HelloFilter", 123, 0.99]
+                                |      "name": "someFilter",
+                                |      "args": [{
+                                |        "value": "HelloFilter",
+                                |        "type": "string"
+                                |      }, {
+                                |        "value": "123",
+                                |        "type": "number"
+                                |      }, {
+                                |        "value": "0.99",
+                                |        "type": "number"
+                                |      }]
                                 |    }]
                                 |  }
                                 |}""".stripMargin
@@ -99,15 +111,15 @@ object RoutesSpecsHelper {
     route.route.filters should be ('defined)
     route.route.filters.get should not be ('empty)
     route.route.filters.get.head.name should be ("someFilter")
-    route.route.filters.get.head.args.head should be (Right("HelloFilter"))
-    route.route.filters.get.head.args(1) should be (Left(123))
-    route.route.filters.get.head.args(2) should be (Left(0.99))
+    route.route.filters.get.head.args.head should be (StringArg("HelloFilter"))
+    route.route.filters.get.head.args(1) should be (NumericArg("123"))
+    route.route.filters.get.head.args(2) should be (NumericArg("0.99"))
   }
 
   def routePredicatesShouldBeCorrect(route: RouteOut) = {
     route.route.predicates should be ('defined)
     route.route.predicates.get should not be ('empty)
     route.route.predicates.get.head.name should be ("method")
-    route.route.predicates.get.head.args.head should be (Right("GET"))
+    route.route.predicates.get.head.args.head should be (StringArg("GET"))
   }
 }

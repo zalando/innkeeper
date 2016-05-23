@@ -10,11 +10,12 @@ import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.{FunSpec, Matchers}
 import org.zalando.spearheads.innkeeper.FakeDatabasePublisher
 import org.zalando.spearheads.innkeeper.api.JsonProtocols._
-import org.zalando.spearheads.innkeeper.api.{NewRoute, Predicate, RouteIn, RouteName, RouteOut, TeamName, UserName}
+import org.zalando.spearheads.innkeeper.api.{NewRoute, NumericArg, Predicate, RouteIn, RouteName, RouteOut, StringArg, TeamName, UserName}
 import org.zalando.spearheads.innkeeper.dao.{RouteRow, RoutesRepo}
 import org.zalando.spearheads.innkeeper.services.ServiceResult.NotFound
 import org.zalando.spearheads.innkeeper.utils.EnvConfig
 import spray.json.pimpAny
+
 import scala.collection.immutable.Seq
 import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.language.postfixOps
@@ -273,7 +274,7 @@ class RoutesServiceSpec extends FunSpec with Matchers with MockFactory with Scal
 
   val newRoute = NewRoute(
     predicates = Some(Seq(
-      Predicate("somePredicate", Seq(Right("Hello"), Left(123.0))))))
+      Predicate("somePredicate", Seq(StringArg("Hello"), NumericArg("123.0"))))))
 
   val newRouteJson = newRoute.toJson.compactPrint
 

@@ -58,6 +58,20 @@ case class NewRoute(
   filters: Option[Seq[Filter]] = Some(Seq.empty),
   endpoint: Option[String] = None)
 
-case class Predicate(name: String, args: Seq[Either[Double, String]])
+case class Predicate(name: String, args: Seq[Arg])
 
-case class Filter(name: String, args: Seq[Either[Double, String]])
+case class Filter(name: String, args: Seq[Arg])
+
+sealed trait Arg {
+  def value: String
+}
+
+object Arg {
+  val string = "string"
+  val number = "number"
+  val regex = "regex"
+}
+
+case class RegexArg(value: String) extends Arg
+case class NumericArg(value: String) extends Arg
+case class StringArg(value: String) extends Arg
