@@ -13,9 +13,6 @@ import spray.json._
 import spray.json.DefaultJsonProtocol._
 import org.zalando.spearheads.innkeeper.api.JsonProtocols._
 
-/**
- * @author Alexey Venderov
- */
 class DeleteDeletedRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
 
   describe("delete /deleted-routes") {

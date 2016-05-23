@@ -68,11 +68,23 @@ object RoutesRepoHelper extends DaoHelper {
     s"""{
         |  "predicates": [{
         |      "name": "method",
-        |      "args": ["$method"]
+        |      "args": [{
+        |        "value": "$method",
+        |        "type": "string"
+        |      }]
         |  }],
         |  "filters": [{
         |      "name": "someFilter",
-        |      "args": ["HelloFilter", 123, 0.99]
+        |      "args": [{
+        |        "value": "HelloFilter",
+        |        "type": "string"
+        |      }, {
+        |        "value": "123",
+        |        "type": "number"
+        |      }, {
+        |        "value": "0.99",
+        |        "type": "number"
+        |      }]
         |  }]
         |}""".stripMargin
 }

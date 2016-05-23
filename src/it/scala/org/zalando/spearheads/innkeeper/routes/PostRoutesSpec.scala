@@ -76,7 +76,10 @@ class PostRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
                                          |  "route": {
                                          |    "predicates": [{
                                          |     "name": "method",
-                                         |     "args": ["GOT"]
+                                         |     "args": [{
+                                         |       "value": "Hello",
+                                         |       "type": "string"
+                                         |      }]
                                          |    }]
                                          |  }
                                          |}""".stripMargin
