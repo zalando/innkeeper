@@ -132,7 +132,9 @@ class RoutesPostgresRepo @Inject() (
 
   private def activeRoutesGroupedByName(currentTime: LocalDateTime) = (for {
     routeRow <- Routes
-    if routeRow.deletedAt.isEmpty && routeRow.activateAt < currentTime
+    if routeRow.deletedAt.isEmpty && routeRow.activateAt < currentTime &&
+      (routeRow.disableAt.isEmpty ||
+        (routeRow.disableAt.isDefined && routeRow.disableAt > currentTime))
   } yield (routeRow.id, routeRow.name)).groupBy(_._2)
 
   private def latestActiveRouteIdsCreatedForEachName(currentTime: LocalDateTime) =

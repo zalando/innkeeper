@@ -38,6 +38,7 @@ case class RouteIn(
   name: RouteName,
   route: NewRoute,
   activateAt: Option[LocalDateTime],
+  disableAt: Option[LocalDateTime] = None,
   description: Option[String] = None) extends Route
 
 case class RouteOut(
@@ -49,6 +50,7 @@ case class RouteOut(
   activateAt: LocalDateTime,
   ownedByTeam: TeamName,
   createdBy: UserName,
+  disableAt: Option[LocalDateTime] = None,
   description: Option[String] = None,
   deletedAt: Option[LocalDateTime] = None,
   deletedBy: Option[String] = None) extends Route

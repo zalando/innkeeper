@@ -223,6 +223,7 @@ class JsonProtocolsSpec extends FunSpec with Matchers {
       RouteName("THE_ROUTE"),
       newRoute,
       Some(LocalDateTime.of(2015, 10, 10, 10, 10, 10)),
+      Some(LocalDateTime.of(2015, 11, 11, 11, 11, 11)),
       Some("this is a route")
     )
 
@@ -231,6 +232,7 @@ class JsonProtocolsSpec extends FunSpec with Matchers {
                     |  "name": "THE_ROUTE",
                     |  "description": "this is a route",
                     |  "activate_at": "2015-10-10T10:10:10",
+                    |  "disable_at": "2015-11-11T11:11:11",
                     |  "route": {
                     |    "predicates": [{
                     |      "name": "somePredicate",
@@ -255,6 +257,7 @@ class JsonProtocolsSpec extends FunSpec with Matchers {
           |  "name": "THE_ROUTE",
           |  "description": "this is a route",
           |  "activate_at": "2015-10-10T10:10:10",
+          |  "disable_at": "2015-11-11T11:11:11",
           |  "route": {
           |    "predicates": [{
           |      "name": "somePredicate",
@@ -290,6 +293,7 @@ class JsonProtocolsSpec extends FunSpec with Matchers {
       LocalDateTime.of(2015, 10, 10, 10, 10, 10),
       TeamName("team"),
       UserName("user"),
+      Some(LocalDateTime.of(2015, 11, 11, 11, 11, 11)),
       Some("this is a route"),
       Some(LocalDateTime.of(2015, 10, 10, 10, 10, 10))
     )
@@ -300,6 +304,7 @@ class JsonProtocolsSpec extends FunSpec with Matchers {
                     |  "name": "THE_ROUTE",
                     |  "description": "this is a route",
                     |  "activate_at": "2015-10-10T10:10:10",
+                    |  "disable_at": "2015-11-11T11:11:11",
                     |  "id": 1,
                     |  "path_id": 1,
                     |  "created_at": "2015-10-10T10:10:10",
@@ -331,6 +336,7 @@ class JsonProtocolsSpec extends FunSpec with Matchers {
           |  "description": "this is a route",
           |  "activate_at": "2015-10-10T10:10:10",
           |  "id": 1,
+          |  "disable_at": "2015-11-11T11:11:11",
           |  "created_at": "2015-10-10T10:10:10",
           |  "route": {
           |    "predicates": [{

@@ -48,10 +48,12 @@ class RoutesServiceSpec extends FunSpec with Matchers with MockFactory with Scal
       it("should create a new route without an activateAt") {
         (config.getInt _).expects("defaultNumberOfMinutesToActivateRoute").returning(5)
 
-        (routesRepo.insert _).expects(routeRowWithoutId.copy(activateAt = createdAt.plusMinutes(5)))
+        (routesRepo.insert _).expects(routeRowWithoutId.copy(
+          activateAt = createdAt.plusMinutes(5),
+          disableAt = None))
           .returning(Future(routeRow.copy(activateAt = createdAt.plusMinutes(5))))
 
-        val result = routesService.create(routeInNoActivationDate, TeamName(ownedByTeam), UserName(createdBy), createdAt).futureValue
+        val result = routesService.create(routeInNoActivationOrDisableDate, TeamName(ownedByTeam), UserName(createdBy), createdAt).futureValue
 
         result should be(ServiceResult.Success(savedRoute.copy(activateAt = createdAt.plusMinutes(5))))
       }
@@ -265,6 +267,7 @@ class RoutesServiceSpec extends FunSpec with Matchers with MockFactory with Scal
     route.createdAt should be(createdAt)
     route.createdBy should be(UserName(createdBy))
     route.activateAt should be(activateAt)
+    route.disableAt should be(Some(disableAt))
     route.ownedByTeam should be(TeamName(ownedByTeam))
   }
 
@@ -283,14 +286,48 @@ class RoutesServiceSpec extends FunSpec with Matchers with MockFactory with Scal
   val createdAt = LocalDateTime.now()
   val deletedBefore = LocalDateTime.now()
   val activateAt = LocalDateTime.now()
+  val disableAt = LocalDateTime.now()
   val routeName = RouteName("THE_ROUTE")
   val pathId = 1L
-  val savedRoute = RouteOut(routeId, pathId, routeName, newRoute, createdAt, activateAt, TeamName(ownedByTeam), UserName(createdBy), Some(description))
-  val routeIn = RouteIn(pathId, routeName, newRoute, Some(activateAt), Some(description))
-  val routeInNoActivationDate = RouteIn(pathId, routeName, newRoute, None, Some(description))
+  val savedRoute = RouteOut(
+    id = routeId,
+    pathId = pathId,
+    name = routeName,
+    route = newRoute,
+    createdAt = createdAt,
+    activateAt = activateAt,
+    ownedByTeam = TeamName(ownedByTeam),
+    createdBy = UserName(createdBy),
+    disableAt = Some(disableAt),
+    description = Some(description))
 
-  val routeRowWithoutId = RouteRow(None, pathId, routeName.name, newRouteJson, activateAt, ownedByTeam,
-    createdBy, createdAt, Some(description))
+  val routeIn = RouteIn(
+    pathId,
+    routeName,
+    newRoute,
+    Some(activateAt),
+    Some(disableAt),
+    Some(description))
+
+  val routeInNoActivationOrDisableDate = RouteIn(
+    pathId,
+    routeName,
+    newRoute,
+    None,
+    None,
+    Some(description))
+
+  val routeRowWithoutId = RouteRow(
+    None,
+    pathId,
+    routeName.name,
+    newRouteJson,
+    activateAt,
+    ownedByTeam,
+    createdBy,
+    createdAt,
+    Some(disableAt),
+    description = Some(description))
 
   val routeRow = routeRowWithoutId.copy(id = Some(routeId))
   val routeRow1 = routeRowWithoutId.copy(
