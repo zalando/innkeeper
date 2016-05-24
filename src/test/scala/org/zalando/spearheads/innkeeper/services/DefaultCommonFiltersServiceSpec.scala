@@ -14,13 +14,13 @@ class DefaultCommonFiltersServiceSpec extends FunSpec with Matchers {
     it("should return all common filters to prepend") {
       val commonFilters = commonFiltersService.getCommonFiltersToPrepend
 
-      commonFilters should be(Seq("prepend-first", "prepend-second"))
+      commonFilters should be(Seq("prepend(1)", "prepend(2)"))
     }
 
     it("should return all common filters to append") {
       val commonFilters = commonFiltersService.getCommonFiltersToAppend
 
-      commonFilters should be(Seq("append-first", "append-second"))
+      commonFilters should be(Seq("append(1)", "append(2)"))
     }
   }
 
