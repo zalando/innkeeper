@@ -25,7 +25,7 @@ object JsonProtocols {
     def read(value: JsValue) = value.asJsObject.getFields("value", "type") match {
       case Seq(JsString(value), JsString(Arg.string)) =>
         new StringArg(value)
-      case Seq(JsString(value), JsString(Arg.`number`)) =>
+      case Seq(JsString(value), JsString(Arg.number)) =>
         new NumericArg(value)
       case Seq(JsString(value), JsString(Arg.regex)) =>
         new RegexArg(value)
@@ -63,7 +63,8 @@ object JsonProtocols {
     override def read(json: JsValue): RouteName = {
       json match {
         case JsString(value) => RouteName(value)
-        case _               => throw new DeserializationException("Error deserializing the route name")
+        case _ =>
+          throw new DeserializationException("Error deserializing the route name")
       }
     }
   }
@@ -75,7 +76,8 @@ object JsonProtocols {
     override def read(json: JsValue): TeamName = {
       json match {
         case JsString(value) => TeamName(value)
-        case _               => throw new DeserializationException("Error deserializing the team name")
+        case _ =>
+          throw new DeserializationException("Error deserializing the team name")
       }
     }
   }
@@ -87,7 +89,8 @@ object JsonProtocols {
     override def read(json: JsValue): UserName = {
       json match {
         case JsString(value) => UserName(value)
-        case _               => throw new DeserializationException("Error deserializing the user name")
+        case _ =>
+          throw new DeserializationException("Error deserializing the user name")
       }
     }
   }
@@ -102,11 +105,19 @@ object JsonProtocols {
     "activate_at",
     "owned_by_team",
     "created_by",
+    "disable_at",
     "description",
     "deleted_at",
     "deleted_by")
 
-  implicit val routeInFormat = jsonFormat(RouteIn, "path_id", "name", "route", "activate_at", "description")
+  implicit val routeInFormat = jsonFormat(
+    RouteIn,
+    "path_id",
+    "name",
+    "route",
+    "activate_at",
+    "disable_at",
+    "description")
 
   implicit val hostFormat = jsonFormat(Host, "id", "name")
 

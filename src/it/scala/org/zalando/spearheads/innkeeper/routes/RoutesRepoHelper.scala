@@ -13,6 +13,7 @@ object RoutesRepoHelper extends DaoHelper {
     createdBy: String = "testuser",
     ownedByTeam: String = "testteam",
     createdAt: LocalDateTime = LocalDateTime.now(),
+    disableAt: Option[LocalDateTime] = None,
     activateAt: LocalDateTime = LocalDateTime.now().minusHours(2)): RouteRow = {
 
     val path = pathsRepo.insert(PathRow(
@@ -31,7 +32,8 @@ object RoutesRepoHelper extends DaoHelper {
       createdBy = createdBy,
       ownedByTeam = ownedByTeam,
       createdAt = createdAt,
-      activateAt = activateAt
+      activateAt = activateAt,
+      disableAt = disableAt
     )).futureValue
   }
 

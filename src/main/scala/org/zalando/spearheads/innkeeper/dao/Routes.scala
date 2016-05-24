@@ -15,6 +15,7 @@ case class RouteRow(
   ownedByTeam: String,
   createdBy: String,
   createdAt: LocalDateTime = LocalDateTime.now(),
+  disableAt: Option[LocalDateTime] = None,
   description: Option[String] = None,
   deletedAt: Option[LocalDateTime] = None,
   deletedBy: Option[String] = None)
@@ -28,6 +29,7 @@ class RoutesTable(tag: Tag)
   def description = column[Option[String]]("DESCRIPTION")
   def createdAt = column[LocalDateTime]("CREATED_AT")
   def activateAt = column[LocalDateTime]("ACTIVATE_AT")
+  def disableAt = column[Option[LocalDateTime]]("DISABLE_AT")
   def deletedAt = column[Option[LocalDateTime]]("DELETED_AT")
   def createdBy = column[String]("CREATED_BY")
   def ownedByTeam = column[String]("OWNED_BY_TEAM")
@@ -42,5 +44,5 @@ class RoutesTable(tag: Tag)
 
   // Every table needs a * projection with the same type as the table's type parameter
   def * = // scalastyle:ignore
-    (id.?, pathId, name, routeJson, activateAt, ownedByTeam, createdBy, createdAt, description, deletedAt, deletedBy) <> (RouteRow.tupled, RouteRow.unapply)
+    (id.?, pathId, name, routeJson, activateAt, ownedByTeam, createdBy, createdAt, disableAt, description, deletedAt, deletedBy) <> (RouteRow.tupled, RouteRow.unapply)
 }

@@ -9,9 +9,6 @@ import org.zalando.spearheads.innkeeper.routes.RoutesRepoHelper
 import RoutesRepoHelper.{insertRoute, routeJson, sampleRoute, deleteRoute}
 import org.zalando.spearheads.innkeeper.routes.RoutesRepoHelper._
 
-/**
- * @author dpersa
- */
 class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers with ScalaFutures {
 
   implicit override val patienceConfig = PatienceConfig(timeout = Span(5, Seconds))
@@ -107,6 +104,21 @@ class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers w
 
         routes.map(_.id.get).toSet should be (Set(route4Id, route5Id, route7Id, route8Id))
       }
+
+      it("should not select the routes which become disabled") {
+        insertRoute("R1")
+        val createdAt = LocalDateTime.now()
+        // created in the past, getting disabled now
+        insertRoute(
+          "R2",
+          createdAt = createdAt.minusMinutes(10),
+          disableAt = Some(createdAt))
+        val route3Id = insertRoute("R3").id.get
+
+        val routes: List[RouteRow] = routesRepo.selectModifiedSince(createdAt.minus(1, ChronoUnit.MICROS), LocalDateTime.now())
+
+        routes.map(_.id.get).toSet should be (Set(route3Id))
+      }
     }
 
     describe("#selectByName") {
@@ -135,6 +147,19 @@ class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers w
         routes should not be 'empty
         routes.size should be (1)
         routes.map(_.id.get).toSet should be (Set(3))
+      }
+
+      it("should select the disabled routes") {
+        insertRoute("R2", disableAt = Some(LocalDateTime.now().minusMinutes(3)))
+        insertRoute("R1")
+        insertRoute("R2")
+        insertRoute("R2", disableAt = Some(LocalDateTime.now().minusMinutes(3)))
+        insertRoute("R3")
+
+        val routes: List[RouteRow] = routesRepo.selectByName("R2")
+
+        routes.size should be (3)
+        routes.map(_.id.get).toSet should be (Set(1, 3, 4))
       }
     }
 
@@ -183,6 +208,16 @@ class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers w
 
         routes.size should be (3)
         routes.map(_.id.get).toSet should be (Set(1, 4, 6))
+      }
+
+      it("should not select the disabled routes") {
+        insertRoute("R1", disableAt = Some(LocalDateTime.now().minusMinutes(3)))
+        insertRoute("R3")
+
+        val routes: List[RouteRow] = routesRepo.selectLatestActiveRoutesPerName(LocalDateTime.now())
+
+        routes.size should be (1)
+        routes.map(_.id.get).toSet should be (Set(2))
       }
     }
 

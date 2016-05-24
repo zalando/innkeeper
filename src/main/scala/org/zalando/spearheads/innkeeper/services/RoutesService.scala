@@ -62,7 +62,8 @@ class DefaultRoutesService @Inject() (
       ownedByTeam = ownedByTeam.name,
       createdBy = createdBy.name,
       createdAt = createdAt,
-      description = route.description
+      description = route.description,
+      disableAt = route.disableAt
     )
 
     routesRepo.insert(routeRow).flatMap(rowToEventualMaybeRoute)
@@ -142,6 +143,7 @@ class DefaultRoutesService @Inject() (
       ownedByTeam = TeamName(routeRow.ownedByTeam),
       createdBy = UserName(routeRow.createdBy),
       description = routeRow.description,
+      disableAt = routeRow.disableAt,
       deletedAt = routeRow.deletedAt,
       deletedBy = routeRow.deletedBy)
   }
