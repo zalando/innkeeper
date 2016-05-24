@@ -14,5 +14,6 @@ class ServicesModule extends AbstractModule with ScalaModule {
     bind[TeamService].to[ZalandoTeamService].asEagerSingleton()
     bind[HostsService].to[DefaultHostsService].asEagerSingleton()
     bind[PathsService].to[DefaultPathsService].asEagerSingleton()
+    bind[CommonFiltersService].to[DefaultCommonFiltersService].asEagerSingleton()
   }
 }

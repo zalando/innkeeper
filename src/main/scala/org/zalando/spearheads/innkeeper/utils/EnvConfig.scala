@@ -22,6 +22,8 @@ trait EnvConfig {
 
   def getStringSet(key: String): Set[String]
 
+  def getStringSeq(key: String): Seq[String]
+
   def getObject(key: String): ConfigObject
 
 }
@@ -51,6 +53,14 @@ class InnkeeperEnvConfig @Inject() (val config: Config) extends EnvConfig {
       config.getStringList(envKey(key)).toSet
     }.getOrElse {
       config.getStringList(key).toSet
+    }
+  }
+
+  override def getStringSeq(key: String): Seq[String] = {
+    Try {
+      config.getStringList(envKey(key)).toSeq
+    }.getOrElse {
+      config.getStringList(key).toSeq
     }
   }
 
