@@ -37,6 +37,7 @@ case class RouteIn(
   pathId: Long,
   name: RouteName,
   route: NewRoute,
+  usesCommonFilters: Boolean,
   activateAt: Option[LocalDateTime],
   disableAt: Option[LocalDateTime] = None,
   description: Option[String] = None) extends Route
@@ -50,6 +51,7 @@ case class RouteOut(
   activateAt: LocalDateTime,
   ownedByTeam: TeamName,
   createdBy: UserName,
+  usesCommonFilters: Boolean,
   disableAt: Option[LocalDateTime] = None,
   description: Option[String] = None,
   deletedAt: Option[LocalDateTime] = None,

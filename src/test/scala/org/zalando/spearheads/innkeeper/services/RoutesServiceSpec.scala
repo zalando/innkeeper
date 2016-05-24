@@ -298,6 +298,7 @@ class RoutesServiceSpec extends FunSpec with Matchers with MockFactory with Scal
     activateAt = activateAt,
     ownedByTeam = TeamName(ownedByTeam),
     createdBy = UserName(createdBy),
+    usesCommonFilters = false,
     disableAt = Some(disableAt),
     description = Some(description))
 
@@ -305,6 +306,7 @@ class RoutesServiceSpec extends FunSpec with Matchers with MockFactory with Scal
     pathId,
     routeName,
     newRoute,
+    usesCommonFilters = false,
     Some(activateAt),
     Some(disableAt),
     Some(description))
@@ -313,6 +315,7 @@ class RoutesServiceSpec extends FunSpec with Matchers with MockFactory with Scal
     pathId,
     routeName,
     newRoute,
+    usesCommonFilters = false,
     None,
     None,
     Some(description))
@@ -323,6 +326,7 @@ class RoutesServiceSpec extends FunSpec with Matchers with MockFactory with Scal
     routeName.name,
     newRouteJson,
     activateAt,
+    usesCommonFilters = false,
     ownedByTeam,
     createdBy,
     createdAt,

@@ -73,6 +73,7 @@ class PostRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
         val invalidPredicateRoute = s"""{
                                          |  "name": "route",
                                          |  "path_id": $pathId,
+                                         |  "uses_common_filters": false,
                                          |  "route": {
                                          |    "predicates": [{
                                          |     "name": "method",

@@ -81,6 +81,7 @@ object RoutesSpecsHelper {
   def route(routeName: String, pathId: Long) = s"""{
                                 |  "name": "$routeName",
                                 |  "path_id": $pathId,
+                                |  "uses_common_filters": false,
                                 |  "description": "this is a route",
                                 |  "activate_at": "2015-10-10T10:10:10",
                                 |  "route": {

@@ -14,7 +14,8 @@ object RoutesRepoHelper extends DaoHelper {
     ownedByTeam: String = "testteam",
     createdAt: LocalDateTime = LocalDateTime.now(),
     disableAt: Option[LocalDateTime] = None,
-    activateAt: LocalDateTime = LocalDateTime.now().minusHours(2)): RouteRow = {
+    activateAt: LocalDateTime = LocalDateTime.now().minusHours(2),
+    usesCommonFilters: Boolean = false): RouteRow = {
 
     val pathId = insertTestPath(ownedByTeam, createdBy, createdAt)
 
@@ -26,7 +27,8 @@ object RoutesRepoHelper extends DaoHelper {
       ownedByTeam = ownedByTeam,
       createdAt = createdAt,
       activateAt = activateAt,
-      disableAt = disableAt
+      disableAt = disableAt,
+      usesCommonFilters = usesCommonFilters
     )).futureValue
   }
 
@@ -38,7 +40,8 @@ object RoutesRepoHelper extends DaoHelper {
     createdBy: String = "testuser",
     ownedByTeam: String = "testteam",
     createdAt: LocalDateTime = LocalDateTime.now(),
-    activateAt: LocalDateTime = LocalDateTime.now()): RouteRow = {
+    activateAt: LocalDateTime = LocalDateTime.now(),
+    usesCommonFilters: Boolean = false): RouteRow = {
 
     RouteRow(
       id = Some(id),
@@ -48,7 +51,9 @@ object RoutesRepoHelper extends DaoHelper {
       createdBy = createdBy,
       ownedByTeam = ownedByTeam,
       createdAt = createdAt,
-      activateAt = activateAt)
+      activateAt = activateAt,
+      usesCommonFilters = usesCommonFilters
+    )
   }
 
   def deleteRoute(id: Long, dateTime: Option[LocalDateTime] = None): Boolean = {

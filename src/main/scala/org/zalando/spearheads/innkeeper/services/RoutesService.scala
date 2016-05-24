@@ -56,6 +56,7 @@ class DefaultRoutesService @Inject() (
       pathId = route.pathId,
       name = route.name.name,
       routeJson = route.route.toJson.compactPrint,
+      usesCommonFilters = route.usesCommonFilters,
       activateAt = route.activateAt.getOrElse(createdAt.plusMinutes {
         defaultNumberOfMinutesToActivateRoute()
       }),
@@ -145,6 +146,7 @@ class DefaultRoutesService @Inject() (
       description = routeRow.description,
       disableAt = routeRow.disableAt,
       deletedAt = routeRow.deletedAt,
-      deletedBy = routeRow.deletedBy)
+      deletedBy = routeRow.deletedBy,
+      usesCommonFilters = routeRow.usesCommonFilters)
   }
 }

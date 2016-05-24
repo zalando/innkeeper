@@ -105,19 +105,23 @@ object JsonProtocols {
     "activate_at",
     "owned_by_team",
     "created_by",
+    "uses_common_filters",
     "disable_at",
     "description",
     "deleted_at",
-    "deleted_by")
+    "deleted_by"
+  )
 
   implicit val routeInFormat = jsonFormat(
     RouteIn,
     "path_id",
     "name",
     "route",
+    "uses_common_filters",
     "activate_at",
     "disable_at",
-    "description")
+    "description"
+  )
 
   implicit val hostFormat = jsonFormat(Host, "id", "name")
 

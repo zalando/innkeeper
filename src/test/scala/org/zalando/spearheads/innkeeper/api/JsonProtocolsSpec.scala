@@ -222,6 +222,7 @@ class JsonProtocolsSpec extends FunSpec with Matchers {
       1L,
       RouteName("THE_ROUTE"),
       newRoute,
+      usesCommonFilters = false,
       Some(LocalDateTime.of(2015, 10, 10, 10, 10, 10)),
       Some(LocalDateTime.of(2015, 11, 11, 11, 11, 11)),
       Some("this is a route")
@@ -245,7 +246,8 @@ class JsonProtocolsSpec extends FunSpec with Matchers {
                     |    }]
                     |    }]
                     |  },
-                    |  "path_id": 1
+                    |  "path_id": 1,
+                    |  "uses_common_filters": false
                     |}""".stripMargin.parseJson.convertTo[RouteIn]
       route should be(routeIn)
     }
@@ -256,6 +258,7 @@ class JsonProtocolsSpec extends FunSpec with Matchers {
         """{
           |  "name": "THE_ROUTE",
           |  "description": "this is a route",
+          |  "uses_common_filters": false,
           |  "activate_at": "2015-10-10T10:10:10",
           |  "disable_at": "2015-11-11T11:11:11",
           |  "route": {
@@ -293,6 +296,7 @@ class JsonProtocolsSpec extends FunSpec with Matchers {
       LocalDateTime.of(2015, 10, 10, 10, 10, 10),
       TeamName("team"),
       UserName("user"),
+      usesCommonFilters = false,
       Some(LocalDateTime.of(2015, 11, 11, 11, 11, 11)),
       Some("this is a route"),
       Some(LocalDateTime.of(2015, 10, 10, 10, 10, 10))
@@ -303,6 +307,7 @@ class JsonProtocolsSpec extends FunSpec with Matchers {
                     |  "created_by": "user",
                     |  "name": "THE_ROUTE",
                     |  "description": "this is a route",
+                    |  "uses_common_filters": false,
                     |  "activate_at": "2015-10-10T10:10:10",
                     |  "disable_at": "2015-11-11T11:11:11",
                     |  "id": 1,
@@ -334,6 +339,7 @@ class JsonProtocolsSpec extends FunSpec with Matchers {
           |  "name": "THE_ROUTE",
           |  "owned_by_team": "team",
           |  "description": "this is a route",
+          |  "uses_common_filters": false,
           |  "activate_at": "2015-10-10T10:10:10",
           |  "id": 1,
           |  "disable_at": "2015-11-11T11:11:11",
