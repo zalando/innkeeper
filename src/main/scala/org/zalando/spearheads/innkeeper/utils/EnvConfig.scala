@@ -2,7 +2,7 @@ package org.zalando.spearheads.innkeeper.utils
 
 import com.google.inject.Inject
 import com.typesafe.config.{Config, ConfigObject}
-
+import scala.collection.immutable.Seq
 import scala.collection.JavaConversions._
 import scala.util.Try
 
@@ -58,9 +58,9 @@ class InnkeeperEnvConfig @Inject() (val config: Config) extends EnvConfig {
 
   override def getStringSeq(key: String): Seq[String] = {
     Try {
-      config.getStringList(envKey(key)).toSeq
+      config.getStringList(envKey(key)).toList
     }.getOrElse {
-      config.getStringList(key).toSeq
+      config.getStringList(key).toList
     }
   }
 

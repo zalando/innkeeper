@@ -1,0 +1,1 @@
+{{ entity.name }}({{for arg in entity.args}}{{ arg.value }}{{if arg.isNotLast}}, {{/if}}{{/for}})

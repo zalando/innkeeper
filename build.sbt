@@ -15,8 +15,9 @@ scalaVersion := "2.11.8"
 
 scalacOptions := Seq("-unchecked", "-feature", "-deprecation", "-encoding", "utf8")
 
-resolvers += "Whisk" at "https://dl.bintray.com/whisk/maven"
+resolvers += "Whisk"           at "https://dl.bintray.com/whisk/maven"
 resolvers += "softprops-maven" at "http://dl.bintray.com/content/softprops/maven"
+resolvers += "zalando-maven"   at "https://dl.bintray.com/zalando/maven"
 
 val akkaV            = "2.4.4"
 val scalaTestV       = "3.0.0-M15"

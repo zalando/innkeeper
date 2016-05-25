@@ -1,0 +1,5 @@
+{{ routeName }}: {{for predicate in predicates}}{{render "/filter-or-predicate.beard" entity=predicate}}{{if predicate.isNotLast}} && {{/if}}{{/for}}
+{{for filter in filters}}
+-> {{render "/filter-or-predicate.beard" entity=filter}}
+{{/for}}
+-> {{ backend }}
