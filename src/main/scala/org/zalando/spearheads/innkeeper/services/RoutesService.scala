@@ -19,7 +19,6 @@ trait RoutesService {
 
   def create(
     route: RouteIn,
-    ownedByTeam: TeamName,
     createdBy: UserName,
     createdAt: LocalDateTime = LocalDateTime.now()): Future[Result[RouteOut]]
 
@@ -35,6 +34,8 @@ trait RoutesService {
 
   def findById(id: Long): Future[Result[RouteOut]]
 
+  def getOwnerTeamForRoute(routeId: Long): Future[Result[TeamName]]
+
   def findDeletedBefore(deletedBefore: LocalDateTime): Source[RouteOut, NotUsed]
 
   def removeDeletedBefore(deletedBefore: LocalDateTime): Future[Result[Int]]
@@ -47,7 +48,6 @@ class DefaultRoutesService @Inject() (
 
   override def create(
     route: RouteIn,
-    ownedByTeam: TeamName,
     createdBy: UserName,
     createdAt: LocalDateTime = LocalDateTime.now()): Future[Result[RouteOut]] = {
 
@@ -60,7 +60,6 @@ class DefaultRoutesService @Inject() (
       activateAt = route.activateAt.getOrElse(createdAt.plusMinutes {
         defaultNumberOfMinutesToActivateRoute()
       }),
-      ownedByTeam = ownedByTeam.name,
       createdBy = createdBy.name,
       createdAt = createdAt,
       description = route.description,
@@ -114,6 +113,13 @@ class DefaultRoutesService @Inject() (
     }
   }
 
+  override def getOwnerTeamForRoute(routeId: Long): Future[Result[TeamName]] = {
+    routesRepo.getOwnerTeamForRoute(routeId).flatMap {
+      case Some(teamName) => Future(Success(TeamName(teamName)))
+      case _              => Future(Failure(NotFound))
+    }
+  }
+
   override def findDeletedBefore(dateTime: LocalDateTime): Source[RouteOut, NotUsed] = {
     Source.fromPublisher(routesRepo.selectDeletedBefore(dateTime).mapResult { routeRow =>
       routeRow.id.map { id =>
@@ -141,7 +147,6 @@ class DefaultRoutesService @Inject() (
       route = routeRow.routeJson.parseJson.convertTo[NewRoute],
       createdAt = routeRow.createdAt,
       activateAt = routeRow.activateAt,
-      ownedByTeam = TeamName(routeRow.ownedByTeam),
       createdBy = UserName(routeRow.createdBy),
       description = routeRow.description,
       disableAt = routeRow.disableAt,

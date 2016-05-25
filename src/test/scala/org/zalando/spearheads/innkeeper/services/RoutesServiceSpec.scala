@@ -10,7 +10,7 @@ import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.{FunSpec, Matchers}
 import org.zalando.spearheads.innkeeper.FakeDatabasePublisher
 import org.zalando.spearheads.innkeeper.api.JsonProtocols._
-import org.zalando.spearheads.innkeeper.api.{NewRoute, NumericArg, Predicate, RouteIn, RouteName, RouteOut, StringArg, TeamName, UserName}
+import org.zalando.spearheads.innkeeper.api.{NewRoute, NumericArg, Predicate, RouteIn, RouteName, RouteOut, StringArg, UserName}
 import org.zalando.spearheads.innkeeper.dao.{RouteRow, RoutesRepo}
 import org.zalando.spearheads.innkeeper.services.ServiceResult.NotFound
 import org.zalando.spearheads.innkeeper.utils.EnvConfig
@@ -39,8 +39,7 @@ class RoutesServiceSpec extends FunSpec with Matchers with MockFactory with Scal
         (routesRepo.insert _).expects(routeRowWithoutId)
           .returning(Future(routeRow))
 
-        val result = routesService.create(routeIn, TeamName(ownedByTeam),
-          UserName(createdBy), createdAt).futureValue
+        val result = routesService.create(routeIn, UserName(createdBy), createdAt).futureValue
 
         result should be(ServiceResult.Success(savedRoute))
       }
@@ -53,7 +52,7 @@ class RoutesServiceSpec extends FunSpec with Matchers with MockFactory with Scal
           disableAt = None))
           .returning(Future(routeRow.copy(activateAt = createdAt.plusMinutes(5))))
 
-        val result = routesService.create(routeInNoActivationOrDisableDate, TeamName(ownedByTeam), UserName(createdBy), createdAt).futureValue
+        val result = routesService.create(routeInNoActivationOrDisableDate, UserName(createdBy), createdAt).futureValue
 
         result should be(ServiceResult.Success(savedRoute.copy(activateAt = createdAt.plusMinutes(5))))
       }
@@ -63,8 +62,7 @@ class RoutesServiceSpec extends FunSpec with Matchers with MockFactory with Scal
         (routesRepo.insert _).expects(routeRowWithoutId)
           .returning(Future(routeRowWithoutId))
 
-        val result = routesService.create(routeIn, TeamName(ownedByTeam),
-          UserName(createdBy), createdAt).futureValue
+        val result = routesService.create(routeIn, UserName(createdBy), createdAt).futureValue
 
         result should be(ServiceResult.Failure(NotFound))
       }
@@ -268,7 +266,6 @@ class RoutesServiceSpec extends FunSpec with Matchers with MockFactory with Scal
     route.createdBy should be(UserName(createdBy))
     route.activateAt should be(activateAt)
     route.disableAt should be(Some(disableAt))
-    route.ownedByTeam should be(TeamName(ownedByTeam))
   }
 
   val routeId: Long = 1
@@ -296,7 +293,6 @@ class RoutesServiceSpec extends FunSpec with Matchers with MockFactory with Scal
     route = newRoute,
     createdAt = createdAt,
     activateAt = activateAt,
-    ownedByTeam = TeamName(ownedByTeam),
     createdBy = UserName(createdBy),
     usesCommonFilters = false,
     disableAt = Some(disableAt),
@@ -327,7 +323,6 @@ class RoutesServiceSpec extends FunSpec with Matchers with MockFactory with Scal
     newRouteJson,
     activateAt,
     usesCommonFilters = false,
-    ownedByTeam,
     createdBy,
     createdAt,
     Some(disableAt),

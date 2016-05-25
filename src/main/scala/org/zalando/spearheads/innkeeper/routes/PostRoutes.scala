@@ -6,7 +6,7 @@ import akka.http.scaladsl.server.Route
 import com.google.inject.Inject
 import org.slf4j.LoggerFactory
 import org.zalando.spearheads.innkeeper.Rejections.UnmarshallRejection
-import org.zalando.spearheads.innkeeper.api.{RouteIn, RouteOut, TeamName, UserName}
+import org.zalando.spearheads.innkeeper.api.{RouteIn, RouteOut, UserName}
 import org.zalando.spearheads.innkeeper.metrics.RouteMetrics
 import org.zalando.spearheads.innkeeper.oauth.OAuthDirectives.{hasOneOfTheScopes, team, isValidRoute}
 import org.zalando.spearheads.innkeeper.oauth.{AuthenticatedUser, Scopes}
@@ -38,7 +38,7 @@ class PostRoutes @Inject() (
           logger.debug(s"post /routes team ${team}")
           hasOneOfTheScopes(authenticatedUser, reqDesc, scopes.WRITE) {
             isValidRoute(route.route, reqDesc)(routeValidationService) {
-              handleWith(saveRoute(UserName(authenticatedUser.username), TeamName(team.name), s"$reqDesc other"))
+              handleWith(saveRoute(UserName(authenticatedUser.username), s"$reqDesc other"))
             }
           }
         }
@@ -48,10 +48,10 @@ class PostRoutes @Inject() (
     }
   }
 
-  private def saveRoute(createdBy: UserName, ownedByTeam: TeamName, reqDesc: String): (RouteIn) => Future[Option[RouteOut]] = (route: RouteIn) => {
+  private def saveRoute(createdBy: UserName, reqDesc: String): (RouteIn) => Future[Option[RouteOut]] = (route: RouteIn) => {
     metrics.postRoutes.time {
       logger.debug(s"$reqDesc saveRoute")
-      routesService.create(route, ownedByTeam, createdBy).map {
+      routesService.create(route, createdBy).map {
         case ServiceResult.Success(route) => Some(route)
         case _                            => None
       }

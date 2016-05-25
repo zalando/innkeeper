@@ -6,10 +6,11 @@ import akka.http.scaladsl.server._
 import akka.http.scaladsl.server.Directives._
 import org.slf4j.LoggerFactory
 import org.zalando.spearheads.innkeeper.Rejections._
-import org.zalando.spearheads.innkeeper.api.validation.{RouteValidationService, Valid, Invalid}
-import org.zalando.spearheads.innkeeper.api.{NewRoute, RouteOut}
+import org.zalando.spearheads.innkeeper.api.validation.{Invalid, RouteValidationService, Valid}
+import org.zalando.spearheads.innkeeper.api.{NewRoute, RouteOut, TeamName}
 import org.zalando.spearheads.innkeeper.services.ServiceResult
 import org.zalando.spearheads.innkeeper.services.ServiceResult.{Ex, NotFound}
+
 import scala.concurrent.ExecutionContext
 import org.zalando.spearheads.innkeeper.services.team.{Team, TeamService}
 
@@ -96,8 +97,8 @@ trait OAuthDirectives {
     }
   }
 
-  def teamAuthorization(team: Team, route: RouteOut, requestDescription: String)(implicit teamService: TeamService): Directive0 = {
-    if (teamService.isAdminTeam(team) || teamService.routeHasTeam(route, team)) {
+  def routeTeamAuthorization(team: Team, routeTeam: TeamName, requestDescription: String)(implicit teamService: TeamService): Directive0 = {
+    if (team.name == routeTeam.name || teamService.isAdminTeam(team)) {
       pass
     } else {
       reject(IncorrectTeamRejection(requestDescription))

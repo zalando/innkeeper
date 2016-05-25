@@ -24,7 +24,6 @@ object RoutesRepoHelper extends DaoHelper {
       name = name,
       routeJson = routeJson(method),
       createdBy = createdBy,
-      ownedByTeam = ownedByTeam,
       createdAt = createdAt,
       activateAt = activateAt,
       disableAt = disableAt,
@@ -49,7 +48,6 @@ object RoutesRepoHelper extends DaoHelper {
       name = name,
       routeJson = routeJson(method),
       createdBy = createdBy,
-      ownedByTeam = ownedByTeam,
       createdAt = createdAt,
       activateAt = activateAt,
       usesCommonFilters = usesCommonFilters
