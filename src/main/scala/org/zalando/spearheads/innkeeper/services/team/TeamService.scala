@@ -42,7 +42,7 @@ class ZalandoTeamService @Inject() (
             case Some(team) => ServiceResult.Success(team)
             case None => {
               logger.debug("No official team found for username: ", username)
-              ServiceResult.Failure(NotFound)
+              ServiceResult.Failure(NotFound())
             }
           }
         case Failure(ex) => {

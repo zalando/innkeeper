@@ -11,10 +11,10 @@ import scala.concurrent.{Future, ExecutionContext}
  * @author dpersa
  */
 @Singleton
-class RoutesPostgresRepo @Inject() (
-    db: Database,
-    implicit val executionContext: ExecutionContext
-) extends RoutesRepo {
+class RoutesPostgresRepo @Inject()(
+                                    db: Database,
+                                    implicit val executionContext: ExecutionContext
+                                  ) extends RoutesRepo {
 
   private val logger = LoggerFactory.getLogger(this.getClass)
 
@@ -85,6 +85,19 @@ class RoutesPostgresRepo @Inject() (
     val join = (for {
       routeRow <- Routes.filter(_.id in latestActiveRouteIdsCreatedForEachName(currentTime))
     } yield routeRow)
+
+    db.stream {
+      join.result
+    }
+  }
+
+  def selectLatestActiveRoutesWithPathPerName(currentTime: LocalDateTime): DatabasePublisher[(RouteRow, PathRow)] = {
+    logger.debug("select latest routes with paths per name")
+
+    val join = (for {
+      (routeRow, pathRow) <- Routes.filter(_.id in latestActiveRouteIdsCreatedForEachName(currentTime)) join
+        Paths on (_.pathId === _.id)
+    } yield (routeRow, pathRow))
 
     db.stream {
       join.result

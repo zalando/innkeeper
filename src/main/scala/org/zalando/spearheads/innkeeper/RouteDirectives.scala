@@ -27,7 +27,7 @@ trait RouteDirectives {
       {
         routesService.findById(id).fast.transformWith {
           case Success(ServiceResult.Success(routeOut))               => inner(Tuple1(routeOut))(ctx)
-          case Success(ServiceResult.Failure(ServiceResult.NotFound)) => reject(RouteNotFoundRejection(requestDescription))(ctx)
+          case Success(ServiceResult.Failure(ServiceResult.NotFound(_))) => reject(RouteNotFoundRejection(requestDescription))(ctx)
           case _                                                      => reject(InternalServerErrorRejection(requestDescription))(ctx)
         }
       }
@@ -38,7 +38,7 @@ trait RouteDirectives {
       {
         pathsService.findById(id).fast.transformWith {
           case Success(ServiceResult.Success(pathOut))                => inner(Tuple1(pathOut))(ctx)
-          case Success(ServiceResult.Failure(ServiceResult.NotFound)) => reject(PathNotFoundRejection(requestDescription))(ctx)
+          case Success(ServiceResult.Failure(ServiceResult.NotFound(_))) => reject(PathNotFoundRejection(requestDescription))(ctx)
           case _                                                      => reject(InternalServerErrorRejection(requestDescription))(ctx)
         }
       }

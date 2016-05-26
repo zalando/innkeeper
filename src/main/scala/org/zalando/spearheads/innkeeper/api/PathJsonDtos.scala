@@ -1,23 +1,23 @@
 package org.zalando.spearheads.innkeeper.api
 
 import java.time.LocalDateTime
-import scala.collection.immutable.List
+import scala.collection.immutable.Seq
 
 sealed trait Path {
 
   def uri: String
 
-  def hostIds: List[Long]
+  def hostIds: Seq[Long]
 }
 
 case class PathIn(
   uri: String,
-  hostIds: List[Long]) extends Path
+  hostIds: Seq[Long]) extends Path
 
 case class PathOut(
   id: Long,
   uri: String,
-  hostIds: List[Long],
+  hostIds: Seq[Long],
   ownedByTeam: TeamName,
   createdBy: UserName,
   createdAt: LocalDateTime = LocalDateTime.now()) extends Path

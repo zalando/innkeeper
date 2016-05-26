@@ -17,7 +17,7 @@ object RoutesRepoHelper extends DaoHelper {
     activateAt: LocalDateTime = LocalDateTime.now().minusHours(2),
     usesCommonFilters: Boolean = false): RouteRow = {
 
-    val pathId = insertTestPath(ownedByTeam, createdBy, createdAt)
+    val pathId = insertTestPath(ownedByTeam, createdBy, createdAt, s"/path-for-$name")
 
     routesRepo.insert(RouteRow(
       pathId = pathId,
@@ -88,10 +88,14 @@ object RoutesRepoHelper extends DaoHelper {
         |  }]
         |}""".stripMargin
 
-  private def insertTestPath(ownedByTeam: String, createdBy: String, createdAt: LocalDateTime): Long = {
+  private def insertTestPath(ownedByTeam: String,
+                             createdBy: String,
+                             createdAt: LocalDateTime,
+                             uri: String = "testuri"): Long = {
+
     val path = pathsRepo.insert(PathRow(
       id = None,
-      uri = "testuri",
+      uri = uri,
       hostIds = List.empty,
       ownedByTeam = ownedByTeam,
       createdAt = createdAt,

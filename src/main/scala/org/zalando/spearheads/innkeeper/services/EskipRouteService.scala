@@ -5,27 +5,30 @@ import java.time.LocalDateTime
 import akka.NotUsed
 import akka.stream.scaladsl.Source
 import com.google.inject.Inject
-import org.zalando.spearheads.innkeeper.api.{EskipRouteWrapper, RouteOut}
+import org.zalando.spearheads.innkeeper.api.{EskipRouteWrapper, NewRoute, RouteName, RouteOut}
+import org.zalando.spearheads.innkeeper.dao.{PathRow, RouteRow, RoutesRepo}
+import spray.json.{pimpAny, pimpString}
+import org.zalando.spearheads.innkeeper.api.JsonProtocols._
 
-
-class EskipRouteService @Inject()(routesService: RoutesService, routeToEskipTransformer: RouteToEskipTransformer) {
+class EskipRouteService @Inject()(routesRepo: RoutesRepo, routeToEskipTransformer: RouteToEskipTransformer) {
 
   private val -> = "\n -> "
 
   def currentEskipRoutes(currentTime: LocalDateTime = LocalDateTime.now()): Source[EskipRouteWrapper, NotUsed] = {
 
-    val currentRoutes = routesService.latestRoutesPerName(currentTime)
-
-    currentRoutes.map { route =>
-      EskipRouteWrapper(route.name,
-        routeToEskipString(route),
-        route.createdAt,
-        route.deletedAt)
-    }
+    Source.fromPublisher(routesRepo.selectLatestActiveRoutesWithPathPerName(currentTime).mapResult {
+      case (routeRow, pathRow) =>
+      EskipRouteWrapper(RouteName(routeRow.name),
+        routeToEskipString(routeRow, pathRow),
+        routeRow.createdAt,
+        routeRow.deletedAt)
+    })
   }
 
-  def routeToEskipString(route: RouteOut): String = {
-    val eskipRoute = routeToEskipTransformer.transform(route.name.name, route.route)
+  def routeToEskipString(routeRow: RouteRow, pathRow: PathRow): String = {
+    val newRoute = routeRow.routeJson.parseJson.convertTo[NewRoute]
+
+    val eskipRoute = routeToEskipTransformer.transform(routeRow.name, pathRow.uri, pathRow.hostIds, newRoute)
 
     val routeName = eskipRoute.name
 

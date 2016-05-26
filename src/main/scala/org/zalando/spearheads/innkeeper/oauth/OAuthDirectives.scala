@@ -32,7 +32,7 @@ trait OAuthDirectives {
         case ServiceResult.Success(team) => {
           authUserToRoute(team)
         }
-        case ServiceResult.Failure(Ex(ex)) => {
+        case ServiceResult.Failure(Ex(ex, _)) => {
           logger.error(s"OAuthService failed with exception $ex")
           reject(CredentialsRejectedRejection(requestDescription))
         }
@@ -57,11 +57,11 @@ trait OAuthDirectives {
             case ServiceResult.Success(team) => {
               teamToRoute(team)
             }
-            case ServiceResult.Failure(NotFound) => {
+            case ServiceResult.Failure(NotFound(_)) => {
               logger.error(s"AuthenticatedUser does not have a team $authenticatedUser")
               reject(TeamNotFoundRejection(requestDescription))
             }
-            case ServiceResult.Failure(Ex(ex)) => {
+            case ServiceResult.Failure(Ex(ex, _)) => {
               logger.error(s"TeamService failed with exception $ex")
               reject(InternalServerErrorRejection(requestDescription))
             }

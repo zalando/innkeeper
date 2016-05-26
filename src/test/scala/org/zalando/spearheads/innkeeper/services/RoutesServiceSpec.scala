@@ -66,7 +66,7 @@ class RoutesServiceSpec extends FunSpec with Matchers with MockFactory with Scal
         val result = routesService.create(routeIn, TeamName(ownedByTeam),
           UserName(createdBy), createdAt).futureValue
 
-        result should be(ServiceResult.Failure(NotFound))
+        result should be(ServiceResult.Failure(NotFound()))
       }
     }
 
@@ -82,7 +82,7 @@ class RoutesServiceSpec extends FunSpec with Matchers with MockFactory with Scal
       it("should not find a route") {
         (routesRepo.delete _).expects(routeId, username, None).returning(Future(false))
         val result = routesService.remove(routeId, username.get).futureValue
-        result should be(ServiceResult.Failure(NotFound))
+        result should be(ServiceResult.Failure(NotFound()))
       }
 
       it("should fail when trying to delete a route") {
@@ -180,7 +180,7 @@ class RoutesServiceSpec extends FunSpec with Matchers with MockFactory with Scal
           val routeServiceResult = routesService.findById(routeId).futureValue
 
           routeServiceResult match {
-            case ServiceResult.Failure(ServiceResult.NotFound) =>
+            case ServiceResult.Failure(ServiceResult.NotFound(_)) =>
             case _                                             => fail()
           }
         }
@@ -195,7 +195,7 @@ class RoutesServiceSpec extends FunSpec with Matchers with MockFactory with Scal
           val routeServiceResult = routesService.findById(routeId).futureValue
 
           routeServiceResult match {
-            case ServiceResult.Failure(ServiceResult.NotFound) =>
+            case ServiceResult.Failure(ServiceResult.NotFound(_)) =>
             case _                                             => fail()
           }
         }

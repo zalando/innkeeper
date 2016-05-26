@@ -4,24 +4,24 @@ import org.scalamock.scalatest.MockFactory
 import org.scalatest.{BeforeAndAfter, FunSpec, Matchers}
 import org.zalando.spearheads.innkeeper.api.{EskipRoute, Filter, NameWithStringArgs, NewRoute, NumericArg, Predicate, RegexArg, StringArg}
 import org.zalando.spearheads.innkeeper.utils.EnvConfig
-
 import scala.collection.immutable.Seq
 
 class RouteToEskipRouteTransformerSpec extends FunSpec with Matchers with MockFactory with BeforeAndAfter {
 
   val config = mock[EnvConfig]
-  val routeToEskipTransformer = new DefaultRouteToEskipTransformer(config)
+  val hostsService = mock[HostsService]
+  val routeToEskipTransformer = new DefaultRouteToEskipTransformer(config, hostsService)
 
   describe("RouteToEskipTransformerSpec") {
 
     it("should transform a regular route to an eskip route") {
       initMocks()
-      routeToEskipTransformer.transform(routeName, newRoute) should be(expectedResult)
+      routeToEskipTransformer.transform(routeName, pathUri, hostIds, newRoute) should be(expectedResult)
     }
 
     it("should transform a route without an endpoint to an eskip route") {
       initMocks()
-      routeToEskipTransformer.transform(routeName, newRoute.copy(endpoint = None)) should
+      routeToEskipTransformer.transform(routeName, pathUri, hostIds, newRoute.copy(endpoint = None)) should
         be(expectedResult.copy(endpoint = "<shunt>"))
     }
   }
@@ -34,12 +34,19 @@ class RouteToEskipRouteTransformerSpec extends FunSpec with Matchers with MockFa
     (config.getStringSeq _)
       .expects("filters.common.append")
       .returning(Seq("appendedFirst()", "appendedSecond(0.8)"))
+
+    (hostsService.getByIds _).expects(hostIds.toSet).atLeastOnce().returning(hosts)
   }
 
+  val hosts = Seq("first.com", "second.com", "third.com")
+  val pathUri: String = "/the-uri"
+  val hostIds = Seq(1L, 2L, 3L)
   val routeName: String = "myRoute"
   val expectedResult = EskipRoute(
     name = routeName,
     predicates = Seq(
+      NameWithStringArgs("Path", Seq(s""""$pathUri"""")),
+      NameWithStringArgs("Host", Seq("/^first.com|second.com|third.com$/")),
       NameWithStringArgs("somePredicate", Seq(""""Hello"""", "123")),
       NameWithStringArgs("somePredicate1", Seq("/^Hello$/", "123"))),
     filters = Seq(

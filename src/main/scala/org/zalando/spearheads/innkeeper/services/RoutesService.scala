@@ -76,7 +76,7 @@ class DefaultRoutesService @Inject() (
 
   override def remove(id: Long, deletedBy: String): Future[Result[Boolean]] = {
     routesRepo.delete(id, Some(deletedBy)).map {
-      case false => Failure(NotFound)
+      case false => Failure(NotFound())
       case _     => Success(true)
     }
   }
@@ -110,7 +110,7 @@ class DefaultRoutesService @Inject() (
   override def findById(id: Long): Future[Result[RouteOut]] = {
     routesRepo.selectById(id).flatMap {
       case Some(routeRow) if routeRow.deletedAt.isEmpty => rowToEventualMaybeRoute(routeRow)
-      case _                                            => Future(Failure(NotFound))
+      case _                                            => Future(Failure(NotFound()))
     }
   }
 
@@ -130,7 +130,7 @@ class DefaultRoutesService @Inject() (
 
   private def rowToEventualMaybeRoute(routeRow: RouteRow): Future[Result[RouteOut]] = routeRow.id match {
     case Some(id) => Future(Success(routeRowToRoute(id, routeRow)))
-    case None     => Future(Failure(NotFound))
+    case None     => Future(Failure(NotFound()))
   }
 
   private def routeRowToRoute(id: Long, routeRow: RouteRow) = {

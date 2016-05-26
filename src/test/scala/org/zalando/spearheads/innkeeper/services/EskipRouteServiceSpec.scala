@@ -1,6 +1,7 @@
 package org.zalando.spearheads.innkeeper.services
 
 import java.time.LocalDateTime
+
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.{Sink, Source}
@@ -8,6 +9,8 @@ import org.scalamock.scalatest.MockFactory
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.{FunSpec, Matchers}
 import org.zalando.spearheads.innkeeper.api.{EskipRoute, Filter, NameWithStringArgs, NewRoute, NumericArg, Predicate, RegexArg, RouteName, RouteOut, StringArg, TeamName, UserName}
+import org.zalando.spearheads.innkeeper.dao.RoutesRepo
+
 import scala.collection.immutable.Seq
 import scala.concurrent.ExecutionContext
 
@@ -16,20 +19,20 @@ class EskipRouteServiceSpec extends FunSpec with Matchers with MockFactory with 
   implicit val executionContext = ExecutionContext.global
   implicit val actorSystem = ActorSystem()
   implicit val materializer = ActorMaterializer()
-  val routesService = mock[RoutesService]
+  val routesRepo = mock[RoutesRepo]
   val routeToEskipTransformer = mock[RouteToEskipTransformer]
-  val eskipRouteService = new EskipRouteService(routesService, routeToEskipTransformer)
+  val eskipRouteService = new EskipRouteService(routesRepo, routeToEskipTransformer)
 
   describe("route to eskip") {
 
     describe("#currentEskipRoutes") {
       it ("should return the correct current routes") {
 
-        (routesService.latestRoutesPerName _)
-          .expects(currentTime)
-          .returning(Source.single(routeOut))
-
-        (routeToEskipTransformer.transform _).expects(routeName, newRoute).returning(eskipRoute)
+//        (routesService.latestRoutesPerName _)
+//          .expects(currentTime)
+//          .returning(Source.single(routeOut))
+//
+//        (routeToEskipTransformer.transform _).expects(routeName, newRoute).returning(eskipRoute)
 
         val result = eskipRouteService.currentEskipRoutes(currentTime).runWith(Sink.head).futureValue
 

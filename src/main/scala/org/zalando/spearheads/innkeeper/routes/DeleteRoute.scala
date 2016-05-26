@@ -64,7 +64,7 @@ class DeleteRoute @Inject() (
 
       onComplete(routesService.remove(id, deletedBy)) {
         case Success(ServiceResult.Success(_))        => complete("")
-        case Success(ServiceResult.Failure(NotFound)) => reject(RouteNotFoundRejection(reqDesc))
+        case Success(ServiceResult.Failure(NotFound(_))) => reject(RouteNotFoundRejection(reqDesc))
         case Success(_)                               => reject(RouteNotFoundRejection(reqDesc))
         case Failure(_)                               => reject(InternalServerErrorRejection(reqDesc))
       }

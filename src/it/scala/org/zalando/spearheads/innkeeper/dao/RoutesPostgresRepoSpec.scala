@@ -2,11 +2,12 @@ package org.zalando.spearheads.innkeeper.dao
 
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
+
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.time.{Seconds, Span}
-import org.scalatest.{BeforeAndAfter, FunSpec, Matchers}
+import org.scalatest.{BeforeAndAfter, FunSpec, Matchers, path}
 import org.zalando.spearheads.innkeeper.routes.RoutesRepoHelper
-import RoutesRepoHelper.{insertRoute, routeJson, sampleRoute, deleteRoute}
+import RoutesRepoHelper.{deleteRoute, insertRoute, routeJson, sampleRoute}
 import org.zalando.spearheads.innkeeper.routes.RoutesRepoHelper._
 
 class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers with ScalaFutures {
@@ -232,6 +233,28 @@ class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers w
 
         routes.size should be (1)
         routes.map(_.id.get).toSet should be (Set(2))
+      }
+    }
+
+    describe("#selectLatestActiveRoutesWithPathPerName") {
+
+      it("should select the right routes") {
+        insertRoute("R1")
+        insertRoute("R2", activateAt = LocalDateTime.now().plusMinutes(5))
+        val createdAt = LocalDateTime.now()
+        insertRoute("R3", createdAt = createdAt)
+        insertRoute("R4", createdAt = createdAt)
+        insertRoute("R1")
+        insertRoute("R3")
+        deleteRoute(5)
+
+        val routesWithPaths = routesRepo.selectLatestActiveRoutesWithPathPerName(LocalDateTime.now())
+
+        routesWithPaths.size should be (3)
+
+        routesWithPaths.map { case (routeRow, pathRow) =>
+          (routeRow.id.get, pathRow.uri)}.toSet should
+          be (Set((1, "/path-for-R1"), (4, "/path-for-R4"), (6, "/path-for-R3")))
       }
     }
 
