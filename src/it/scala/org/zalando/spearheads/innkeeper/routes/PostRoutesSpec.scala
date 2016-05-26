@@ -2,7 +2,7 @@ package org.zalando.spearheads.innkeeper.routes
 
 import akka.http.scaladsl.model.StatusCodes
 import org.scalatest.{BeforeAndAfter, FunSpec, Matchers}
-import org.zalando.spearheads.innkeeper.routes.AcceptanceSpecTokens._
+import org.zalando.spearheads.innkeeper.routes.AcceptanceSpecToken._
 import org.zalando.spearheads.innkeeper.routes.AcceptanceSpecsHelper._
 import org.zalando.spearheads.innkeeper.routes.RoutesRepoHelper._
 import org.zalando.spearheads.innkeeper.api.{UserName, RouteName, RouteOut, Error}
@@ -118,7 +118,7 @@ class PostRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
       }
 
       describe("when a which doesn't have an associated uid") {
-        val token = AcceptanceSpecTokens.generateToken("token", "", "employees", "route.write")
+        val token = AcceptanceSpecToken("token", "", "employees", "route.write")
 
         it("should return the 403 Forbidden status") {
           val response = postRoute(routeName, token)

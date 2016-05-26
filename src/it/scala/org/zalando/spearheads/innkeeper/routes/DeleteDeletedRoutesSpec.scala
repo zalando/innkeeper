@@ -6,7 +6,7 @@ import akka.http.scaladsl.model.StatusCodes
 import org.scalatest.{Matchers, BeforeAndAfter, FunSpec}
 import org.zalando.spearheads.innkeeper.api.{RouteName, RouteOut}
 import org.zalando.spearheads.innkeeper.routes.AcceptanceSpecsHelper._
-import org.zalando.spearheads.innkeeper.routes.AcceptanceSpecTokens._
+import org.zalando.spearheads.innkeeper.routes.AcceptanceSpecToken._
 import org.zalando.spearheads.innkeeper.routes.RoutesRepoHelper._
 import org.zalando.spearheads.innkeeper.routes.RoutesSpecsHelper._
 import spray.json._
