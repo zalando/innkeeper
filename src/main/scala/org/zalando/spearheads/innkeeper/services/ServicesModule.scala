@@ -15,5 +15,7 @@ class ServicesModule extends AbstractModule with ScalaModule {
     bind[HostsService].to[DefaultHostsService].asEagerSingleton()
     bind[PathsService].to[DefaultPathsService].asEagerSingleton()
     bind[CommonFiltersService].to[DefaultCommonFiltersService].asEagerSingleton()
+    bind[RouteToEskipTransformer].to[DefaultRouteToEskipTransformer].asEagerSingleton()
+    bind[EskipRouteService].asEagerSingleton()
   }
 }

@@ -11,9 +11,10 @@ case class EskipRouteWrapper(
 
 case class NameWithStringArgs(name: String, args: Seq[String])
 
-case class EskipRoute(name: String,
-                      predicates: Seq[NameWithStringArgs],
-                      filters: Seq[NameWithStringArgs],
-                      prependedFilters: Seq[String],
-                      appendedFilters: Seq[String],
-                      endpoint: String)
+case class EskipRoute(
+  name: String,
+  predicates: Seq[NameWithStringArgs],
+  filters: Seq[NameWithStringArgs],
+  prependedFilters: Seq[String],
+  appendedFilters: Seq[String],
+  endpoint: String)

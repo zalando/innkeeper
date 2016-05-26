@@ -7,8 +7,6 @@ RUN mkdir -p /opt/innkeeper
 
 ADD target/scala-2.11/innkeeper-assembly-0.0.1.jar /opt/innkeeper/
 
-COPY scm-source.json /scm-source.json
-
 WORKDIR /opt/innkeeper
 
 ENTRYPOINT java $(java-dynamic-memory-opts) \

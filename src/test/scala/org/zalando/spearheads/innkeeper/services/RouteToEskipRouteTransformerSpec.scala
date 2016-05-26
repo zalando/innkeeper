@@ -1,7 +1,7 @@
 package org.zalando.spearheads.innkeeper.services
 
 import org.scalamock.scalatest.MockFactory
-import org.scalatest.{BeforeAndAfter, BeforeAndAfterEach, FunSpec, Matchers}
+import org.scalatest.{BeforeAndAfter, FunSpec, Matchers}
 import org.zalando.spearheads.innkeeper.api.{EskipRoute, Filter, NameWithStringArgs, NewRoute, NumericArg, Predicate, RegexArg, StringArg}
 import org.zalando.spearheads.innkeeper.utils.EnvConfig
 
@@ -10,7 +10,7 @@ import scala.collection.immutable.Seq
 class RouteToEskipRouteTransformerSpec extends FunSpec with Matchers with MockFactory with BeforeAndAfter {
 
   val config = mock[EnvConfig]
-  val routeToEskipTransformer = new RouteToEskipTransformer(config)
+  val routeToEskipTransformer = new DefaultRouteToEskipTransformer(config)
 
   describe("RouteToEskipTransformerSpec") {
 
@@ -37,7 +37,8 @@ class RouteToEskipRouteTransformerSpec extends FunSpec with Matchers with MockFa
   }
 
   val routeName: String = "myRoute"
-  val expectedResult = EskipRoute(name = routeName,
+  val expectedResult = EskipRoute(
+    name = routeName,
     predicates = Seq(
       NameWithStringArgs("somePredicate", Seq(""""Hello"""", "123")),
       NameWithStringArgs("somePredicate1", Seq("/^Hello$/", "123"))),
