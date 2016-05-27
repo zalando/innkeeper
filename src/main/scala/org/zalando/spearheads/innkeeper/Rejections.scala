@@ -33,7 +33,7 @@ object Rejections {
 
   case class IncorrectTeamRejection(requestDescription: String) extends Rejection with InnkeeperRejection {
     def statusCode: StatusCode = StatusCodes.Forbidden
-    def message: String = "User not member of a team which is not allowed to do this call"
+    def message: String = "User not member of a team which is allowed to do this call"
     def code: String = "ITE"
   }
 
