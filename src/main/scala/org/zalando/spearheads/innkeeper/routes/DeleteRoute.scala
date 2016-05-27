@@ -1,18 +1,19 @@
 package org.zalando.spearheads.innkeeper.routes
 
-import akka.http.scaladsl.server.Directives.{onComplete, reject, delete, complete}
+import akka.http.scaladsl.server.Directives.{complete, delete, onComplete, reject}
 import akka.http.scaladsl.server.Route
 import akka.http.scaladsl.server.RouteConcatenation._
 import com.google.inject.Inject
 import org.slf4j.LoggerFactory
-import org.zalando.spearheads.innkeeper.Rejections.{InternalServerErrorRejection, RouteNotFoundRejection, InnkeeperAuthorizationFailedRejection}
-import org.zalando.spearheads.innkeeper.RouteDirectives.findRouteOwnerTeam
+import org.zalando.spearheads.innkeeper.Rejections.{InnkeeperAuthorizationFailedRejection, InternalServerErrorRejection, RouteNotFoundRejection}
+import org.zalando.spearheads.innkeeper.RouteDirectives.findPathByRouteId
 import org.zalando.spearheads.innkeeper.metrics.RouteMetrics
 import org.zalando.spearheads.innkeeper.oauth.OAuthDirectives.{hasOneOfTheScopes, routeTeamAuthorization, team, username}
 import org.zalando.spearheads.innkeeper.oauth.{AuthenticatedUser, Scopes}
 import org.zalando.spearheads.innkeeper.services.ServiceResult.NotFound
 import org.zalando.spearheads.innkeeper.services.team.TeamService
-import org.zalando.spearheads.innkeeper.services.{ServiceResult, RoutesService}
+import org.zalando.spearheads.innkeeper.services.{PathsService, RoutesService, ServiceResult}
+
 import scala.concurrent.ExecutionContext
 import scala.util.{Failure, Success}
 
@@ -21,6 +22,7 @@ import scala.util.{Failure, Success}
  */
 class DeleteRoute @Inject() (
     routesService: RoutesService,
+    pathsService: PathsService,
     metrics: RouteMetrics,
     scopes: Scopes,
     implicit val teamService: TeamService,
@@ -35,15 +37,15 @@ class DeleteRoute @Inject() (
       logger.info(s"try to $reqDesc")
 
       hasOneOfTheScopes(authenticatedUser, reqDesc, scopes.WRITE) {
-        findRouteOwnerTeam(id, routesService, "delete /routes/{}")(executionContext) { routeTeam =>
-          logger.debug(s"try to delete /routes/$id routeTeam found $routeTeam")
+        findPathByRouteId(id, pathsService, "delete /routes/{}")(executionContext) { path =>
+          logger.debug(s"try to delete /routes/$id path found $path")
 
           team(authenticatedUser, token, reqDesc) { team =>
 
             logger.debug("try to delete /routes/{} team found {}", id, team)
 
             username(authenticatedUser, reqDesc) { username =>
-              (routeTeamAuthorization(team, routeTeam, reqDesc) & hasOneOfTheScopes(authenticatedUser, reqDesc, scopes.WRITE)) {
+              (routeTeamAuthorization(team, path.ownedByTeam, reqDesc) & hasOneOfTheScopes(authenticatedUser, reqDesc, scopes.WRITE)) {
 
                 deleteRoute(id, username, s"$reqDesc other")
 

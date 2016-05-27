@@ -37,17 +37,6 @@ class RoutesPostgresRepo @Inject() (
     }.map(_.headOption)
   }
 
-  override def getOwnerTeamForRoute(routeId: Long): Future[Option[String]] = {
-    logger.debug(s"getOwnerTeamForRoute $routeId")
-
-    val query = for {
-      (route, path) <- Routes join Paths on (_.pathId === _.id)
-      if route.id === routeId
-    } yield path.ownedByTeam
-
-    db.run(query.result).map(_.headOption)
-  }
-
   override def selectAll: DatabasePublisher[RouteRow] = {
     logger.debug("selectAll")
 

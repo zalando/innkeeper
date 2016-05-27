@@ -34,8 +34,6 @@ trait RoutesService {
 
   def findById(id: Long): Future[Result[RouteOut]]
 
-  def getOwnerTeamForRoute(routeId: Long): Future[Result[TeamName]]
-
   def findDeletedBefore(deletedBefore: LocalDateTime): Source[RouteOut, NotUsed]
 
   def removeDeletedBefore(deletedBefore: LocalDateTime): Future[Result[Int]]
@@ -110,13 +108,6 @@ class DefaultRoutesService @Inject() (
     routesRepo.selectById(id).flatMap {
       case Some(routeRow) if routeRow.deletedAt.isEmpty => rowToEventualMaybeRoute(routeRow)
       case _                                            => Future(Failure(NotFound))
-    }
-  }
-
-  override def getOwnerTeamForRoute(routeId: Long): Future[Result[TeamName]] = {
-    routesRepo.getOwnerTeamForRoute(routeId).flatMap {
-      case Some(teamName) => Future(Success(TeamName(teamName)))
-      case _              => Future(Failure(NotFound))
     }
   }
 

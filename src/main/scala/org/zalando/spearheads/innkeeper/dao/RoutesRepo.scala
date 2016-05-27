@@ -13,7 +13,6 @@ trait RoutesRepo {
 
   def insert(route: RouteRow): Future[RouteRow]
   def selectById(id: Long): Future[Option[RouteRow]]
-  def getOwnerTeamForRoute(routeId: Long): Future[Option[String]]
   def selectAll: DatabasePublisher[RouteRow]
   def selectModifiedSince(localDateTime: LocalDateTime, currentTime: LocalDateTime): DatabasePublisher[RouteRow]
   def selectByName(name: String): DatabasePublisher[RouteRow]

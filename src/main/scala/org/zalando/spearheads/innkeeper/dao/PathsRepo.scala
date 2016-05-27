@@ -7,6 +7,7 @@ trait PathsRepo {
 
   def insert(path: PathRow): Future[PathRow]
   def selectById(id: Long): Future[Option[PathRow]]
+  def selectByRouteId(routeId: Long): Future[Option[PathRow]]
   def selectAll: DatabasePublisher[PathRow]
   def selectByOwnerTeamAndUri(ownedByTeam: Option[String], uri: Option[String]): DatabasePublisher[PathRow]
 }

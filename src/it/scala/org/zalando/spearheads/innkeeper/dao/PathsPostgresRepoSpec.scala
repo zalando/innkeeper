@@ -1,12 +1,15 @@
 package org.zalando.spearheads.innkeeper.dao
 
 import java.time.LocalDateTime
+
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.time.{Seconds, Span}
 import org.scalatest.{BeforeAndAfter, FunSpec, Matchers}
 import org.zalando.spearheads.innkeeper.routes.PathsRepoHelper._
+import org.zalando.spearheads.innkeeper.routes.RoutesRepoHelper
+
 import scala.collection.immutable.List
 import scala.language.postfixOps
 
@@ -42,6 +45,20 @@ class PathsPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers wi
       it("should select a path by id") {
         insertPath()
         val pathRow = pathsRepo.selectById(1).futureValue
+
+        pathRow.isDefined should be (true)
+        pathRow.get.id should be ('defined)
+        pathRow.get.uri should be ("/uri")
+        pathRow.get.hostIds should be (List(1, 2, 3))
+      }
+    }
+
+    describe("#selectByRouteId") {
+      it("should select a path by route id") {
+        val insertedPath = insertPath()
+        val insertedRoute = RoutesRepoHelper.insertRoute(pathId = insertedPath.id)
+
+        val pathRow = pathsRepo.selectByRouteId(insertedRoute.id.get).futureValue
 
         pathRow.isDefined should be (true)
         pathRow.get.id should be ('defined)

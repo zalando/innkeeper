@@ -85,6 +85,40 @@ class PathsServiceSpec extends FunSpec with Matchers with MockFactory with Scala
       }
     }
 
+    describe("#findByRouteId") {
+      val routeId = 1L
+
+      describe("when the route exists") {
+        it("should find the path") {
+          (pathsRepo.selectByRouteId _)
+            .expects(routeId)
+            .returning(Future(Some(pathRow)))
+
+          val pathServiceResult = pathsService.findByRouteId(routeId).futureValue
+
+          pathServiceResult match {
+            case ServiceResult.Success(path) => verifyPath(path)
+            case _                           => fail()
+          }
+        }
+      }
+
+      describe("when the route does not exist") {
+        it("should not find the path") {
+          (pathsRepo.selectByRouteId _).expects(routeId).returning {
+            Future(None)
+          }
+
+          val pathServiceResult = pathsService.findByRouteId(routeId).futureValue
+
+          pathServiceResult match {
+            case ServiceResult.Failure(ServiceResult.NotFound) =>
+            case _                                             => fail()
+          }
+        }
+      }
+    }
+
     describe("#findByOwnerTeamAndUri") {
       describe("when the path exists") {
         it("should find the path") {

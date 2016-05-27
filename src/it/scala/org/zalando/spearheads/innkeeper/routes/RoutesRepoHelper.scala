@@ -15,12 +15,15 @@ object RoutesRepoHelper extends DaoHelper {
     createdAt: LocalDateTime = LocalDateTime.now(),
     disableAt: Option[LocalDateTime] = None,
     activateAt: LocalDateTime = LocalDateTime.now().minusHours(2),
-    usesCommonFilters: Boolean = false): RouteRow = {
+    usesCommonFilters: Boolean = false,
+    pathId: Option[Long] = None): RouteRow = {
 
-    val pathId = insertTestPath(ownedByTeam, createdBy, createdAt)
+    val resolvedPathId = pathId.getOrElse {
+      insertTestPath(ownedByTeam, createdBy, createdAt)
+    }
 
     routesRepo.insert(RouteRow(
-      pathId = pathId,
+      pathId = resolvedPathId,
       name = name,
       routeJson = routeJson(method),
       createdBy = createdBy,

@@ -10,7 +10,7 @@ import akka.stream.scaladsl.Source
 import org.zalando.spearheads.innkeeper.api._
 import org.zalando.spearheads.innkeeper.Rejections.{InternalServerErrorRejection, PathNotFoundRejection, RouteNotFoundRejection}
 import org.zalando.spearheads.innkeeper.services.{PathsService, RoutesService, ServiceResult}
-import spray.json._
+import spray.json.JsonWriter
 
 import scala.concurrent.ExecutionContext
 import scala.util.Success
@@ -31,11 +31,11 @@ trait RouteDirectives {
       }
     }
 
-  def findRouteOwnerTeam(id: Long, routesService: RoutesService, requestDescription: String)(implicit executionContext: ExecutionContext): Directive1[TeamName] =
-    Directive[Tuple1[TeamName]] { inner => ctx =>
+  def findPathByRouteId(id: Long, pathsService: PathsService, requestDescription: String)(implicit executionContext: ExecutionContext): Directive1[PathOut] =
+    Directive[Tuple1[PathOut]] { inner => ctx =>
       {
-        routesService.getOwnerTeamForRoute(id).fast.transformWith {
-          case Success(ServiceResult.Success(teamName))               => inner(Tuple1(teamName))(ctx)
+        pathsService.findByRouteId(id).fast.transformWith {
+          case Success(ServiceResult.Success(path))                   => inner(Tuple1(path))(ctx)
           case Success(ServiceResult.Failure(ServiceResult.NotFound)) => reject(RouteNotFoundRejection(requestDescription))(ctx)
           case _                                                      => reject(InternalServerErrorRejection(requestDescription))(ctx)
         }
