@@ -116,7 +116,6 @@ class EskipRouteServiceSpec extends FunSpec with Matchers with MockFactory with 
     routeJson = newRoute.toJson.compactPrint,
     activateAt = LocalDateTime.now(),
     usesCommonFilters = true,
-    ownedByTeam = "team",
     createdBy = "user",
     createdAt = createdAt)
 
@@ -135,7 +134,6 @@ class EskipRouteServiceSpec extends FunSpec with Matchers with MockFactory with 
     newRoute,
     createdAt,
     activateAt = LocalDateTime.of(2015, 10, 10, 10, 10, 11),
-    TeamName("team"),
     UserName("user"),
     usesCommonFilters = false,
     disableAt = Some(LocalDateTime.of(2015, 11, 11, 11, 11, 11))

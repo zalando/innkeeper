@@ -2,7 +2,6 @@ package org.zalando.spearheads.innkeeper.services.team
 
 import com.google.inject.Inject
 import org.slf4j.LoggerFactory
-import org.zalando.spearheads.innkeeper.api.RouteOut
 import org.zalando.spearheads.innkeeper.services.ServiceResult
 import org.zalando.spearheads.innkeeper.services.ServiceResult.{Ex, NotFound, Result}
 import org.zalando.spearheads.innkeeper.services.team.TeamJsonProtocol._
@@ -15,8 +14,6 @@ import scala.util.{Try, Failure, Success}
  * @author dpersa
  */
 trait TeamService {
-
-  def routeHasTeam(route: RouteOut, team: Team): Boolean
 
   def isAdminTeam(team: Team): Boolean
 
@@ -52,8 +49,6 @@ class ZalandoTeamService @Inject() (
       }
     }
   }
-
-  override def routeHasTeam(route: RouteOut, team: Team): Boolean = route.ownedByTeam.name == team.name
 
   private def url(username: String) = config.getString("team.member.service.url") + username
 

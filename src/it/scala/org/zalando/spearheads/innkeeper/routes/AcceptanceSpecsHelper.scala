@@ -66,13 +66,18 @@ object AcceptanceSpecsHelper extends ScalaFutures with Matchers {
   }
 }
 
-object AcceptanceSpecTokens {
-  val READ_TOKEN = generateToken("token", "user~1", "employees", "route.read")
-  val WRITE_TOKEN = generateToken("token", "user~1", "employees", "route.write")
-  val ADMIN_TOKEN = generateToken("token", "user~1", "employees", "route.admin")
-  val ADMIN_TEAM_TOKEN = generateToken("token", "user~3", "employees", "route.read")
-  val INVALID_TOKEN = "invalid"
+case class AcceptanceSpecToken(token: String, userName: String, realm: String, scope: String) {
+  override val toString = s"$token-$userName-$realm-$scope"
 
-  def generateToken(token: String, userName: String, teamName: String, scope: String) =
-    s"$token-$userName-$teamName-$scope"
+  val teamName = userName.replace("user~", "team")
+}
+
+object AcceptanceSpecToken {
+  implicit def AcceptanceSpecTokenToString(acceptanceSpecToken: AcceptanceSpecToken): String = acceptanceSpecToken.toString
+
+  val READ_TOKEN = AcceptanceSpecToken("token", "user~1", "employees", "route.read")
+  val WRITE_TOKEN = AcceptanceSpecToken("token", "user~1", "employees", "route.write")
+  val ADMIN_TOKEN = AcceptanceSpecToken("token", "user~1", "employees", "route.admin")
+  val ADMIN_TEAM_TOKEN = AcceptanceSpecToken("token", "user~3", "employees", "route.read")
+  val INVALID_TOKEN = "invalid"
 }

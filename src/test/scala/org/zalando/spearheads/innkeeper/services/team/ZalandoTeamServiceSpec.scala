@@ -1,12 +1,9 @@
 package org.zalando.spearheads.innkeeper.services.team
 
-import java.time.LocalDateTime
 import akka.http.scaladsl.model.HttpMethods
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.concurrent.ScalaFutures
-import scala.collection.immutable.Seq
 import org.scalatest.{FunSpec, Matchers}
-import org.zalando.spearheads.innkeeper.api._
 import org.zalando.spearheads.innkeeper.services.ServiceResult
 import org.zalando.spearheads.innkeeper.services.ServiceResult.NotFound
 import org.zalando.spearheads.innkeeper.utils.{EnvConfig, HttpClient}
@@ -26,45 +23,6 @@ class ZalandoTeamServiceSpec extends FunSpec with MockFactory with Matchers with
   implicit val executionContext = ExecutionContext.global
 
   describe("ZalandoTeamServiceSpec") {
-
-    describe("#routeHasTeam") {
-      (mockConfig.getStringSet _).expects("admin.teams").returning(Set("team_admin"))
-      val teamService = new ZalandoTeamService(mockConfig, mockHttpClient)
-
-      val now = LocalDateTime.now()
-      val samplePredicate = Predicate("somePredicate", Seq(StringArg("Hello"), NumericArg("123.0")))
-      val newRoute = NewRoute(predicates = Some(Seq(samplePredicate)))
-      val route = RouteOut(
-        id = 1,
-        pathId = 1L,
-        name = RouteName("name"),
-        route = newRoute,
-        createdAt = now,
-        activateAt = now,
-        ownedByTeam = TeamName("pathfinder"),
-        createdBy = UserName("gigel"),
-        usesCommonFilters = false
-      )
-
-      val team = Team("pathfinder", Official)
-
-      describe("success") {
-
-        it("should return true") {
-          teamService.routeHasTeam(route, team) should be (true)
-        }
-      }
-
-      describe("failure") {
-
-        describe("when the user is not part of the team which created the route") {
-
-          it("should return false") {
-            teamService.routeHasTeam(route.copy(ownedByTeam = TeamName("other")), team) should be (false)
-          }
-        }
-      }
-    }
 
     describe("#isAdminTeam") {
       (mockConfig.getStringSet _).expects("admin.teams").returning(Set("team_admin1", "team_admin2"))

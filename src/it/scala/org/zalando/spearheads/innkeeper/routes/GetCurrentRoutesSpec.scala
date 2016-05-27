@@ -1,17 +1,16 @@
 package org.zalando.spearheads.innkeeper.routes
 
 import java.time.LocalDateTime
-
 import akka.http.scaladsl.model.StatusCodes
 import org.scalatest.{BeforeAndAfter, FunSpec, Matchers}
 import org.zalando.spearheads.innkeeper.api.EskipRouteWrapper
-import org.zalando.spearheads.innkeeper.routes.AcceptanceSpecTokens.{INVALID_TOKEN, READ_TOKEN, WRITE_TOKEN}
+import org.zalando.spearheads.innkeeper.api.JsonProtocols._
+import org.zalando.spearheads.innkeeper.routes.AcceptanceSpecToken.{INVALID_TOKEN, READ_TOKEN, WRITE_TOKEN}
 import org.zalando.spearheads.innkeeper.routes.AcceptanceSpecsHelper._
 import org.zalando.spearheads.innkeeper.routes.RoutesRepoHelper.{deleteRoute, insertRoute, recreateSchema}
-import spray.json.pimpString
-import spray.json.DefaultJsonProtocol._
-import org.zalando.spearheads.innkeeper.api.JsonProtocols._
 import org.zalando.spearheads.innkeeper.routes.RoutesSpecsHelper._
+import spray.json.DefaultJsonProtocol._
+import spray.json.pimpString
 
 class GetCurrentRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
 

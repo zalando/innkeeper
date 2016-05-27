@@ -293,7 +293,6 @@ class JsonProtocolsSpec extends FunSpec with Matchers {
       newRoute,
       LocalDateTime.of(2015, 10, 10, 10, 10, 10),
       LocalDateTime.of(2015, 10, 10, 10, 10, 10),
-      TeamName("team"),
       UserName("user"),
       usesCommonFilters = false,
       Some(LocalDateTime.of(2015, 11, 11, 11, 11, 11)),
@@ -313,7 +312,6 @@ class JsonProtocolsSpec extends FunSpec with Matchers {
                     |  "path_id": 1,
                     |  "created_at": "2015-10-10T10:10:10",
                     |  "deleted_at": "2015-10-10T10:10:10",
-                    |  "owned_by_team": "team",
                     |  "route": {
                     |    "predicates": [{
                     |       "name": "somePredicate",
@@ -336,7 +334,6 @@ class JsonProtocolsSpec extends FunSpec with Matchers {
         """{
           |  "created_by": "user",
           |  "name": "THE_ROUTE",
-          |  "owned_by_team": "team",
           |  "description": "this is a route",
           |  "uses_common_filters": false,
           |  "activate_at": "2015-10-10T10:10:10",

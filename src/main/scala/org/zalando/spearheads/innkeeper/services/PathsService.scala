@@ -20,6 +20,8 @@ trait PathsService {
 
   def findById(id: Long): Future[Result[PathOut]]
 
+  def findByRouteId(routeId: Long): Future[Result[PathOut]]
+
   def findByOwnerTeamAndUri(
     ownedByTeamOption: Option[TeamName] = None,
     uriOption: Option[String] = None): Source[PathOut, NotUsed]
@@ -50,6 +52,13 @@ class DefaultPathsService @Inject() (pathsRepo: PathsRepo)(implicit val executio
 
   override def findById(id: Long): Future[ServiceResult.Result[PathOut]] = {
     pathsRepo.selectById(id).flatMap {
+      case Some(pathRow) => rowToEventualMaybePath(pathRow)
+      case _             => Future(Failure(NotFound()))
+    }
+  }
+
+  override def findByRouteId(routeId: Long): Future[ServiceResult.Result[PathOut]] = {
+    pathsRepo.selectByRouteId(routeId).flatMap {
       case Some(pathRow) => rowToEventualMaybePath(pathRow)
       case _             => Future(Failure(NotFound()))
     }

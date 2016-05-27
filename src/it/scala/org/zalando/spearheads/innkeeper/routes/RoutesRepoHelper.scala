@@ -17,16 +17,18 @@ object RoutesRepoHelper extends DaoHelper {
     createdAt: LocalDateTime = LocalDateTime.now(),
     disableAt: Option[LocalDateTime] = None,
     activateAt: LocalDateTime = LocalDateTime.now().minusHours(2),
-    usesCommonFilters: Boolean = false): RouteRow = {
+    usesCommonFilters: Boolean = false,
+    pathId: Option[Long] = None): RouteRow = {
 
-    val pathId = insertTestPath(ownedByTeam, createdBy, createdAt, s"/path-for-$name")
+    val resolvedPathId = pathId.getOrElse {
+      insertTestPath(ownedByTeam, createdBy, createdAt, s"/path-for-$name")
+    }
 
     routesRepo.insert(RouteRow(
-      pathId = pathId,
+      pathId = resolvedPathId,
       name = name,
       routeJson = routeJson(method),
       createdBy = createdBy,
-      ownedByTeam = ownedByTeam,
       createdAt = createdAt,
       activateAt = activateAt,
       disableAt = disableAt,
@@ -53,7 +55,6 @@ object RoutesRepoHelper extends DaoHelper {
       name = name,
       routeJson = routeJson(method),
       createdBy = createdBy,
-      ownedByTeam = ownedByTeam,
       createdAt = createdAt,
       activateAt = activateAt,
       usesCommonFilters = usesCommonFilters,
