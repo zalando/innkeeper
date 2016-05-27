@@ -19,7 +19,6 @@ trait RoutesService {
 
   def create(
     route: RouteIn,
-    ownedByTeam: TeamName,
     createdBy: UserName,
     createdAt: LocalDateTime = LocalDateTime.now()): Future[Result[RouteOut]]
 
@@ -47,7 +46,6 @@ class DefaultRoutesService @Inject() (
 
   override def create(
     route: RouteIn,
-    ownedByTeam: TeamName,
     createdBy: UserName,
     createdAt: LocalDateTime = LocalDateTime.now()): Future[Result[RouteOut]] = {
 
@@ -60,7 +58,6 @@ class DefaultRoutesService @Inject() (
       activateAt = route.activateAt.getOrElse(createdAt.plusMinutes {
         defaultNumberOfMinutesToActivateRoute()
       }),
-      ownedByTeam = ownedByTeam.name,
       createdBy = createdBy.name,
       createdAt = createdAt,
       description = route.description,
@@ -141,7 +138,6 @@ class DefaultRoutesService @Inject() (
       route = routeRow.routeJson.parseJson.convertTo[NewRoute],
       createdAt = routeRow.createdAt,
       activateAt = routeRow.activateAt,
-      ownedByTeam = TeamName(routeRow.ownedByTeam),
       createdBy = UserName(routeRow.createdBy),
       description = routeRow.description,
       disableAt = routeRow.disableAt,

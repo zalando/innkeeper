@@ -49,7 +49,6 @@ case class RouteOut(
   route: NewRoute,
   createdAt: LocalDateTime,
   activateAt: LocalDateTime,
-  ownedByTeam: TeamName,
   createdBy: UserName,
   usesCommonFilters: Boolean,
   disableAt: Option[LocalDateTime] = None,

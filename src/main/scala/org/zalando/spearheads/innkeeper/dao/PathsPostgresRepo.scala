@@ -34,6 +34,17 @@ class PathsPostgresRepo @Inject() (
     }.map(_.headOption)
   }
 
+  override def selectByRouteId(routeId: Long): Future[Option[PathRow]] = {
+    logger.debug(s"selectByRouteId $routeId")
+
+    val query = for {
+      (route, path) <- Routes join Paths on (_.pathId === _.id)
+      if route.id === routeId
+    } yield path
+
+    db.run(query.result).map(_.headOption)
+  }
+
   override def selectByOwnerTeamAndUri(
     ownedByTeamOption: Option[String] = None,
     uriOption: Option[String] = None): DatabasePublisher[PathRow] = {

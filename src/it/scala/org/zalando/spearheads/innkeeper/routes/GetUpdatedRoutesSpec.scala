@@ -5,7 +5,7 @@ import java.time.temporal.ChronoUnit
 
 import akka.http.scaladsl.model.StatusCodes
 import org.scalatest.{BeforeAndAfter, FunSpec, Matchers}
-import org.zalando.spearheads.innkeeper.routes.AcceptanceSpecTokens.{INVALID_TOKEN, READ_TOKEN, WRITE_TOKEN}
+import org.zalando.spearheads.innkeeper.routes.AcceptanceSpecToken.{INVALID_TOKEN, READ_TOKEN, WRITE_TOKEN}
 import org.zalando.spearheads.innkeeper.routes.AcceptanceSpecsHelper._
 import org.zalando.spearheads.innkeeper.routes.RoutesRepoHelper.{recreateSchema, insertRoute}
 import org.zalando.spearheads.innkeeper.api.RouteOut

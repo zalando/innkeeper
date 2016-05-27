@@ -6,20 +6,22 @@ import akka.http.scaladsl.server.Route
 import com.google.inject.Inject
 import org.slf4j.LoggerFactory
 import org.zalando.spearheads.innkeeper.Rejections.UnmarshallRejection
-import org.zalando.spearheads.innkeeper.api.{RouteIn, RouteOut, TeamName, UserName}
+import org.zalando.spearheads.innkeeper.api.{RouteIn, RouteOut, UserName}
 import org.zalando.spearheads.innkeeper.metrics.RouteMetrics
-import org.zalando.spearheads.innkeeper.oauth.OAuthDirectives.{hasOneOfTheScopes, team, isValidRoute}
+import org.zalando.spearheads.innkeeper.oauth.OAuthDirectives.{hasOneOfTheScopes, isValidRoute, routeTeamAuthorization, team}
 import org.zalando.spearheads.innkeeper.oauth.{AuthenticatedUser, Scopes}
-import org.zalando.spearheads.innkeeper.services.{RoutesService, ServiceResult}
+import org.zalando.spearheads.innkeeper.services.{PathsService, RoutesService, ServiceResult}
 import org.zalando.spearheads.innkeeper.services.team.TeamService
 import org.zalando.spearheads.innkeeper.api.JsonProtocols._
 import akka.http.scaladsl.server.Directives._
+import org.zalando.spearheads.innkeeper.RouteDirectives.findPath
 import org.zalando.spearheads.innkeeper.api.validation.RouteValidationService
 
 import scala.concurrent.{ExecutionContext, Future}
 
 class PostRoutes @Inject() (
     routesService: RoutesService,
+    pathsService: PathsService,
     metrics: RouteMetrics,
     scopes: Scopes,
     implicit val routeValidationService: RouteValidationService,
@@ -33,12 +35,18 @@ class PostRoutes @Inject() (
       val reqDesc = "post /routes"
       logger.info(s"try to $reqDesc")
       entity(as[RouteIn]) { route =>
-        logger.info(s"We Try to $reqDesc unmarshalled route ${route}")
+        logger.info(s"We Try to $reqDesc unmarshalled route $route")
+
         team(authenticatedUser, token, "path") { team =>
-          logger.debug(s"post /routes team ${team}")
-          hasOneOfTheScopes(authenticatedUser, reqDesc, scopes.WRITE) {
-            isValidRoute(route.route, reqDesc)(routeValidationService) {
-              handleWith(saveRoute(UserName(authenticatedUser.username), TeamName(team.name), s"$reqDesc other"))
+          logger.debug(s"post /routes team $team")
+
+          findPath(route.pathId, pathsService, reqDesc)(executionContext) { path =>
+            logger.debug(s"post /routes path $path")
+
+            (routeTeamAuthorization(team, path.ownedByTeam, reqDesc) & hasOneOfTheScopes(authenticatedUser, reqDesc, scopes.WRITE)) {
+              isValidRoute(route.route, reqDesc)(routeValidationService) {
+                handleWith(saveRoute(UserName(authenticatedUser.username), s"$reqDesc other"))
+              }
             }
           }
         }
@@ -48,10 +56,10 @@ class PostRoutes @Inject() (
     }
   }
 
-  private def saveRoute(createdBy: UserName, ownedByTeam: TeamName, reqDesc: String): (RouteIn) => Future[Option[RouteOut]] = (route: RouteIn) => {
+  private def saveRoute(createdBy: UserName, reqDesc: String): (RouteIn) => Future[Option[RouteOut]] = (route: RouteIn) => {
     metrics.postRoutes.time {
       logger.debug(s"$reqDesc saveRoute")
-      routesService.create(route, ownedByTeam, createdBy).map {
+      routesService.create(route, createdBy).map {
         case ServiceResult.Success(route) => Some(route)
         case _                            => None
       }

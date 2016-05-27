@@ -2,7 +2,7 @@ package org.zalando.spearheads.innkeeper.api
 
 import org.zalando.spearheads.innkeeper.api.LocalDateTimeProtocol.LocalDateTimeFormat
 import spray.json.DefaultJsonProtocol._
-import spray.json.{DeserializationException, JsObject, JsString, JsValue, RootJsonFormat, pimpAny}
+import spray.json.{DeserializationException, JsObject, JsString, JsValue, RootJsonFormat}
 
 import scala.collection.immutable.Seq
 
@@ -103,7 +103,6 @@ object JsonProtocols {
     "route",
     "created_at",
     "activate_at",
-    "owned_by_team",
     "created_by",
     "uses_common_filters",
     "disable_at",

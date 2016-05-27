@@ -2,10 +2,10 @@ package org.zalando.spearheads.innkeeper.routes
 
 import akka.http.scaladsl.model.StatusCodes
 import org.scalatest.{BeforeAndAfter, FunSpec, Matchers}
-import org.zalando.spearheads.innkeeper.routes.AcceptanceSpecTokens._
+import org.zalando.spearheads.innkeeper.routes.AcceptanceSpecToken._
 import org.zalando.spearheads.innkeeper.routes.AcceptanceSpecsHelper._
 import org.zalando.spearheads.innkeeper.routes.RoutesRepoHelper._
-import org.zalando.spearheads.innkeeper.api.{UserName, TeamName, RouteName, RouteOut, Error}
+import org.zalando.spearheads.innkeeper.api.{UserName, RouteName, RouteOut, Error}
 import spray.json.pimpString
 import spray.json.DefaultJsonProtocol._
 import org.zalando.spearheads.innkeeper.api.JsonProtocols._
@@ -27,13 +27,12 @@ class PostRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
 
         it("should create the new route") {
           val routeName = "route_1"
-          val response = postRoute(routeName, token)
+          val response = postRoute(routeName, token, token.teamName)
           response.status should be(StatusCodes.OK)
           val entity = entityString(response)
           val route = entity.parseJson.convertTo[RouteOut]
           route.id should be(1)
           route.name should be(RouteName(routeName))
-          route.ownedByTeam should be(TeamName("team1"))
           route.createdBy should be(UserName("user~1"))
           routeFiltersShouldBeCorrect(route)
           routePredicatesShouldBeCorrect(route)
@@ -41,7 +40,7 @@ class PostRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
 
         it("should not create more routes") {
           val routeName = "route_1"
-          val response = postRoute(routeName, token)
+          val response = postRoute(routeName, token, token.teamName)
 
           val routesResponse = getSlashRoutes(READ_TOKEN)
           response.status should be(StatusCodes.OK)
@@ -59,7 +58,7 @@ class PostRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
 
         it("should return the 400 Bad Request status") {
           val routeName = "invalid-route-name"
-          val response = postRoute(routeName, token)
+          val response = postRoute(routeName, token, token.teamName)
           response.status should be(StatusCodes.BadRequest)
         }
       }
@@ -67,10 +66,10 @@ class PostRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
       describe("when an invalid predicate is provided") {
         val token = WRITE_TOKEN
 
-        val insertedPath = PathsRepoHelper.insertPath()
-        val pathId = insertedPath.id.get
+        it("should return the 400 Bad Request status") {
+          val pathId = insertPath(token.teamName)
 
-        val invalidPredicateRoute = s"""{
+          val invalidPredicateRoute = s"""{
                                          |  "name": "route",
                                          |  "path_id": $pathId,
                                          |  "uses_common_filters": false,
@@ -85,7 +84,6 @@ class PostRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
                                          |  }
                                          |}""".stripMargin
 
-        it("should return the 400 Bad Request status") {
           val response = postSlashRoutes(invalidPredicateRoute)(token)
           response.status should be(StatusCodes.BadRequest)
           entityString(response).parseJson.convertTo[Error].errorType should be("IRF")
@@ -95,7 +93,7 @@ class PostRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
       describe("when no token is provided") {
 
         it("should return the 401 Unauthorized status") {
-          val response = postRoute(routeName, "")
+          val response = postRoute(routeName, "", "")
           response.status should be(StatusCodes.Unauthorized)
         }
       }
@@ -104,7 +102,7 @@ class PostRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
         val token = INVALID_TOKEN
 
         it("should return the 403 Forbidden status") {
-          val response = postRoute(routeName, token)
+          val response = postRoute(routeName, token, "")
           response.status should be(StatusCodes.Forbidden)
         }
       }
@@ -113,26 +111,40 @@ class PostRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
         val token = READ_TOKEN
 
         it("should return the 403 Forbidden status") {
-          val response = postRoute(routeName, token)
+          val response = postRoute(routeName, token, token.teamName)
           response.status should be(StatusCodes.Forbidden)
         }
       }
 
-      describe("when a which doesn't have an associated uid") {
-        val token = AcceptanceSpecTokens.generateToken("token", "", "employees", "route.write")
+      describe("when a token which doesn't have an associated uid") {
+        val token = AcceptanceSpecToken("token", "", "employees", "route.write")
 
         it("should return the 403 Forbidden status") {
-          val response = postRoute(routeName, token)
+          val response = postRoute(routeName, token, token.teamName)
+          response.status should be(StatusCodes.Forbidden)
+        }
+      }
+
+      describe("when an user is not part of an authorized team for the path") {
+        val token = READ_TOKEN
+
+        it("should return the 403 Forbidden status") {
+          val response = postRoute(routeName, token, "unauthorized-team-name")
           response.status should be(StatusCodes.Forbidden)
         }
       }
     }
   }
 
-  private def postRoute(routeName: String, token: String) = {
-    val insertedPath = PathsRepoHelper.insertPath()
-    val pathId = insertedPath.id.get
+  private def postRoute(routeName: String, token: String, pathTeamName: String) = {
+    val pathId = insertPath(pathTeamName)
 
     postRouteToSlashRoutes(routeName, pathId, token)
+  }
+
+  private def insertPath(pathTeamName: String): Long = {
+    val pathToInsert = PathsRepoHelper.samplePath().copy(ownedByTeam = pathTeamName)
+    val insertedPath = PathsRepoHelper.insertPath(pathToInsert)
+    insertedPath.id.get
   }
 }
