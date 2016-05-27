@@ -8,7 +8,10 @@ object RoutesRepoHelper extends DaoHelper {
 
   implicit override val patienceConfig = PatienceConfig(timeout = Span(5, Seconds))
 
-  def insertRoute(name: String = "THE_ROUTE", method: String = "GET",
+  def insertRoute(
+    name: String = "THE_ROUTE",
+    description: String = "desc",
+    method: String = "GET",
     createdBy: String = "testuser",
     ownedByTeam: String = "testteam",
     createdAt: LocalDateTime = LocalDateTime.now(),
@@ -27,7 +30,8 @@ object RoutesRepoHelper extends DaoHelper {
       createdAt = createdAt,
       activateAt = activateAt,
       disableAt = disableAt,
-      usesCommonFilters = usesCommonFilters
+      usesCommonFilters = usesCommonFilters,
+      description = Some(description)
     )).futureValue
   }
 
@@ -40,7 +44,8 @@ object RoutesRepoHelper extends DaoHelper {
     ownedByTeam: String = "testteam",
     createdAt: LocalDateTime = LocalDateTime.now(),
     activateAt: LocalDateTime = LocalDateTime.now(),
-    usesCommonFilters: Boolean = false): RouteRow = {
+    usesCommonFilters: Boolean = false,
+    description: Option[String] = Some("desc")): RouteRow = {
 
     RouteRow(
       id = Some(id),
@@ -51,7 +56,8 @@ object RoutesRepoHelper extends DaoHelper {
       ownedByTeam = ownedByTeam,
       createdAt = createdAt,
       activateAt = activateAt,
-      usesCommonFilters = usesCommonFilters
+      usesCommonFilters = usesCommonFilters,
+      description = description
     )
   }
 

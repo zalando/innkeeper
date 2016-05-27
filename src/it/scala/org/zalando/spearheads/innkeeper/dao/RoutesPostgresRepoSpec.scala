@@ -46,8 +46,8 @@ class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers w
         val createdAt = LocalDateTime.now()
         val activateAt = createdAt.minusMinutes(5)
 
-        insertRoute("R1", "GET", createdAt = createdAt, activateAt = activateAt)
-        insertRoute("R2", "POST", createdAt = createdAt, activateAt = activateAt)
+        insertRoute("R1", method = "GET", createdAt = createdAt, activateAt = activateAt)
+        insertRoute("R2", method = "POST", createdAt = createdAt, activateAt = activateAt)
 
         val routes: List[RouteRow] = routesRepo.selectAll
 
@@ -233,8 +233,8 @@ class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers w
 
     describe("delete") {
       it("should delete a route by marking as deleted") {
-        insertRoute("1", "POST")
-        insertRoute("2", "GET")
+        insertRoute("1", method = "POST")
+        insertRoute("2", method = "GET")
         val result = deleteRoute(1)
 
         result should be (true)
