@@ -16,7 +16,6 @@ trait RoutesRepo {
   def selectAll: DatabasePublisher[RouteRow]
   def selectModifiedSince(localDateTime: LocalDateTime, currentTime: LocalDateTime): DatabasePublisher[RouteRow]
   def selectByName(name: String): DatabasePublisher[RouteRow]
-  def selectLatestActiveRoutesPerName(currentTime: LocalDateTime): DatabasePublisher[RouteRow]
 
   def selectLatestActiveRoutesWithPathPerName(currentTime: LocalDateTime): DatabasePublisher[(RouteRow, PathRow)]
 

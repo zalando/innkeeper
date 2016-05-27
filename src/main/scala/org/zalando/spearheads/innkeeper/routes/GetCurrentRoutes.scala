@@ -1,10 +1,11 @@
 package org.zalando.spearheads.innkeeper.routes
 
-import akka.http.scaladsl.server.Directives.get
+import akka.http.scaladsl.server.Directives.{get, reject}
 import akka.http.scaladsl.server.Route
 import com.google.inject.Inject
 import org.slf4j.LoggerFactory
-import org.zalando.spearheads.innkeeper.api.{JsonService, RouteOut}
+import org.zalando.spearheads.innkeeper.Rejections.InnkeeperAuthorizationFailedRejection
+import org.zalando.spearheads.innkeeper.api.{JsonService, RouteName, RouteOut}
 import org.zalando.spearheads.innkeeper.metrics.RouteMetrics
 import org.zalando.spearheads.innkeeper.oauth.OAuthDirectives.hasOneOfTheScopes
 import org.zalando.spearheads.innkeeper.oauth.{AuthenticatedUser, Scopes}
@@ -30,9 +31,10 @@ class GetCurrentRoutes @Inject() (
         metrics.getCurrentRoutes.time {
           logger.info(s"try to $reqDesc")
 
-          chunkedResponseOf[RouteOut](jsonService) {
-            routesService.latestRoutesPerName()
-          }
+          //          chunkedResponseOf[RouteOut](jsonService) {
+          //
+          //          }
+          reject(InnkeeperAuthorizationFailedRejection(reqDesc))
         }
       }
     }

@@ -207,35 +207,6 @@ class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers w
       }
     }
 
-    describe("#selectLatestRoutesPerName") {
-
-      it("should select the right routes") {
-        insertRoute("R1")
-        insertRoute("R2", activateAt = LocalDateTime.now().plusMinutes(5))
-        val createdAt = LocalDateTime.now()
-        insertRoute("R3", createdAt = createdAt)
-        insertRoute("R4", createdAt = createdAt)
-        insertRoute("R1")
-        insertRoute("R3")
-        deleteRoute(5)
-
-        val routes: List[RouteRow] = routesRepo.selectLatestActiveRoutesPerName(LocalDateTime.now())
-
-        routes.size should be (3)
-        routes.map(_.id.get).toSet should be (Set(1, 4, 6))
-      }
-
-      it("should not select the disabled routes") {
-        insertRoute("R1", disableAt = Some(LocalDateTime.now().minusMinutes(3)))
-        insertRoute("R3")
-
-        val routes: List[RouteRow] = routesRepo.selectLatestActiveRoutesPerName(LocalDateTime.now())
-
-        routes.size should be (1)
-        routes.map(_.id.get).toSet should be (Set(2))
-      }
-    }
-
     describe("#selectLatestActiveRoutesWithPathPerName") {
 
       it("should select the right routes") {

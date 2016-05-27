@@ -31,8 +31,6 @@ trait RoutesService {
 
   def allRoutes: Source[RouteOut, NotUsed]
 
-  def latestRoutesPerName(currentTime: LocalDateTime = LocalDateTime.now()): Source[RouteOut, NotUsed]
-
   def findById(id: Long): Future[Result[RouteOut]]
 
   def findDeletedBefore(deletedBefore: LocalDateTime): Source[RouteOut, NotUsed]
@@ -93,10 +91,6 @@ class DefaultRoutesService @Inject() (
 
   override def allRoutes: Source[RouteOut, NotUsed] = routeRowsStreamToRouteOutStream {
     routesRepo.selectAll
-  }
-
-  override def latestRoutesPerName(currentTime: LocalDateTime): Source[RouteOut, NotUsed] = routeRowsStreamToRouteOutStream {
-    routesRepo.selectLatestActiveRoutesPerName(currentTime)
   }
 
   private def routeRowsStreamToRouteOutStream(streamOfRows: => DatabasePublisher[RouteRow]): Source[RouteOut, NotUsed] = {

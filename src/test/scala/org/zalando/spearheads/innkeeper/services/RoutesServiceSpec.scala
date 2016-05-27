@@ -124,35 +124,6 @@ class RoutesServiceSpec extends FunSpec with Matchers with MockFactory with Scal
       }
     }
 
-    describe("#latestRoutesPerName") {
-      lazy val currentTime = LocalDateTime.now()
-
-      it("should find the latest routes for each name") {
-
-        (routesRepo.selectLatestActiveRoutesPerName _).expects(currentTime).returning {
-          FakeDatabasePublisher[RouteRow](Seq(routeRow))
-        }
-
-        val result = routesService.latestRoutesPerName(currentTime)
-        val route = result.runWith(Sink.head).futureValue
-
-        verifyRoute(route)
-      }
-
-      it("should return an empty list if there are no routes") {
-        (routesRepo.selectLatestActiveRoutesPerName _).expects(currentTime).returning {
-          FakeDatabasePublisher[RouteRow](Seq())
-        }
-
-        val result = routesService.latestRoutesPerName(currentTime)
-        val route = result.runWith(Sink.head)
-
-        an[NoSuchElementException] should be thrownBy {
-          Await.result(route, 100 millis)
-        }
-      }
-    }
-
     describe("#findById") {
       describe("when the route exists") {
         it("should find the route") {

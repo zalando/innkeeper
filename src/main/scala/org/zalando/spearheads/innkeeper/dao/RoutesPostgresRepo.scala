@@ -79,18 +79,6 @@ class RoutesPostgresRepo @Inject() (
     }
   }
 
-  override def selectLatestActiveRoutesPerName(currentTime: LocalDateTime): DatabasePublisher[RouteRow] = {
-    logger.debug("select latest routes per name")
-
-    val join = (for {
-      routeRow <- Routes.filter(_.id in latestActiveRouteIdsCreatedForEachName(currentTime))
-    } yield routeRow)
-
-    db.stream {
-      join.result
-    }
-  }
-
   def selectLatestActiveRoutesWithPathPerName(currentTime: LocalDateTime): DatabasePublisher[(RouteRow, PathRow)] = {
     logger.debug("select latest routes with paths per name")
 
