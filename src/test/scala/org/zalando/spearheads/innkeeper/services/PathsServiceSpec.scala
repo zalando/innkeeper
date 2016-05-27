@@ -79,7 +79,7 @@ class PathsServiceSpec extends FunSpec with Matchers with MockFactory with Scala
 
           pathServiceResult match {
             case ServiceResult.Failure(ServiceResult.NotFound(_)) =>
-            case _                                             => fail()
+            case _                                                => fail()
           }
         }
       }

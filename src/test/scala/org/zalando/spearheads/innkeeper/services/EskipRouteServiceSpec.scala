@@ -1,18 +1,19 @@
 package org.zalando.spearheads.innkeeper.services
 
 import java.time.LocalDateTime
-
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
-import akka.stream.scaladsl.{Sink, Source}
+import akka.stream.scaladsl.Sink
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.{FunSpec, Matchers}
+import org.zalando.spearheads.innkeeper.FakeDatabasePublisher
 import org.zalando.spearheads.innkeeper.api.{EskipRoute, Filter, NameWithStringArgs, NewRoute, NumericArg, Predicate, RegexArg, RouteName, RouteOut, StringArg, TeamName, UserName}
-import org.zalando.spearheads.innkeeper.dao.RoutesRepo
-
+import org.zalando.spearheads.innkeeper.dao.{PathRow, RouteRow, RoutesRepo}
 import scala.collection.immutable.Seq
 import scala.concurrent.ExecutionContext
+import org.zalando.spearheads.innkeeper.api.JsonProtocols._
+import spray.json.pimpAny
 
 class EskipRouteServiceSpec extends FunSpec with Matchers with MockFactory with ScalaFutures {
 
@@ -26,37 +27,78 @@ class EskipRouteServiceSpec extends FunSpec with Matchers with MockFactory with 
   describe("route to eskip") {
 
     describe("#currentEskipRoutes") {
-      it ("should return the correct current routes") {
+      describe("when the common filters are enabled") {
 
-//        (routesService.latestRoutesPerName _)
-//          .expects(currentTime)
-//          .returning(Source.single(routeOut))
-//
-//        (routeToEskipTransformer.transform _).expects(routeName, newRoute).returning(eskipRoute)
+        it ("should return the correct current routes") {
 
-        val result = eskipRouteService.currentEskipRoutes(currentTime).runWith(Sink.head).futureValue
+          (routesRepo.selectLatestActiveRoutesWithPathPerName _)
+            .expects(currentTime)
+            .returning(FakeDatabasePublisher(Seq((routeRow, pathRow))))
 
-        result.name should be(RouteName(routeName))
-        result.eskip should be("""myRoute: somePredicate("Hello",123) && somePredicate1(/^Hello$/,123)
-                                 | -> prependedFirst("hello")
-                                 | -> prependedSecond(1.5)
-                                 | -> someFilter("Hello",123)
-                                 | -> someFilter1(/^Hello$/,123)
-                                 | -> appendedFirst()
-                                 | -> appendedSecond(0.8)
-                                 | -> "endpoint.my.com"""".stripMargin)
+          (routeToEskipTransformer.transform _)
+            .expects(transformerContext)
+            .returning(eskipRoute)
 
-        result.createdAt should be(createdAt)
-        result.deletedAt should be(Some(deletedAt))
+          val result = eskipRouteService.currentEskipRoutes(currentTime)
+            .runWith(Sink.head).futureValue
+
+          result.name should be(RouteName(routeName))
+          result.eskip should
+            be("""myRoute: somePredicate("Hello",123) && somePredicate1(/^Hello$/,123)
+                                   | -> prependedFirst("hello")
+                                   | -> prependedSecond(1.5)
+                                   | -> someFilter("Hello",123)
+                                   | -> someFilter1(/^Hello$/,123)
+                                   | -> appendedFirst()
+                                   | -> appendedSecond(0.8)
+                                   | -> "endpoint.my.com"""".stripMargin)
+
+          result.createdAt should be(createdAt)
+          result.deletedAt should be(None)
+        }
+      }
+
+      describe("when the commond filters are not enabled") {
+        it ("should return the correct current routes") {
+          (routesRepo.selectLatestActiveRoutesWithPathPerName _)
+            .expects(currentTime)
+            .returning(FakeDatabasePublisher(Seq((routeRow.copy(usesCommonFilters = false), pathRow))))
+
+          val eskipRouteWithoutCommonFilters =
+            eskipRoute.copy(
+              prependedFilters = Seq(),
+              appendedFilters = Seq())
+
+          (routeToEskipTransformer.transform _)
+            .expects(transformerContext.copy(useCommonFilters = false))
+            .returning(eskipRouteWithoutCommonFilters)
+
+          val result = eskipRouteService.currentEskipRoutes(currentTime)
+            .runWith(Sink.head).futureValue
+
+          result.name should be(RouteName(routeName))
+          result.eskip should
+            be("""myRoute: somePredicate("Hello",123) && somePredicate1(/^Hello$/,123)
+                                   | -> someFilter("Hello",123)
+                                   | -> someFilter1(/^Hello$/,123)
+                                   | -> "endpoint.my.com"""".stripMargin)
+
+          result.createdAt should be(createdAt)
+          result.deletedAt should be(None)
+        }
       }
     }
   }
 
   val currentTime = LocalDateTime.now()
 
+  // route
   val routeName = "myRoute"
   val createdAt = LocalDateTime.of(2015, 10, 10, 10, 10, 10)
-  val deletedAt = LocalDateTime.of(2015, 10, 10, 10, 10, 12)
+  // path
+  val pathUri = "/the-uri"
+  val hostIds = Seq(1L, 2L, 3L)
+  val pathId = 6L
 
   val newRoute = NewRoute(
     predicates = Some(Seq(
@@ -66,6 +108,25 @@ class EskipRouteServiceSpec extends FunSpec with Matchers with MockFactory with 
       Filter("someFilter", Seq(StringArg("Hello"), NumericArg("123"))),
       Filter("someFilter1", Seq(RegexArg("Hello"), NumericArg("123")))))
   )
+
+  val routeRow = RouteRow(
+    id = Some(1L),
+    pathId = pathId,
+    name = routeName,
+    routeJson = newRoute.toJson.compactPrint,
+    activateAt = LocalDateTime.now(),
+    usesCommonFilters = true,
+    ownedByTeam = "team",
+    createdBy = "user",
+    createdAt = createdAt)
+
+  val pathRow = PathRow(
+    id = Some(pathId),
+    uri = pathUri,
+    hostIds = hostIds,
+    ownedByTeam = "team",
+    createdBy = "user",
+    createdAt = LocalDateTime.now())
 
   val routeOut = RouteOut(
     1,
@@ -77,9 +138,7 @@ class EskipRouteServiceSpec extends FunSpec with Matchers with MockFactory with 
     TeamName("team"),
     UserName("user"),
     usesCommonFilters = false,
-    disableAt = Some(LocalDateTime.of(2015, 11, 11, 11, 11, 11)),
-    Some("this is a route"),
-    Some(deletedAt)
+    disableAt = Some(LocalDateTime.of(2015, 11, 11, 11, 11, 11))
   )
 
   val eskipRoute = EskipRoute(
@@ -95,5 +154,12 @@ class EskipRouteServiceSpec extends FunSpec with Matchers with MockFactory with 
     appendedFilters = Seq("appendedFirst()", "appendedSecond(0.8)"),
     endpoint = "\"endpoint.my.com\"")
 
+  val transformerContext = RouteToEskipTransformerContext(
+    routeName = routeName,
+    pathUri = pathUri,
+    hostIds = hostIds,
+    useCommonFilters = true,
+    route = newRoute
+  )
 }
 

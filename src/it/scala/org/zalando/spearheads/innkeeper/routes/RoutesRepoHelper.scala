@@ -1,7 +1,6 @@
 package org.zalando.spearheads.innkeeper.routes
 
 import java.time.LocalDateTime
-
 import org.scalatest.time.{Seconds, Span}
 import org.zalando.spearheads.innkeeper.dao.{PathRow, RouteRow}
 
@@ -88,10 +87,11 @@ object RoutesRepoHelper extends DaoHelper {
         |  }]
         |}""".stripMargin
 
-  private def insertTestPath(ownedByTeam: String,
-                             createdBy: String,
-                             createdAt: LocalDateTime,
-                             uri: String = "testuri"): Long = {
+  private def insertTestPath(
+    ownedByTeam: String,
+    createdBy: String,
+    createdAt: LocalDateTime,
+    uri: String = "testuri"): Long = {
 
     val path = pathsRepo.insert(PathRow(
       id = None,

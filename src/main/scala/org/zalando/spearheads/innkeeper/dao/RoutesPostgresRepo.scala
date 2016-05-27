@@ -11,10 +11,10 @@ import scala.concurrent.{Future, ExecutionContext}
  * @author dpersa
  */
 @Singleton
-class RoutesPostgresRepo @Inject()(
-                                    db: Database,
-                                    implicit val executionContext: ExecutionContext
-                                  ) extends RoutesRepo {
+class RoutesPostgresRepo @Inject() (
+    db: Database,
+    implicit val executionContext: ExecutionContext
+) extends RoutesRepo {
 
   private val logger = LoggerFactory.getLogger(this.getClass)
 

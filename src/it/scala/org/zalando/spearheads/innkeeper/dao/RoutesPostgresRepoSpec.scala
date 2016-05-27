@@ -252,8 +252,10 @@ class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers w
 
         routesWithPaths.size should be (3)
 
-        routesWithPaths.map { case (routeRow, pathRow) =>
-          (routeRow.id.get, pathRow.uri)}.toSet should
+        routesWithPaths.map {
+          case (routeRow, pathRow) =>
+            (routeRow.id.get, pathRow.uri)
+        }.toSet should
           be (Set((1, "/path-for-R1"), (4, "/path-for-R4"), (6, "/path-for-R3")))
       }
     }

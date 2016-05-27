@@ -1,17 +1,15 @@
 package org.zalando.spearheads.innkeeper.routes
 
 import java.time.LocalDateTime
-
 import akka.http.scaladsl.model.StatusCodes
 import org.scalatest.{BeforeAndAfter, FunSpec, Matchers}
 import org.zalando.spearheads.innkeeper.api.RouteOut
 import org.zalando.spearheads.innkeeper.routes.AcceptanceSpecTokens.{INVALID_TOKEN, READ_TOKEN, WRITE_TOKEN}
 import org.zalando.spearheads.innkeeper.routes.AcceptanceSpecsHelper._
-import org.zalando.spearheads.innkeeper.routes.RoutesRepoHelper.{deleteRoute, insertRoute, recreateSchema, routesRepo}
+import org.zalando.spearheads.innkeeper.routes.RoutesRepoHelper.{deleteRoute, insertRoute, recreateSchema}
 import spray.json.pimpString
 import spray.json.DefaultJsonProtocol._
 import org.zalando.spearheads.innkeeper.api.JsonProtocols._
-import org.zalando.spearheads.innkeeper.dao.RouteRow
 import org.zalando.spearheads.innkeeper.routes.RoutesSpecsHelper._
 
 class GetCurrentRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
@@ -62,8 +60,9 @@ class GetCurrentRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
       }
 
       it("should not select the disabled routes") {
-        insertRoute("R1", disableAt = Some(LocalDateTime.now().minusHours(2)))
-        insertRoute("R3")
+        val createdAt = LocalDateTime.now()
+        insertRoute("R1", createdAt = createdAt, disableAt = Some(LocalDateTime.now().minusHours(2)))
+        val route = insertRoute("R3", createdAt = createdAt)
 
         val response = getSlashCurrentRoutes(token)
 
@@ -71,7 +70,7 @@ class GetCurrentRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
         val entity = entityString(response)
         val routes = entity.parseJson.convertTo[Seq[RouteOut]]
 
-        routes.map(_.id).toSet should be (Set(2))
+        routes.map(_.id).toSet should be (Set(route.id.get))
       }
     }
 

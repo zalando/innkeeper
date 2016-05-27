@@ -181,7 +181,7 @@ class RoutesServiceSpec extends FunSpec with Matchers with MockFactory with Scal
 
           routeServiceResult match {
             case ServiceResult.Failure(ServiceResult.NotFound(_)) =>
-            case _                                             => fail()
+            case _                                                => fail()
           }
         }
       }
@@ -196,7 +196,7 @@ class RoutesServiceSpec extends FunSpec with Matchers with MockFactory with Scal
 
           routeServiceResult match {
             case ServiceResult.Failure(ServiceResult.NotFound(_)) =>
-            case _                                             => fail()
+            case _                                                => fail()
           }
         }
       }

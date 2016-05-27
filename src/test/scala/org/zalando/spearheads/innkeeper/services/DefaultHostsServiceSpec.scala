@@ -3,7 +3,7 @@ package org.zalando.spearheads.innkeeper.services
 import com.typesafe.config.ConfigFactory
 import org.scalatest.{FunSpec, Matchers}
 import org.zalando.spearheads.innkeeper.utils.InnkeeperEnvConfig
-import scala.collection.immutable.{Map, Set, Seq}
+import scala.collection.immutable.{Map, Seq, Set}
 
 /**
  * @author Alexey Venderov
@@ -12,7 +12,8 @@ class DefaultHostsServiceSpec extends FunSpec with Matchers {
 
   describe("DefaultHostsService") {
 
-    val hostsService = new DefaultHostsService(new InnkeeperEnvConfig(ConfigFactory.parseResources(this.getClass, "/hosts.conf")))
+    val envConfig = new InnkeeperEnvConfig(ConfigFactory.parseResources(this.getClass, "/hosts.conf"))
+    val hostsService = new DefaultHostsService(envConfig)
 
     describe("#getHosts") {
 

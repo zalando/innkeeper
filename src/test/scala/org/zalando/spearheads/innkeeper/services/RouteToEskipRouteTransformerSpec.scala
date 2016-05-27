@@ -16,12 +16,15 @@ class RouteToEskipRouteTransformerSpec extends FunSpec with Matchers with MockFa
 
     it("should transform a regular route to an eskip route") {
       initMocks()
-      routeToEskipTransformer.transform(routeName, pathUri, hostIds, newRoute) should be(expectedResult)
+      routeToEskipTransformer.transform(transformerContext) should be(expectedResult)
     }
 
     it("should transform a route without an endpoint to an eskip route") {
       initMocks()
-      routeToEskipTransformer.transform(routeName, pathUri, hostIds, newRoute.copy(endpoint = None)) should
+      val routeWithoutEndpoint = newRoute.copy(endpoint = None)
+      val contextWithRouteWithoutEndpoint = transformerContext.copy(route = routeWithoutEndpoint)
+
+      routeToEskipTransformer.transform(contextWithRouteWithoutEndpoint) should
         be(expectedResult.copy(endpoint = "<shunt>"))
     }
   }
@@ -65,5 +68,13 @@ class RouteToEskipRouteTransformerSpec extends FunSpec with Matchers with MockFa
       Filter("someFilter", Seq(StringArg("Hello"), NumericArg("123"))),
       Filter("someFilter1", Seq(RegexArg("Hello"), NumericArg("123"))))),
     endpoint = Some("endpoint.my.com")
+  )
+
+  val transformerContext = RouteToEskipTransformerContext(
+    routeName = routeName,
+    pathUri = pathUri,
+    hostIds = hostIds,
+    useCommonFilters = true,
+    route = newRoute
   )
 }
