@@ -68,6 +68,8 @@ object AcceptanceSpecsHelper extends ScalaFutures with Matchers {
 
 case class AcceptanceSpecToken(token: String, userName: String, realm: String, scope: String) {
   override val toString = s"$token-$userName-$realm-$scope"
+
+  val teamName = userName.replace("user~", "team")
 }
 
 object AcceptanceSpecToken {
