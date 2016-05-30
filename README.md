@@ -29,21 +29,48 @@ To run the integration test suite, run `sbt it:test`.
 
 ### Inserting a new route manually
 
-```bash    
+```bash
+# create a path for that route
+curl -i -XPOST localhost:8080/paths -d '{
+    "uri": "/the-uri",
+    "host_ids": [1, 2, 3, 4]
+}' -H 'Content-Type: application/json' -H 'Authorization: Bearer oauth-token-with-write-scope'
+
+# the response will look like this:
+HTTP/1.1 200 OK
+{
+  "created_by": "user~1",
+  "owned_by_team": "team1",
+  "host_ids": [1, 2, 3, 4],
+  "uri": "/the-uri",
+  "id": 6,
+  "created_at": "2016-05-30T15:01:48.018"
+}
+
+# create a route for that path
+
 curl -i -XPOST localhost:8080/routes -d '{
-    "route": {
-      "predicates": [],
-      "filters": []
-    },
-    "activate_at": "2015-10-10T10:10:10",
-    "description": "this is a route",
-    "name": "THE_ROUTE"
-    }' -H 'Content-Type: application/json' -H 'Authorization: Bearer oauth-token'
+  "name": "theRoute1",
+  "description": "this is a route",
+  "activate_at": "2015-10-10T10:10:10",
+  "disable_at": "2016-11-11T11:11:11",
+  "route": {
+    "predicates": [{
+      "name": "method",
+      "args": [{
+          "value": "GET",
+          "type": "string"
+        }]
+    }]
+  },
+  "path_id": 6,
+  "uses_common_filters": true
+}' -H 'Content-Type: application/json' -H 'Authorization: Bearer oauth-token-with-write-scope'
 ```
 
 ### Getting all routes
 
-    curl http://localhost:8080/routes -H 'Authorization: Bearer oauth-token'
+    curl http://localhost:8080/routes -H 'Authorization: Bearer oauth-token-with-read-scope'
     
 To see it streaming:
 
