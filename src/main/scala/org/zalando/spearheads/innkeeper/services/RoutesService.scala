@@ -26,7 +26,8 @@ trait RoutesService {
 
   def findByName(name: RouteName): Source[RouteOut, NotUsed]
 
-  def findModifiedSince(localDateTime: LocalDateTime, currentTime: LocalDateTime = LocalDateTime.now()): Source[RouteOut, NotUsed]
+  def findModifiedSince(localDateTime: LocalDateTime,
+                        currentTime: LocalDateTime = LocalDateTime.now()): Source[RouteOut, NotUsed]
 
   def allRoutes: Source[RouteOut, NotUsed]
 
@@ -81,7 +82,8 @@ class DefaultRoutesService @Inject() (
       routesRepo.selectByName(name.name)
     }
 
-  override def findModifiedSince(since: LocalDateTime, currentTime: LocalDateTime): Source[RouteOut, NotUsed] =
+  override def findModifiedSince(since: LocalDateTime,
+                                 currentTime: LocalDateTime): Source[RouteOut, NotUsed] =
     routeRowsStreamToRouteOutStream {
       routesRepo.selectModifiedSince(since, currentTime)
     }
@@ -90,7 +92,9 @@ class DefaultRoutesService @Inject() (
     routesRepo.selectAll
   }
 
-  private def routeRowsStreamToRouteOutStream(streamOfRows: => DatabasePublisher[RouteRow]): Source[RouteOut, NotUsed] = {
+  private def routeRowsStreamToRouteOutStream(
+      streamOfRows: => DatabasePublisher[RouteRow]): Source[RouteOut, NotUsed] = {
+
     Source.fromPublisher(streamOfRows.mapResult { routeRow =>
       routeRow.id.map { id =>
         routeRowToRoute(id, routeRow)
