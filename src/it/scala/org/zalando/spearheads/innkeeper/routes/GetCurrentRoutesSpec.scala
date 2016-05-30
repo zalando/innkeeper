@@ -42,16 +42,10 @@ class GetCurrentRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
         val createdAt = LocalDateTime.now().minusMinutes(2)
         val activateAt = createdAt.minusDays(1)
 
-        val route1CreatedAt = createdAt.plusSeconds(1)
-        val route4CreatedAt = createdAt.plusSeconds(4)
-        val route6CreatedAt = createdAt.plusSeconds(6)
-
-        insertRoute("R1", createdAt = route1CreatedAt, activateAt = activateAt)
-        insertRoute("R2", createdAt = createdAt, activateAt = createdAt.plusMinutes(5))
-        insertRoute("R3", createdAt = createdAt, activateAt = activateAt)
-        insertRoute("R4", createdAt = route4CreatedAt, activateAt = activateAt)
         insertRoute("R1", createdAt = createdAt, activateAt = activateAt)
-        insertRoute("R3", createdAt = route6CreatedAt, activateAt = activateAt)
+        insertRoute("R2", createdAt = createdAt, activateAt = createdAt.plusMinutes(5))
+        insertRoute("R3", createdAt = createdAt, activateAt = activateAt, disableAt = Some(activateAt))
+        insertRoute("R4", createdAt = createdAt, activateAt = activateAt)
         deleteRoute(5)
 
         val response = getSlashCurrentRoutes(token)
@@ -60,10 +54,7 @@ class GetCurrentRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
         val entity = entityString(response)
         val routes = entity.parseJson.convertTo[Seq[EskipRouteWrapper]]
 
-        routes.map(_.createdAt).toSet should be (Set(
-          route1CreatedAt,
-          route4CreatedAt,
-          route6CreatedAt))
+        routes.map(_.name.name).toSet should be (Set("R1", "R4"))
       }
 
       it("should not select the disabled routes") {

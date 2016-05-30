@@ -42,45 +42,36 @@ class GetRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
         it("should return the correct routes") {
           insertRoute("R1")
           insertRoute("R2")
-          insertRoute("R1")
-
-          val response = getSlashRoutesByName("R1", token)
-          response.status should be(StatusCodes.OK)
-          val entity = entityString(response)
-          val routes = entity.parseJson.convertTo[Seq[RouteOut]]
-          routes.size should be(2)
-          routes.map(_.id).toSet should be(Set(1, 3))
-        }
-
-        it("should not return the deleted routes") {
-          insertRoute("R1")
-          insertRoute("R2")
-          insertRoute("R1")
-          insertRoute("R1")
-          deleteRoute(1)
-          deleteRoute(4)
 
           val response = getSlashRoutesByName("R1", token)
           response.status should be(StatusCodes.OK)
           val entity = entityString(response)
           val routes = entity.parseJson.convertTo[Seq[RouteOut]]
           routes.size should be(1)
-          routes.map(_.id).toSet should be(Set(3))
+          routes.map(_.id).toSet should be(Set(1))
+        }
+
+        it("should not return the deleted routes") {
+          insertRoute("R1")
+          insertRoute("R2")
+          deleteRoute(1)
+
+          val response = getSlashRoutesByName("R1", token)
+          response.status should be(StatusCodes.OK)
+
+          val routes = entityString(response).parseJson.convertTo[Seq[RouteOut]]
+          routes should be('empty)
         }
 
         it("should return the disabled routes") {
-          insertRoute("R2", disableAt = Some(LocalDateTime.now().minusMinutes(3)))
-          insertRoute("R1")
+          insertRoute("R1", disableAt = Some(LocalDateTime.now().minusMinutes(3)))
           insertRoute("R2")
-          insertRoute("R2", disableAt = Some(LocalDateTime.now().minusMinutes(3)))
-          insertRoute("R3")
 
-          val response = getSlashRoutesByName("R2", token)
+          val response = getSlashRoutesByName("R1", token)
           response.status should be(StatusCodes.OK)
-          val entity = entityString(response)
-          val routes = entity.parseJson.convertTo[Seq[RouteOut]]
-          routes.size should be(3)
-          routes.map(_.id).toSet should be(Set(1, 3, 4))
+          val routes = entityString(response).parseJson.convertTo[Seq[RouteOut]]
+          routes.size should be(1)
+          routes.map(_.id).toSet should be(Set(1))
         }
       }
     }

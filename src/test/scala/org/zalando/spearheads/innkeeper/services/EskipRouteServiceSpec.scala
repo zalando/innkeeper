@@ -1,6 +1,7 @@
 package org.zalando.spearheads.innkeeper.services
 
 import java.time.LocalDateTime
+
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Sink
@@ -8,8 +9,9 @@ import org.scalamock.scalatest.MockFactory
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.{FunSpec, Matchers}
 import org.zalando.spearheads.innkeeper.FakeDatabasePublisher
-import org.zalando.spearheads.innkeeper.api.{EskipRoute, Filter, NameWithStringArgs, NewRoute, NumericArg, Predicate, RegexArg, RouteName, RouteOut, StringArg, TeamName, UserName}
+import org.zalando.spearheads.innkeeper.api.{EskipRoute, EskipRouteWrapper, Filter, NameWithStringArgs, NewRoute, NumericArg, Predicate, RegexArg, RouteName, RouteOut, StringArg, TeamName, UserName}
 import org.zalando.spearheads.innkeeper.dao.{PathRow, RouteRow, RoutesRepo}
+
 import scala.collection.immutable.Seq
 import scala.concurrent.ExecutionContext
 import org.zalando.spearheads.innkeeper.api.JsonProtocols._
@@ -31,7 +33,7 @@ class EskipRouteServiceSpec extends FunSpec with Matchers with MockFactory with 
 
         it ("should return the correct current routes") {
 
-          (routesRepo.selectLatestActiveRoutesWithPathPerName _)
+          (routesRepo.selectActiveRoutesWithPath _)
             .expects(currentTime)
             .returning(FakeDatabasePublisher(Seq((routeRow, pathRow))))
 
@@ -42,25 +44,13 @@ class EskipRouteServiceSpec extends FunSpec with Matchers with MockFactory with 
           val result = eskipRouteService.currentEskipRoutes(currentTime)
             .runWith(Sink.head).futureValue
 
-          result.name should be(RouteName(routeName))
-          result.eskip should
-            be("""myRoute: somePredicate("Hello",123) && somePredicate1(/^Hello$/,123)
-                                   | -> prependedFirst("hello")
-                                   | -> prependedSecond(1.5)
-                                   | -> someFilter("Hello",123)
-                                   | -> someFilter1(/^Hello$/,123)
-                                   | -> appendedFirst()
-                                   | -> appendedSecond(0.8)
-                                   | -> "endpoint.my.com"""".stripMargin)
-
-          result.createdAt should be(createdAt)
-          result.deletedAt should be(None)
+          verifyRoute(result)
         }
       }
 
       describe("when the commond filters are not enabled") {
         it ("should return the correct current routes") {
-          (routesRepo.selectLatestActiveRoutesWithPathPerName _)
+          (routesRepo.selectActiveRoutesWithPath _)
             .expects(currentTime)
             .returning(FakeDatabasePublisher(Seq((routeRow.copy(usesCommonFilters = false), pathRow))))
 
@@ -88,6 +78,44 @@ class EskipRouteServiceSpec extends FunSpec with Matchers with MockFactory with 
         }
       }
     }
+  }
+
+  describe("#findModifiedSince") {
+    it("should find the right route") {
+      val now = LocalDateTime.now()
+
+      (routesRepo.selectModifiedSince _).expects(createdAt, now).returning {
+        FakeDatabasePublisher[(RouteRow, PathRow)](Seq((routeRow, pathRow)))
+      }
+
+      (routeToEskipTransformer.transform _)
+        .expects(transformerContext)
+        .returning(eskipRoute)
+
+      val result = eskipRouteService.findModifiedSince(createdAt, now).runWith(Sink.head).futureValue
+
+      verifyRoute(result)
+    }
+  }
+
+  private def verifyRoute(result: EskipRouteWrapper) = {
+    result.name should be(RouteName(routeName))
+    result.eskip should
+      be(
+
+        """myRoute: somePredicate("Hello",123) && somePredicate1(/^Hello$/,123)
+          | -> prependedFirst("hello")
+          | -> prependedSecond(1.5)
+          | -> someFilter("Hello",123)
+          | -> someFilter1(/^Hello$/,123)
+          | -> appendedFirst()
+          | -> appendedSecond(0.8)
+          | -> "endpoint.my.com"""".stripMargin)
+
+    result.createdAt should
+      be(createdAt)
+    result.
+      deletedAt should be(None)
   }
 
   val currentTime = LocalDateTime.now()

@@ -57,7 +57,7 @@ class GetPathsSpec extends FunSpec with BeforeAndAfter with Matchers {
           response.status should be(StatusCodes.OK)
 
           val paths = entityString(response).parseJson.convertTo[Seq[PathOut]]
-          paths.map(_.ownedByTeam.name).toSet should be(Set("team1", "team3"))
+          paths.map(_.ownedByTeam.name).toSet should be(Set("team1"))
         }
       }
 
@@ -124,6 +124,5 @@ class GetPathsSpec extends FunSpec with BeforeAndAfter with Matchers {
     insertPath(samplePath(uri = "/hello2", ownedByTeam = "team2"))
     insertPath(samplePath(uri = "/hello3", ownedByTeam = "team1"))
     insertPath(samplePath(uri = "/hello4", ownedByTeam = "team2"))
-    insertPath(samplePath(uri = "/hello1", ownedByTeam = "team3"))
   }
 }

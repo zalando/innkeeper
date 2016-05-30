@@ -1,7 +1,7 @@
 package org.zalando.spearheads.innkeeper.routes
 
-import akka.http.scaladsl.model.{MediaTypes, HttpEntity, HttpResponse}
-import akka.http.scaladsl.server.Directives.{reject, complete, get}
+import akka.http.scaladsl.model.{HttpEntity, HttpResponse, MediaTypes}
+import akka.http.scaladsl.server.Directives.{complete, get, reject}
 import akka.http.scaladsl.server.Route
 import com.google.inject.Inject
 import org.slf4j.LoggerFactory
@@ -10,16 +10,16 @@ import org.zalando.spearheads.innkeeper.api.JsonService
 import org.zalando.spearheads.innkeeper.metrics.RouteMetrics
 import org.zalando.spearheads.innkeeper.oauth.OAuthDirectives.hasOneOfTheScopes
 import org.zalando.spearheads.innkeeper.oauth.{AuthenticatedUser, Scopes}
-import org.zalando.spearheads.innkeeper.services.RoutesService
 import org.zalando.spearheads.innkeeper.api.JsonProtocols._
 import spray.json.DefaultJsonProtocol._
 import org.zalando.spearheads.innkeeper.routes.RequestParameters.dateTimeParameter
+import org.zalando.spearheads.innkeeper.services.EskipRouteService
 
 /**
  * @author dpersa
  */
 class GetUpdatedRoutes @Inject() (
-    routesService: RoutesService,
+    eskipRouteService: EskipRouteService,
     jsonService: JsonService,
     metrics: RouteMetrics,
     scopes: Scopes) {
@@ -38,7 +38,7 @@ class GetUpdatedRoutes @Inject() (
             metrics.getUpdatedRoutes.time {
 
               val chunkedStreamSource = jsonService.sourceToJsonSource {
-                routesService.findModifiedSince(lastModified)
+                eskipRouteService.findModifiedSince(lastModified)
               }
 
               complete {

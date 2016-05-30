@@ -95,29 +95,28 @@ class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers w
         insertRoute("R4", createdAt = createdAt)
         deleteRoute(1)
 
-        val routes: List[RouteRow] = routesRepo.selectModifiedSince(createdAt.minus(1, ChronoUnit.MICROS), LocalDateTime.now())
+        val routesWithPath: List[(RouteRow, PathRow)] =
+          routesRepo.selectModifiedSince(createdAt.minus(1, ChronoUnit.MICROS), LocalDateTime.now())
 
-        routes.size should be (3)
-        routes.map(_.id.get).toSet should be (Set(1, 3, 4))
+        routesWithPath.size should be (3)
+        routesWithPath.map(_._1.id.get).toSet should be (Set(1, 3, 4))
       }
 
       it("should select the right activated routes") {
         insertRoute("R1")
-        insertRoute("R2", activateAt = LocalDateTime.now().plusHours(2))
         val createdAt = LocalDateTime.now()
-        // created in the past but not the latest active
-        insertRoute("R1", createdAt = createdAt.minusMinutes(1), activateAt = createdAt)
         // created in the past, getting active now
-        val route4Id = insertRoute("R3", createdAt = createdAt.minusMinutes(1), activateAt = createdAt).id.get
-        val route5Id = insertRoute("R4", createdAt = createdAt).id.get
-        insertRoute("R5", createdAt = createdAt, activateAt = createdAt.plusHours(2))
-        val route7Id = insertRoute("R1").id.get
-        val route8Id = insertRoute("R4").id.get
-        deleteRoute(5)
+        val route2Id = insertRoute("R2", createdAt = createdAt.minusMinutes(1), activateAt = createdAt).id.get
+        // will deleted this route
+        val route3Id = insertRoute("R3", createdAt = createdAt.minusMinutes(1)).id.get
+        insertRoute("R4", createdAt = createdAt, activateAt = createdAt.plusHours(2))
+        val route5Id = insertRoute("R5").id.get
+        deleteRoute(route3Id)
 
-        val routes: List[RouteRow] = routesRepo.selectModifiedSince(createdAt.minus(1, ChronoUnit.MICROS), LocalDateTime.now())
+        val routesWithPath: List[(RouteRow, PathRow)] =
+          routesRepo.selectModifiedSince(createdAt.minus(1, ChronoUnit.MICROS), LocalDateTime.now())
 
-        routes.map(_.id.get).toSet should be (Set(route4Id, route5Id, route7Id, route8Id))
+        routesWithPath.map(_._1.id.get).toSet should be (Set(route2Id, route3Id, route5Id))
       }
 
       it("should not select the routes which become disabled") {
@@ -130,51 +129,41 @@ class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers w
           disableAt = Some(createdAt))
         val route3Id = insertRoute("R3").id.get
 
-        val routes: List[RouteRow] = routesRepo.selectModifiedSince(createdAt.minus(1, ChronoUnit.MICROS), LocalDateTime.now())
+        val routes: List[(RouteRow, PathRow)] = routesRepo.selectModifiedSince(createdAt.minus(1, ChronoUnit.MICROS), LocalDateTime.now())
 
-        routes.map(_.id.get).toSet should be (Set(route3Id))
+        routes.map(_._1.id.get).toSet should be (Set(route3Id))
       }
     }
 
     describe("#selectByName") {
       it("should select the right routes") {
-        insertRoute("R1")
-        insertRoute("R2")
-        insertRoute("R3")
-        insertRoute("R2")
+        val route1Id = insertRoute("R1").id.get
+        val route2Id = insertRoute("R2").id.get
 
         val routes: List[RouteRow] = routesRepo.selectByName("R2")
 
-        routes.size should be (2)
-        routes.map(_.id.get).toSet should be (Set(2, 4))
+        routes.size should be (1)
+        routes.flatMap(_.id).toSet should be (Set(route2Id))
       }
 
       it("should not select the deleted routes") {
         insertRoute("R1")
         insertRoute("R2")
-        val createdAt = LocalDateTime.now()
-        insertRoute("R2", createdAt = createdAt)
-        insertRoute("R4", createdAt = createdAt)
         deleteRoute(2)
 
         val routes: List[RouteRow] = routesRepo.selectByName("R2")
 
-        routes should not be 'empty
-        routes.size should be (1)
-        routes.map(_.id.get).toSet should be (Set(3))
+        routes should be('empty)
       }
 
       it("should select the disabled routes") {
         insertRoute("R2", disableAt = Some(LocalDateTime.now().minusMinutes(3)))
         insertRoute("R1")
-        insertRoute("R2")
-        insertRoute("R2", disableAt = Some(LocalDateTime.now().minusMinutes(3)))
-        insertRoute("R3")
 
         val routes: List[RouteRow] = routesRepo.selectByName("R2")
 
-        routes.size should be (3)
-        routes.map(_.id.get).toSet should be (Set(1, 3, 4))
+        routes.size should be (1)
+        routes.map(_.id.get).toSet should be (Set(1))
       }
     }
 
@@ -207,27 +196,28 @@ class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers w
       }
     }
 
-    describe("#selectLatestActiveRoutesWithPathPerName") {
+    describe("#selectActiveRoutesWithPath") {
 
       it("should select the right routes") {
         insertRoute("R1")
+        // route activated in the future
         insertRoute("R2", activateAt = LocalDateTime.now().plusMinutes(5))
         val createdAt = LocalDateTime.now()
-        insertRoute("R3", createdAt = createdAt)
+        // disabled route
+        insertRoute("R3", createdAt = createdAt, disableAt = Some(createdAt.minusMinutes(1)))
         insertRoute("R4", createdAt = createdAt)
-        insertRoute("R1")
-        insertRoute("R3")
-        deleteRoute(5)
+        deleteRoute(4)
+        insertRoute("R5", createdAt = createdAt)
 
-        val routesWithPaths = routesRepo.selectLatestActiveRoutesWithPathPerName(LocalDateTime.now())
+        val routesWithPaths = routesRepo.selectActiveRoutesWithPath(LocalDateTime.now())
 
-        routesWithPaths.size should be (3)
+        routesWithPaths.size should be (2)
 
         routesWithPaths.map {
           case (routeRow, pathRow) =>
             (routeRow.id.get, pathRow.uri)
         }.toSet should
-          be (Set((1, "/path-for-R1"), (4, "/path-for-R4"), (6, "/path-for-R3")))
+          be (Set((1, "/path-for-R1"), (5, "/path-for-R5")))
       }
     }
 

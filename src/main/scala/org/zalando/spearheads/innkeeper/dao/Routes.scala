@@ -36,8 +36,9 @@ class RoutesTable(tag: Tag)
   def routeJson = column[String]("ROUTE_JSON")
   def usesCommonFilters = column[Boolean]("USES_COMMON_FILTERS")
 
-  def nameIndex = index("ROUTES_NAME_IDX", name)
+  def nameIndex = index("ROUTES_NAME_IDX", name, unique = true)
   def createdAtIndex = index("ROUTES_CREATED_AT_IDX", createdAt)
+  def disabledAtIndex = index("ROUTES_DISABLED_AT_IDX", disableAt)
   def deletedAtIndex = index("ROUTES_DELETED_AT_IDX", deletedAt)
 
   lazy val pathFk = foreignKey("route_path_fk", pathId, Paths)(_.id)

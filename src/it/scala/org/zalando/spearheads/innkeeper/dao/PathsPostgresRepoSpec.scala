@@ -1,7 +1,6 @@
 package org.zalando.spearheads.innkeeper.dao
 
 import java.time.LocalDateTime
-
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import org.scalatest.concurrent.ScalaFutures
@@ -9,7 +8,6 @@ import org.scalatest.time.{Seconds, Span}
 import org.scalatest.{BeforeAndAfter, FunSpec, Matchers}
 import org.zalando.spearheads.innkeeper.routes.PathsRepoHelper._
 import org.zalando.spearheads.innkeeper.routes.RoutesRepoHelper
-
 import scala.collection.immutable.List
 import scala.language.postfixOps
 
@@ -107,7 +105,7 @@ class PathsPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers wi
       it ("should select all") {
         insertSamplePaths()
         val paths: List[PathRow] = pathsRepo.selectByOwnerTeamAndUri(None, None)
-        paths.map(_.uri) should contain theSameElementsAs List("/hello1", "/hello2", "/hello3", "/hello4", "/hello1")
+        paths.map(_.uri) should contain theSameElementsAs List("/hello1", "/hello2", "/hello3", "/hello4")
       }
     }
   }
@@ -117,6 +115,5 @@ class PathsPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers wi
     insertPath(samplePath(uri = "/hello2", ownedByTeam = "the-team-1"))
     insertPath(samplePath(uri = "/hello3", ownedByTeam = "the-team-2"))
     insertPath(samplePath(uri = "/hello4", ownedByTeam = "the-team-2"))
-    insertPath(samplePath(uri = "/hello1", ownedByTeam = "the-team-3"))
   }
 }
