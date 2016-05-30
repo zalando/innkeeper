@@ -143,7 +143,7 @@ class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers w
         val routes: List[RouteRow] = routesRepo.selectByName("R2")
 
         routes.size should be (1)
-        routes.map(_.id.get).toSet should be (Set(route2Id))
+        routes.flatMap(_.id).toSet should be (Set(route2Id))
       }
 
       it("should not select the deleted routes") {
