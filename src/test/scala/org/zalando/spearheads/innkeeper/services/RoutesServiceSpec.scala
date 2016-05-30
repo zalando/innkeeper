@@ -199,21 +199,6 @@ class RoutesServiceSpec extends FunSpec with Matchers with MockFactory with Scal
       }
     }
 
-    describe("#findModifiedSince") {
-      it("should find the right route") {
-        val now = LocalDateTime.now()
-
-        (routesRepo.selectModifiedSince _).expects(createdAt, now).returning {
-          FakeDatabasePublisher[RouteRow](Seq(routeRow))
-        }
-
-        val result = routesService.findModifiedSince(createdAt, now)
-        val firstRoute = result.runWith(Sink.head).futureValue
-
-        verifyRoute(firstRoute)
-      }
-    }
-
     describe("#findDeletedBefore") {
       it("should find the right routes") {
 

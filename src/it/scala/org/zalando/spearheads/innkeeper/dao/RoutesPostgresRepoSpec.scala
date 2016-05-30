@@ -95,10 +95,11 @@ class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers w
         insertRoute("R4", createdAt = createdAt)
         deleteRoute(1)
 
-        val routes: List[RouteRow] = routesRepo.selectModifiedSince(createdAt.minus(1, ChronoUnit.MICROS), LocalDateTime.now())
+        val routesWithPath: List[(RouteRow, PathRow)] =
+          routesRepo.selectModifiedSince(createdAt.minus(1, ChronoUnit.MICROS), LocalDateTime.now())
 
-        routes.size should be (3)
-        routes.map(_.id.get).toSet should be (Set(1, 3, 4))
+        routesWithPath.size should be (3)
+        routesWithPath.map(_._1.id.get).toSet should be (Set(1, 3, 4))
       }
 
       it("should select the right activated routes") {
@@ -112,9 +113,10 @@ class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers w
         val route5Id = insertRoute("R5").id.get
         deleteRoute(route3Id)
 
-        val routes: List[RouteRow] = routesRepo.selectModifiedSince(createdAt.minus(1, ChronoUnit.MICROS), LocalDateTime.now())
+        val routesWithPath: List[(RouteRow, PathRow)] =
+          routesRepo.selectModifiedSince(createdAt.minus(1, ChronoUnit.MICROS), LocalDateTime.now())
 
-        routes.map(_.id.get).toSet should be (Set(route2Id, route3Id, route5Id))
+        routesWithPath.map(_._1.id.get).toSet should be (Set(route2Id, route3Id, route5Id))
       }
 
       it("should not select the routes which become disabled") {
@@ -127,9 +129,9 @@ class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers w
           disableAt = Some(createdAt))
         val route3Id = insertRoute("R3").id.get
 
-        val routes: List[RouteRow] = routesRepo.selectModifiedSince(createdAt.minus(1, ChronoUnit.MICROS), LocalDateTime.now())
+        val routes: List[(RouteRow, PathRow)] = routesRepo.selectModifiedSince(createdAt.minus(1, ChronoUnit.MICROS), LocalDateTime.now())
 
-        routes.map(_.id.get).toSet should be (Set(route3Id))
+        routes.map(_._1.id.get).toSet should be (Set(route3Id))
       }
     }
 

@@ -14,7 +14,7 @@ trait RoutesRepo {
   def insert(route: RouteRow): Future[RouteRow]
   def selectById(id: Long): Future[Option[RouteRow]]
   def selectAll: DatabasePublisher[RouteRow]
-  def selectModifiedSince(localDateTime: LocalDateTime, currentTime: LocalDateTime): DatabasePublisher[RouteRow]
+  def selectModifiedSince(since: LocalDateTime, currentTime: LocalDateTime): DatabasePublisher[(RouteRow, PathRow)]
   def selectByName(name: String): DatabasePublisher[RouteRow]
 
   def selectActiveRoutesWithPath(currentTime: LocalDateTime): DatabasePublisher[(RouteRow, PathRow)]

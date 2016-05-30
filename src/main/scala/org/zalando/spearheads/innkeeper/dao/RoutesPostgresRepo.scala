@@ -45,11 +45,11 @@ class RoutesPostgresRepo @Inject() (
     }
   }
 
-  override def selectModifiedSince(since: LocalDateTime, currentTime: LocalDateTime): DatabasePublisher[RouteRow] = {
+  override def selectModifiedSince(since: LocalDateTime, currentTime: LocalDateTime): DatabasePublisher[(RouteRow, PathRow)] = {
     logger.debug(s"selectModifiedSince $since")
 
     val q = for {
-      routeRow <- Routes
+      (routeRow, pathRow) <- Routes join Paths on (_.pathId === _.id)
       if (
         // all routes created since, without the activatedAt in the future
         routeRow.createdAt > since && routeRow.activateAt < currentTime) ||
@@ -57,7 +57,7 @@ class RoutesPostgresRepo @Inject() (
         routeRow.deletedAt > since ||
         // all routes with the activation data between since and now
         (routeRow.activateAt > since && routeRow.activateAt < currentTime)
-    } yield routeRow
+    } yield (routeRow, pathRow)
 
     db.stream {
       q.result

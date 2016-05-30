@@ -1,7 +1,6 @@
 package org.zalando.spearheads.innkeeper.dao
 
 import java.time.LocalDateTime
-
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import org.scalatest.concurrent.ScalaFutures
@@ -9,7 +8,6 @@ import org.scalatest.time.{Seconds, Span}
 import org.scalatest.{BeforeAndAfter, FunSpec, Matchers}
 import org.zalando.spearheads.innkeeper.routes.PathsRepoHelper._
 import org.zalando.spearheads.innkeeper.routes.RoutesRepoHelper
-
 import scala.collection.immutable.List
 import scala.language.postfixOps
 
