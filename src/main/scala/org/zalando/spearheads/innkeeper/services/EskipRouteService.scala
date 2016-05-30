@@ -15,7 +15,7 @@ class EskipRouteService @Inject() (routesRepo: RoutesRepo, routeToEskipTransform
 
   def currentEskipRoutes(currentTime: LocalDateTime = LocalDateTime.now()): Source[EskipRouteWrapper, NotUsed] = {
 
-    Source.fromPublisher(routesRepo.selectLatestActiveRoutesWithPathPerName(currentTime).mapResult {
+    Source.fromPublisher(routesRepo.selectActiveRoutesWithPath(currentTime).mapResult {
       case (routeRow, pathRow) =>
         EskipRouteWrapper(
           RouteName(routeRow.name),

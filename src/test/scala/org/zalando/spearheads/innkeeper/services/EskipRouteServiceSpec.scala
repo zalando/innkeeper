@@ -31,7 +31,7 @@ class EskipRouteServiceSpec extends FunSpec with Matchers with MockFactory with 
 
         it ("should return the correct current routes") {
 
-          (routesRepo.selectLatestActiveRoutesWithPathPerName _)
+          (routesRepo.selectActiveRoutesWithPath _)
             .expects(currentTime)
             .returning(FakeDatabasePublisher(Seq((routeRow, pathRow))))
 
@@ -60,7 +60,7 @@ class EskipRouteServiceSpec extends FunSpec with Matchers with MockFactory with 
 
       describe("when the commond filters are not enabled") {
         it ("should return the correct current routes") {
-          (routesRepo.selectLatestActiveRoutesWithPathPerName _)
+          (routesRepo.selectActiveRoutesWithPath _)
             .expects(currentTime)
             .returning(FakeDatabasePublisher(Seq((routeRow.copy(usesCommonFilters = false), pathRow))))
 

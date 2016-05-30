@@ -2,7 +2,6 @@ package org.zalando.spearheads.innkeeper.routes
 
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
-
 import akka.http.scaladsl.model.StatusCodes
 import org.scalatest.{BeforeAndAfter, FunSpec, Matchers}
 import org.zalando.spearheads.innkeeper.routes.AcceptanceSpecToken.{INVALID_TOKEN, READ_TOKEN, WRITE_TOKEN}
@@ -34,14 +33,13 @@ class GetUpdatedRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
         val route3Id = insertRoute("R3", createdAt = createdAt).id.get
         insertRoute("R4", createdAt = createdAt, activateAt = createdAt.plusMinutes(5))
         val route5Id = insertRoute("R5", createdAt = createdAt).id.get
-        val route6Id = insertRoute("R3", createdAt = createdAt).id.get
         deleteRoute(1)
 
         val response = getUpdatedRoutes(createdAt.minus(1, ChronoUnit.MILLIS), token)
         response.status should be(StatusCodes.OK)
         val entity = entityString(response)
         val routes = entity.parseJson.convertTo[Seq[RouteOut]]
-        routes.map(_.id).toSet should be(Set(route1Id, route3Id, route5Id, route6Id))
+        routes.map(_.id).toSet should be(Set(route1Id, route3Id, route5Id))
       }
     }
 
