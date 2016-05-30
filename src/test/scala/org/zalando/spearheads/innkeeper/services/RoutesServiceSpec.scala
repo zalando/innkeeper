@@ -64,7 +64,7 @@ class RoutesServiceSpec extends FunSpec with Matchers with MockFactory with Scal
 
         val result = routesService.create(routeIn, UserName(createdBy), createdAt).futureValue
 
-        result should be(ServiceResult.Failure(NotFound))
+        result should be(ServiceResult.Failure(NotFound()))
       }
     }
 
@@ -80,7 +80,7 @@ class RoutesServiceSpec extends FunSpec with Matchers with MockFactory with Scal
       it("should not find a route") {
         (routesRepo.delete _).expects(routeId, username, None).returning(Future(false))
         val result = routesService.remove(routeId, username.get).futureValue
-        result should be(ServiceResult.Failure(NotFound))
+        result should be(ServiceResult.Failure(NotFound()))
       }
 
       it("should fail when trying to delete a route") {
@@ -122,35 +122,6 @@ class RoutesServiceSpec extends FunSpec with Matchers with MockFactory with Scal
       }
     }
 
-    describe("#latestRoutesPerName") {
-      lazy val currentTime = LocalDateTime.now()
-
-      it("should find the latest routes for each name") {
-
-        (routesRepo.selectLatestActiveRoutesPerName _).expects(currentTime).returning {
-          FakeDatabasePublisher[RouteRow](Seq(routeRow))
-        }
-
-        val result = routesService.latestRoutesPerName(currentTime)
-        val route = result.runWith(Sink.head).futureValue
-
-        verifyRoute(route)
-      }
-
-      it("should return an empty list if there are no routes") {
-        (routesRepo.selectLatestActiveRoutesPerName _).expects(currentTime).returning {
-          FakeDatabasePublisher[RouteRow](Seq())
-        }
-
-        val result = routesService.latestRoutesPerName(currentTime)
-        val route = result.runWith(Sink.head)
-
-        an[NoSuchElementException] should be thrownBy {
-          Await.result(route, 100 millis)
-        }
-      }
-    }
-
     describe("#findById") {
       describe("when the route exists") {
         it("should find the route") {
@@ -178,8 +149,8 @@ class RoutesServiceSpec extends FunSpec with Matchers with MockFactory with Scal
           val routeServiceResult = routesService.findById(routeId).futureValue
 
           routeServiceResult match {
-            case ServiceResult.Failure(ServiceResult.NotFound) =>
-            case _                                             => fail()
+            case ServiceResult.Failure(ServiceResult.NotFound(_)) =>
+            case _                                                => fail()
           }
         }
       }
@@ -193,8 +164,8 @@ class RoutesServiceSpec extends FunSpec with Matchers with MockFactory with Scal
           val routeServiceResult = routesService.findById(routeId).futureValue
 
           routeServiceResult match {
-            case ServiceResult.Failure(ServiceResult.NotFound) =>
-            case _                                             => fail()
+            case ServiceResult.Failure(ServiceResult.NotFound(_)) =>
+            case _                                                => fail()
           }
         }
       }

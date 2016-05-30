@@ -1,11 +1,9 @@
 package org.zalando.spearheads.innkeeper.services
 
 import javax.inject.Inject
-
 import org.slf4j.LoggerFactory
-import org.zalando.spearheads.innkeeper.services.DefaultHostsService._
 import org.zalando.spearheads.innkeeper.utils.EnvConfig
-
+import scala.collection.immutable.{Seq, Set}
 import scala.collection.JavaConverters._
 
 /**
@@ -13,26 +11,28 @@ import scala.collection.JavaConverters._
  */
 trait HostsService {
 
-  def getHosts: Map[String, Int]
+  def getHosts: Map[String, Long]
 
+  def getByIds(ids: Set[Long]): Seq[String]
 }
 
 class DefaultHostsService @Inject() (config: EnvConfig) extends HostsService {
-
-  override val getHosts = loadHosts(config)
-
-}
-
-object DefaultHostsService {
-
   private val logger = LoggerFactory.getLogger(this.getClass)
 
-  def loadHosts(config: EnvConfig): Map[String, Int] = {
+  override lazy val getHosts = {
     logger.debug("loading hosts from the configuration...")
 
     val hosts = config.getObject("hosts").asScala
 
-    hosts.mapValues(_.unwrapped().asInstanceOf[Int]).toMap
+    hosts.mapValues(_.unwrapped().asInstanceOf[Int].toLong).toMap
   }
 
+  private lazy val hostsByIds = getHosts.map {
+    case (key, value) =>
+      (value, key)
+  }
+
+  override def getByIds(ids: Set[Long]): Seq[String] = {
+    hostsByIds.filterKeys(ids.contains(_)).values.toList
+  }
 }

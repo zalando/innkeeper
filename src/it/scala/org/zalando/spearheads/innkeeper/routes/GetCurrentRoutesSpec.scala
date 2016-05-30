@@ -1,18 +1,16 @@
 package org.zalando.spearheads.innkeeper.routes
 
 import java.time.LocalDateTime
-
 import akka.http.scaladsl.model.StatusCodes
 import org.scalatest.{BeforeAndAfter, FunSpec, Matchers}
-import org.zalando.spearheads.innkeeper.api.RouteOut
+import org.zalando.spearheads.innkeeper.api.EskipRouteWrapper
+import org.zalando.spearheads.innkeeper.api.JsonProtocols._
 import org.zalando.spearheads.innkeeper.routes.AcceptanceSpecToken.{INVALID_TOKEN, READ_TOKEN, WRITE_TOKEN}
 import org.zalando.spearheads.innkeeper.routes.AcceptanceSpecsHelper._
-import org.zalando.spearheads.innkeeper.routes.RoutesRepoHelper.{deleteRoute, insertRoute, recreateSchema, routesRepo}
-import spray.json.pimpString
-import spray.json.DefaultJsonProtocol._
-import org.zalando.spearheads.innkeeper.api.JsonProtocols._
-import org.zalando.spearheads.innkeeper.dao.RouteRow
+import org.zalando.spearheads.innkeeper.routes.RoutesRepoHelper.{deleteRoute, insertRoute, recreateSchema}
 import org.zalando.spearheads.innkeeper.routes.RoutesSpecsHelper._
+import spray.json.DefaultJsonProtocol._
+import spray.json.pimpString
 
 class GetCurrentRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
 
@@ -36,42 +34,55 @@ class GetCurrentRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
 
         response.status should be(StatusCodes.OK)
         val entity = entityString(response)
-        val routes = entity.parseJson.convertTo[Seq[RouteOut]]
+        val routes = entity.parseJson.convertTo[Seq[EskipRouteWrapper]]
         routes.size should be(2)
       }
 
       it("should return the correct routes for a more complex scenario") {
-        val createdAt = LocalDateTime.now()
+        val createdAt = LocalDateTime.now().minusMinutes(2)
         val activateAt = createdAt.minusDays(1)
 
-        insertRoute("R1", createdAt = createdAt, activateAt = activateAt)
+        val route1CreatedAt = createdAt.plusSeconds(1)
+        val route4CreatedAt = createdAt.plusSeconds(4)
+        val route6CreatedAt = createdAt.plusSeconds(6)
+
+        insertRoute("R1", createdAt = route1CreatedAt, activateAt = activateAt)
         insertRoute("R2", createdAt = createdAt, activateAt = createdAt.plusMinutes(5))
         insertRoute("R3", createdAt = createdAt, activateAt = activateAt)
-        insertRoute("R4", createdAt = createdAt, activateAt = activateAt)
+        insertRoute("R4", createdAt = route4CreatedAt, activateAt = activateAt)
         insertRoute("R1", createdAt = createdAt, activateAt = activateAt)
-        insertRoute("R3", createdAt = createdAt, activateAt = activateAt)
+        insertRoute("R3", createdAt = route6CreatedAt, activateAt = activateAt)
         deleteRoute(5)
 
         val response = getSlashCurrentRoutes(token)
 
         response.status should be(StatusCodes.OK)
         val entity = entityString(response)
-        val routes = entity.parseJson.convertTo[Seq[RouteOut]]
+        val routes = entity.parseJson.convertTo[Seq[EskipRouteWrapper]]
 
-        routes.map(_.id).toSet should be (Set(1, 4, 6))
+        routes.map(_.createdAt).toSet should be (Set(
+          route1CreatedAt,
+          route4CreatedAt,
+          route6CreatedAt))
       }
 
       it("should not select the disabled routes") {
-        insertRoute("R1", disableAt = Some(LocalDateTime.now().minusHours(2)))
-        insertRoute("R3")
+        val createdAt = LocalDateTime.now().minusMinutes(3)
+        insertRoute(
+          "R1",
+          createdAt = createdAt.plusSeconds(1),
+          disableAt = Some(LocalDateTime.now().minusHours(2)))
+
+        val route2CreatedAt = createdAt.plusSeconds(2)
+        insertRoute("R2", createdAt = route2CreatedAt)
 
         val response = getSlashCurrentRoutes(token)
 
         response.status should be(StatusCodes.OK)
         val entity = entityString(response)
-        val routes = entity.parseJson.convertTo[Seq[RouteOut]]
+        val routes = entity.parseJson.convertTo[Seq[EskipRouteWrapper]]
 
-        routes.map(_.id).toSet should be (Set(2))
+        routes.map(_.createdAt).toSet should be (Set(route2CreatedAt))
       }
     }
 

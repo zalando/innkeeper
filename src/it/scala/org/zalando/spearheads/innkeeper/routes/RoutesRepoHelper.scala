@@ -1,7 +1,6 @@
 package org.zalando.spearheads.innkeeper.routes
 
 import java.time.LocalDateTime
-
 import org.scalatest.time.{Seconds, Span}
 import org.zalando.spearheads.innkeeper.dao.{PathRow, RouteRow}
 
@@ -9,7 +8,10 @@ object RoutesRepoHelper extends DaoHelper {
 
   implicit override val patienceConfig = PatienceConfig(timeout = Span(5, Seconds))
 
-  def insertRoute(name: String = "THE_ROUTE", method: String = "GET",
+  def insertRoute(
+    name: String = "THE_ROUTE",
+    description: String = "desc",
+    method: String = "GET",
     createdBy: String = "testuser",
     ownedByTeam: String = "testteam",
     createdAt: LocalDateTime = LocalDateTime.now(),
@@ -19,7 +21,7 @@ object RoutesRepoHelper extends DaoHelper {
     pathId: Option[Long] = None): RouteRow = {
 
     val resolvedPathId = pathId.getOrElse {
-      insertTestPath(ownedByTeam, createdBy, createdAt)
+      insertTestPath(ownedByTeam, createdBy, createdAt, s"/path-for-$name")
     }
 
     routesRepo.insert(RouteRow(
@@ -30,7 +32,8 @@ object RoutesRepoHelper extends DaoHelper {
       createdAt = createdAt,
       activateAt = activateAt,
       disableAt = disableAt,
-      usesCommonFilters = usesCommonFilters
+      usesCommonFilters = usesCommonFilters,
+      description = Some(description)
     )).futureValue
   }
 
@@ -43,7 +46,8 @@ object RoutesRepoHelper extends DaoHelper {
     ownedByTeam: String = "testteam",
     createdAt: LocalDateTime = LocalDateTime.now(),
     activateAt: LocalDateTime = LocalDateTime.now(),
-    usesCommonFilters: Boolean = false): RouteRow = {
+    usesCommonFilters: Boolean = false,
+    description: Option[String] = Some("desc")): RouteRow = {
 
     RouteRow(
       id = Some(id),
@@ -53,7 +57,8 @@ object RoutesRepoHelper extends DaoHelper {
       createdBy = createdBy,
       createdAt = createdAt,
       activateAt = activateAt,
-      usesCommonFilters = usesCommonFilters
+      usesCommonFilters = usesCommonFilters,
+      description = description
     )
   }
 
@@ -89,10 +94,15 @@ object RoutesRepoHelper extends DaoHelper {
         |  }]
         |}""".stripMargin
 
-  private def insertTestPath(ownedByTeam: String, createdBy: String, createdAt: LocalDateTime): Long = {
+  private def insertTestPath(
+    ownedByTeam: String,
+    createdBy: String,
+    createdAt: LocalDateTime,
+    uri: String = "testuri"): Long = {
+
     val path = pathsRepo.insert(PathRow(
       id = None,
-      uri = "testuri",
+      uri = uri,
       hostIds = List.empty,
       ownedByTeam = ownedByTeam,
       createdAt = createdAt,

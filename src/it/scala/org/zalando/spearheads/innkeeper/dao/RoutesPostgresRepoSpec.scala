@@ -2,11 +2,12 @@ package org.zalando.spearheads.innkeeper.dao
 
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
+
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.time.{Seconds, Span}
-import org.scalatest.{BeforeAndAfter, FunSpec, Matchers}
+import org.scalatest.{BeforeAndAfter, FunSpec, Matchers, path}
 import org.zalando.spearheads.innkeeper.routes.RoutesRepoHelper
-import RoutesRepoHelper.{insertRoute, routeJson, sampleRoute, deleteRoute}
+import RoutesRepoHelper.{deleteRoute, insertRoute, routeJson, sampleRoute}
 import org.zalando.spearheads.innkeeper.routes.RoutesRepoHelper._
 
 class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers with ScalaFutures {
@@ -45,8 +46,8 @@ class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers w
         val createdAt = LocalDateTime.now()
         val activateAt = createdAt.minusMinutes(5)
 
-        insertRoute("R1", "GET", createdAt = createdAt, activateAt = activateAt)
-        insertRoute("R2", "POST", createdAt = createdAt, activateAt = activateAt)
+        insertRoute("R1", method = "GET", createdAt = createdAt, activateAt = activateAt)
+        insertRoute("R2", method = "POST", createdAt = createdAt, activateAt = activateAt)
 
         val routes: List[RouteRow] = routesRepo.selectAll
 
@@ -206,7 +207,7 @@ class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers w
       }
     }
 
-    describe("#selectLatestRoutesPerName") {
+    describe("#selectLatestActiveRoutesWithPathPerName") {
 
       it("should select the right routes") {
         insertRoute("R1")
@@ -218,27 +219,22 @@ class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers w
         insertRoute("R3")
         deleteRoute(5)
 
-        val routes: List[RouteRow] = routesRepo.selectLatestActiveRoutesPerName(LocalDateTime.now())
+        val routesWithPaths = routesRepo.selectLatestActiveRoutesWithPathPerName(LocalDateTime.now())
 
-        routes.size should be (3)
-        routes.map(_.id.get).toSet should be (Set(1, 4, 6))
-      }
+        routesWithPaths.size should be (3)
 
-      it("should not select the disabled routes") {
-        insertRoute("R1", disableAt = Some(LocalDateTime.now().minusMinutes(3)))
-        insertRoute("R3")
-
-        val routes: List[RouteRow] = routesRepo.selectLatestActiveRoutesPerName(LocalDateTime.now())
-
-        routes.size should be (1)
-        routes.map(_.id.get).toSet should be (Set(2))
+        routesWithPaths.map {
+          case (routeRow, pathRow) =>
+            (routeRow.id.get, pathRow.uri)
+        }.toSet should
+          be (Set((1, "/path-for-R1"), (4, "/path-for-R4"), (6, "/path-for-R3")))
       }
     }
 
     describe("delete") {
       it("should delete a route by marking as deleted") {
-        insertRoute("1", "POST")
-        insertRoute("2", "GET")
+        insertRoute("1", method = "POST")
+        insertRoute("2", method = "GET")
         val result = deleteRoute(1)
 
         result should be (true)

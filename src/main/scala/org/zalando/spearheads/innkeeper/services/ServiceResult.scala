@@ -22,11 +22,13 @@ trait ServiceResult {
 
   case class Failure(reason: FailureReason) extends Result[Nothing]
 
-  trait FailureReason
+  sealed trait FailureReason {
+    def message: String
+  }
 
-  case object NotFound extends FailureReason
+  case class NotFound(message: String = "") extends FailureReason
 
-  case class Ex(throwable: Throwable) extends FailureReason
+  case class Ex(throwable: Throwable, message: String = "") extends FailureReason
 }
 
 object ServiceResult extends ServiceResult

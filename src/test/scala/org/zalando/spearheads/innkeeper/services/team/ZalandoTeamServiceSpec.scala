@@ -99,7 +99,7 @@ class ZalandoTeamServiceSpec extends FunSpec with MockFactory with Matchers with
             (mockHttpClient.callJson _).expects(s"$teamMemberServiceUrl$username", Some(token), HttpMethods.GET)
               .returning(Future("""[{"id":"pathfinder","type":"virtual"}]""".parseJson))
 
-            teamService.getForUsername(username, token).futureValue should be (ServiceResult.Failure(NotFound))
+            teamService.getForUsername(username, token).futureValue should be (ServiceResult.Failure(NotFound()))
           }
         }
       }

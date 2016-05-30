@@ -253,7 +253,6 @@ class JsonProtocolsSpec extends FunSpec with Matchers {
     }
 
     it("should marshall the RouteIn") {
-      println(routeIn.toJson.prettyPrint)
       routeIn.toJson.prettyPrint should be {
         """{
           |  "name": "THE_ROUTE",

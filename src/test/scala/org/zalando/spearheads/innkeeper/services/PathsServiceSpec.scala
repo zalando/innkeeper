@@ -46,7 +46,7 @@ class PathsServiceSpec extends FunSpec with Matchers with MockFactory with Scala
         val result = pathsService.create(pathIn, TeamName(ownedByTeam),
           UserName(createdBy), createdAt).futureValue
 
-        result should be(ServiceResult.Failure(ServiceResult.NotFound))
+        result should be(ServiceResult.Failure(ServiceResult.NotFound()))
       }
     }
 
@@ -78,8 +78,8 @@ class PathsServiceSpec extends FunSpec with Matchers with MockFactory with Scala
           val pathServiceResult = pathsService.findById(pathId).futureValue
 
           pathServiceResult match {
-            case ServiceResult.Failure(ServiceResult.NotFound) =>
-            case _                                             => fail()
+            case ServiceResult.Failure(ServiceResult.NotFound(_)) =>
+            case _                                                => fail()
           }
         }
       }
@@ -112,8 +112,8 @@ class PathsServiceSpec extends FunSpec with Matchers with MockFactory with Scala
           val pathServiceResult = pathsService.findByRouteId(routeId).futureValue
 
           pathServiceResult match {
-            case ServiceResult.Failure(ServiceResult.NotFound) =>
-            case _                                             => fail()
+            case ServiceResult.Failure(ServiceResult.NotFound(_)) =>
+            case _                                                => fail()
           }
         }
       }

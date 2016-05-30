@@ -61,9 +61,14 @@ case class NewRoute(
   filters: Option[Seq[Filter]] = Some(Seq.empty),
   endpoint: Option[String] = None)
 
-case class Predicate(name: String, args: Seq[Arg])
+trait NameWithArgs {
+  def name: String
+  def args: Seq[Arg]
+}
 
-case class Filter(name: String, args: Seq[Arg])
+case class Predicate(name: String, args: Seq[Arg]) extends NameWithArgs
+
+case class Filter(name: String, args: Seq[Arg]) extends NameWithArgs
 
 sealed trait Arg {
   def value: String

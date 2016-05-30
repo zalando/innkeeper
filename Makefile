@@ -1,4 +1,4 @@
-version=0.0.7
+version=0.2.4
 
 docker:
 	sbt assembly
@@ -39,7 +39,5 @@ kill-all-docker:
 acceptance-tests:
 	./scripts/acceptance-tests.sh
 
-
 acceptance-tests-fast:
 	./scripts/acceptance-tests.sh -fast
-

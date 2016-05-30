@@ -30,8 +30,6 @@ trait RoutesService {
 
   def allRoutes: Source[RouteOut, NotUsed]
 
-  def latestRoutesPerName(currentTime: LocalDateTime = LocalDateTime.now()): Source[RouteOut, NotUsed]
-
   def findById(id: Long): Future[Result[RouteOut]]
 
   def findDeletedBefore(deletedBefore: LocalDateTime): Source[RouteOut, NotUsed]
@@ -73,7 +71,7 @@ class DefaultRoutesService @Inject() (
 
   override def remove(id: Long, deletedBy: String): Future[Result[Boolean]] = {
     routesRepo.delete(id, Some(deletedBy)).map {
-      case false => Failure(NotFound)
+      case false => Failure(NotFound())
       case _     => Success(true)
     }
   }
@@ -92,10 +90,6 @@ class DefaultRoutesService @Inject() (
     routesRepo.selectAll
   }
 
-  override def latestRoutesPerName(currentTime: LocalDateTime): Source[RouteOut, NotUsed] = routeRowsStreamToRouteOutStream {
-    routesRepo.selectLatestActiveRoutesPerName(currentTime)
-  }
-
   private def routeRowsStreamToRouteOutStream(streamOfRows: => DatabasePublisher[RouteRow]): Source[RouteOut, NotUsed] = {
     Source.fromPublisher(streamOfRows.mapResult { routeRow =>
       routeRow.id.map { id =>
@@ -107,7 +101,7 @@ class DefaultRoutesService @Inject() (
   override def findById(id: Long): Future[Result[RouteOut]] = {
     routesRepo.selectById(id).flatMap {
       case Some(routeRow) if routeRow.deletedAt.isEmpty => rowToEventualMaybeRoute(routeRow)
-      case _                                            => Future(Failure(NotFound))
+      case _                                            => Future(Failure(NotFound()))
     }
   }
 
@@ -127,7 +121,7 @@ class DefaultRoutesService @Inject() (
 
   private def rowToEventualMaybeRoute(routeRow: RouteRow): Future[Result[RouteOut]] = routeRow.id match {
     case Some(id) => Future(Success(routeRowToRoute(id, routeRow)))
-    case None     => Future(Failure(NotFound))
+    case None     => Future(Failure(NotFound()))
   }
 
   private def routeRowToRoute(id: Long, routeRow: RouteRow) = {

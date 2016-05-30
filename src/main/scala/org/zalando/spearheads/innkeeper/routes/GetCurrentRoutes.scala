@@ -4,19 +4,19 @@ import akka.http.scaladsl.server.Directives.get
 import akka.http.scaladsl.server.Route
 import com.google.inject.Inject
 import org.slf4j.LoggerFactory
-import org.zalando.spearheads.innkeeper.api.{JsonService, RouteOut}
+import org.zalando.spearheads.innkeeper.RouteDirectives.chunkedResponseOf
+import org.zalando.spearheads.innkeeper.api.JsonProtocols._
+import org.zalando.spearheads.innkeeper.api.{EskipRouteWrapper, JsonService}
 import org.zalando.spearheads.innkeeper.metrics.RouteMetrics
 import org.zalando.spearheads.innkeeper.oauth.OAuthDirectives.hasOneOfTheScopes
 import org.zalando.spearheads.innkeeper.oauth.{AuthenticatedUser, Scopes}
-import org.zalando.spearheads.innkeeper.services.RoutesService
-import org.zalando.spearheads.innkeeper.RouteDirectives.chunkedResponseOf
-import org.zalando.spearheads.innkeeper.api.JsonProtocols._
+import org.zalando.spearheads.innkeeper.services.EskipRouteService
 
 /**
  * @author dpersa
  */
 class GetCurrentRoutes @Inject() (
-    routesService: RoutesService,
+    eskipRouteService: EskipRouteService,
     jsonService: JsonService,
     metrics: RouteMetrics,
     scopes: Scopes) {
@@ -29,9 +29,8 @@ class GetCurrentRoutes @Inject() (
       hasOneOfTheScopes(authenticatedUser, reqDesc, scopes.READ) {
         metrics.getCurrentRoutes.time {
           logger.info(s"try to $reqDesc")
-
-          chunkedResponseOf[RouteOut](jsonService) {
-            routesService.latestRoutesPerName()
+          chunkedResponseOf[EskipRouteWrapper](jsonService) {
+            eskipRouteService.currentEskipRoutes()
           }
         }
       }

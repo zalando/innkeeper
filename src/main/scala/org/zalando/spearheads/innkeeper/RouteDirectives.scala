@@ -24,9 +24,9 @@ trait RouteDirectives {
     Directive[Tuple1[RouteOut]] { inner => ctx =>
       {
         routesService.findById(id).fast.transformWith {
-          case Success(ServiceResult.Success(routeOut))               => inner(Tuple1(routeOut))(ctx)
-          case Success(ServiceResult.Failure(ServiceResult.NotFound)) => reject(RouteNotFoundRejection(requestDescription))(ctx)
-          case _                                                      => reject(InternalServerErrorRejection(requestDescription))(ctx)
+          case Success(ServiceResult.Success(routeOut))                  => inner(Tuple1(routeOut))(ctx)
+          case Success(ServiceResult.Failure(ServiceResult.NotFound(_))) => reject(RouteNotFoundRejection(requestDescription))(ctx)
+          case _                                                         => reject(InternalServerErrorRejection(requestDescription))(ctx)
         }
       }
     }
@@ -35,9 +35,9 @@ trait RouteDirectives {
     Directive[Tuple1[PathOut]] { inner => ctx =>
       {
         pathsService.findByRouteId(id).fast.transformWith {
-          case Success(ServiceResult.Success(path))                   => inner(Tuple1(path))(ctx)
-          case Success(ServiceResult.Failure(ServiceResult.NotFound)) => reject(RouteNotFoundRejection(requestDescription))(ctx)
-          case _                                                      => reject(InternalServerErrorRejection(requestDescription))(ctx)
+          case Success(ServiceResult.Success(path))                      => inner(Tuple1(path))(ctx)
+          case Success(ServiceResult.Failure(ServiceResult.NotFound(_))) => reject(RouteNotFoundRejection(requestDescription))(ctx)
+          case _                                                         => reject(InternalServerErrorRejection(requestDescription))(ctx)
         }
       }
     }
@@ -46,9 +46,9 @@ trait RouteDirectives {
     Directive[Tuple1[PathOut]] { inner => ctx =>
       {
         pathsService.findById(id).fast.transformWith {
-          case Success(ServiceResult.Success(pathOut))                => inner(Tuple1(pathOut))(ctx)
-          case Success(ServiceResult.Failure(ServiceResult.NotFound)) => reject(PathNotFoundRejection(requestDescription))(ctx)
-          case _                                                      => reject(InternalServerErrorRejection(requestDescription))(ctx)
+          case Success(ServiceResult.Success(pathOut))                   => inner(Tuple1(pathOut))(ctx)
+          case Success(ServiceResult.Failure(ServiceResult.NotFound(_))) => reject(PathNotFoundRejection(requestDescription))(ctx)
+          case _                                                         => reject(InternalServerErrorRejection(requestDescription))(ctx)
         }
       }
     }

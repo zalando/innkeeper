@@ -53,14 +53,14 @@ class DefaultPathsService @Inject() (pathsRepo: PathsRepo)(implicit val executio
   override def findById(id: Long): Future[ServiceResult.Result[PathOut]] = {
     pathsRepo.selectById(id).flatMap {
       case Some(pathRow) => rowToEventualMaybePath(pathRow)
-      case _             => Future(Failure(NotFound))
+      case _             => Future(Failure(NotFound()))
     }
   }
 
   override def findByRouteId(routeId: Long): Future[ServiceResult.Result[PathOut]] = {
     pathsRepo.selectByRouteId(routeId).flatMap {
       case Some(pathRow) => rowToEventualMaybePath(pathRow)
-      case _             => Future(Failure(NotFound))
+      case _             => Future(Failure(NotFound()))
     }
   }
 
@@ -85,7 +85,7 @@ class DefaultPathsService @Inject() (pathsRepo: PathsRepo)(implicit val executio
 
   private def rowToEventualMaybePath(pathRow: PathRow): Future[Result[PathOut]] = pathRow.id match {
     case Some(id) => Future(Success(pathRowToPath(id, pathRow)))
-    case None     => Future(Failure(NotFound))
+    case None     => Future(Failure(NotFound()))
   }
 
   private def pathRowToPath(id: Long, pathRow: PathRow) = {
