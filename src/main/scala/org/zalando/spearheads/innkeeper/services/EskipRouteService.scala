@@ -1,7 +1,6 @@
 package org.zalando.spearheads.innkeeper.services
 
 import java.time.LocalDateTime
-
 import akka.NotUsed
 import akka.stream.scaladsl.Source
 import com.google.inject.Inject
@@ -10,18 +9,19 @@ import org.zalando.spearheads.innkeeper.api.{EskipRoute, EskipRouteWrapper, NewR
 import org.zalando.spearheads.innkeeper.dao.{PathRow, RouteRow, RoutesRepo}
 import spray.json.pimpString
 
-class EskipRouteService @Inject()(routesRepo: RoutesRepo, routeToEskipTransformer: RouteToEskipTransformer) {
+class EskipRouteService @Inject() (routesRepo: RoutesRepo, routeToEskipTransformer: RouteToEskipTransformer) {
 
-  private val -> = "\n -> "
+  private val arrow = "\n -> "
 
   def currentEskipRoutes(currentTime: LocalDateTime = LocalDateTime.now()): Source[EskipRouteWrapper, NotUsed] = {
 
     Source.fromPublisher(routesRepo.selectLatestActiveRoutesWithPathPerName(currentTime).mapResult {
       case (routeRow, pathRow) =>
-      EskipRouteWrapper(RouteName(routeRow.name),
-        routeToEskipString(routeRow, pathRow),
-        routeRow.createdAt,
-        routeRow.deletedAt)
+        EskipRouteWrapper(
+          RouteName(routeRow.name),
+          routeToEskipString(routeRow, pathRow),
+          routeRow.createdAt,
+          routeRow.deletedAt)
     })
   }
 
@@ -46,19 +46,19 @@ class EskipRouteService @Inject()(routesRepo: RoutesRepo, routeToEskipTransforme
     }.mkString(" && ")
 
     val prependFilters = eskipRoute.prependedFilters.map {
-      filter => s"${->}${filter}"
+      filter => s"${arrow}${filter}"
     }.mkString
 
     val filters = eskipRoute.filters.map { filter =>
       val args = filter.args.mkString(",")
-      s"${->}${filter.name}($args)"
+      s"${arrow}${filter.name}($args)"
     }.mkString
 
     val appendFilters = eskipRoute.appendedFilters.map {
-      filter => s"${->}${filter}"
+      filter => s"${arrow}${filter}"
     }.mkString
 
-    val endpoint = s"${->}${eskipRoute.endpoint}"
+    val endpoint = s"${arrow}${eskipRoute.endpoint}"
     s"$routeName: $predicates$prependFilters$filters$appendFilters$endpoint"
   }
 }

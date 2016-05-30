@@ -62,7 +62,8 @@ class GetCurrentRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
 
         routes.map(_.createdAt).toSet should be (Set(
           route1CreatedAt,
-          route4CreatedAt, route6CreatedAt))
+          route4CreatedAt,
+          route6CreatedAt))
       }
 
       it("should not select the disabled routes") {
