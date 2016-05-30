@@ -13,7 +13,21 @@ class PostPathsSpec extends FunSpec with BeforeAndAfter with Matchers {
 
   private val pathUri = "uri-1"
   private val hostIds = List(1L, 2L)
-  private val pathJsonString = PathsSpecsHelper.createPathInJsonString(pathUri, hostIds)
+  private val otherOwningTeam = "otherOwningTeam"
+  private val pathJsonString =
+    s"""{
+        |  "uri": "$pathUri",
+        |  "host_ids": [${hostIds.mkString(", ")}]
+        |}
+  """.stripMargin
+
+  private val pathWithOwningTeamJsonString =
+    s"""{
+        |  "uri": "$pathUri",
+        |  "host_ids": [${hostIds.mkString(", ")}],
+        |  "owned_by_team": "$otherOwningTeam"
+        |}
+  """.stripMargin
 
   describe("post /paths") {
 
@@ -25,17 +39,68 @@ class PostPathsSpec extends FunSpec with BeforeAndAfter with Matchers {
 
       describe("when a token with the write scope is provided") {
         it("should create the new path") {
-          val response = PathsSpecsHelper.postSlashPaths(pathJsonString, WRITE_TOKEN)
+          val token = WRITE_TOKEN
+          val response = PathsSpecsHelper.postSlashPaths(pathJsonString, token)
 
           response.status should be(StatusCodes.OK)
           val entity = entityString(response)
           val path = entity.parseJson.convertTo[PathOut]
 
           path.uri should be(pathUri)
-          path.ownedByTeam should be(TeamName("team1"))
-          path.createdBy should be(UserName("user~1"))
+          path.ownedByTeam should be(TeamName(token.teamName))
+          path.createdBy should be(UserName(token.userName))
           path.hostIds should be(hostIds)
         }
+      }
+    }
+
+    describe("when a token with the admin scope is provided") {
+      it("should create the new path with the provided owning team") {
+        val token = ADMIN_TOKEN
+        val response = PathsSpecsHelper.postSlashPaths(pathWithOwningTeamJsonString, token)
+
+        response.status should be(StatusCodes.OK)
+        val entity = entityString(response)
+        val path = entity.parseJson.convertTo[PathOut]
+
+        path.uri should be(pathUri)
+        path.ownedByTeam should be(TeamName(otherOwningTeam))
+        path.createdBy should be(UserName(token.userName))
+        path.hostIds should be(hostIds)
+      }
+    }
+
+    describe("when an admin team token is provided") {
+      it("should create the new path with the provided owning team") {
+        val token = ADMIN_TEAM_TOKEN
+
+        val response = PathsSpecsHelper.postSlashPaths(pathWithOwningTeamJsonString, token)
+
+        response.status should be(StatusCodes.OK)
+        val entity = entityString(response)
+        val path = entity.parseJson.convertTo[PathOut]
+
+        path.uri should be(pathUri)
+        path.ownedByTeam should be(TeamName(otherOwningTeam))
+        path.createdBy should be(UserName(token.userName))
+        path.hostIds should be(hostIds)
+      }
+    }
+
+    describe("when a token without admin privileges is provided") {
+      it("should create the new path with the owning team set to the user's team") {
+        val token = WRITE_TOKEN
+
+        val response = PathsSpecsHelper.postSlashPaths(pathWithOwningTeamJsonString, token)
+
+        response.status should be(StatusCodes.OK)
+        val entity = entityString(response)
+        val path = entity.parseJson.convertTo[PathOut]
+
+        path.uri should be(pathUri)
+        path.ownedByTeam should be(TeamName(token.teamName))
+        path.createdBy should be(UserName(token.userName))
+        path.hostIds should be(hostIds)
       }
     }
 

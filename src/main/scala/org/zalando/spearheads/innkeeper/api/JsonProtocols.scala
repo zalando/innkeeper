@@ -124,7 +124,7 @@ object JsonProtocols {
 
   implicit val hostFormat = jsonFormat(Host, "id", "name")
 
-  implicit val pathInFormat = jsonFormat(PathIn, "uri", "host_ids")
+  implicit val pathInFormat = jsonFormat(PathIn, "uri", "host_ids", "owned_by_team")
 
   implicit val pathOutFormat = jsonFormat(
     PathOut,
