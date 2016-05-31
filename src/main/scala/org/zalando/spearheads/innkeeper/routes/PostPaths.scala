@@ -36,7 +36,7 @@ class PostPaths @Inject() (
         team(authenticatedUser, token, "path") { team =>
           logger.debug(s"post /paths team $team")
 
-          (isAdminTeam(team, reqDesc) | hasOneOfTheScopes(authenticatedUser, reqDesc, scopes.ADMIN)) {
+          hasAdminAuthorization(authenticatedUser, team, reqDesc, scopes)(teamService) {
             logger.debug(s"post /paths admin team $team")
 
             val teamName = path.ownedByTeam.getOrElse(TeamName(team.name))
