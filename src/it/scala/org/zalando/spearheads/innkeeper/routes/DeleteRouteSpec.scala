@@ -4,9 +4,6 @@ import akka.http.scaladsl.model.StatusCodes
 import org.scalatest.{BeforeAndAfter, FunSpec, Matchers}
 import org.zalando.spearheads.innkeeper.routes.AcceptanceSpecToken._
 import org.zalando.spearheads.innkeeper.routes.RoutesRepoHelper.{insertRoute, recreateSchema}
-import spray.json.pimpString
-import spray.json.DefaultJsonProtocol._
-import org.zalando.spearheads.innkeeper.api.JsonProtocols._
 import org.zalando.spearheads.innkeeper.routes.RoutesSpecsHelper._
 
 class DeleteRouteSpec extends FunSpec with BeforeAndAfter with Matchers {
@@ -25,9 +22,21 @@ class DeleteRouteSpec extends FunSpec with BeforeAndAfter with Matchers {
 
         it("should delete the route") {
           insertRoute("R1")
-          insertRoute("R2", ownedByTeam = "team1")
+          insertRoute("R2", ownedByTeam = token.teamName)
 
           val response = deleteSlashRoute(2, token)
+          response.status should be(StatusCodes.OK)
+        }
+      }
+
+      describe("when an admin team token is provided with a different team") {
+        val token = ADMIN_TEAM_TOKEN
+
+        it("should delete the route") {
+          insertRoute("R1")
+          val insertedRoute = insertRoute("R2", ownedByTeam = token.teamName + "other")
+
+          val response = deleteSlashRoute(insertedRoute.id.get, token)
           response.status should be(StatusCodes.OK)
         }
       }
@@ -35,6 +44,13 @@ class DeleteRouteSpec extends FunSpec with BeforeAndAfter with Matchers {
 
     describe("failure") {
       val token = WRITE_TOKEN
+
+      describe("when the route doesn't exist") {
+        it("should return the 404 Not Found") {
+          val response = deleteSlashRoute(-1L, token)
+          response.status should be(StatusCodes.NotFound)
+        }
+      }
 
       describe("when the route is owned by another team") {
 
@@ -86,7 +102,9 @@ class DeleteRouteSpec extends FunSpec with BeforeAndAfter with Matchers {
         val token = READ_TOKEN
 
         it("should return the 403 Forbidden status") {
-          val response = deleteSlashRoute(2, token)
+          val instertedRoute = insertRoute("R1", ownedByTeam = READ_TOKEN.teamName)
+
+          val response = deleteSlashRoute(instertedRoute.id.get, token)
           response.status should be(StatusCodes.Forbidden)
         }
       }
