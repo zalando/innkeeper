@@ -89,7 +89,15 @@ trait OAuthDirectives {
     }
   }
 
-  def isAdminTeam(team: Team, requestDescription: String)(implicit teamService: TeamService): Directive0 = {
+  def hasAdminAuthorization(
+    authenticatedUser: AuthenticatedUser,
+    team: Team,
+    requestDescription: String,
+    scopes: Scopes
+  )(implicit teamService: TeamService): Directive0 =
+    isAdminTeam(team, requestDescription) | hasOneOfTheScopes(authenticatedUser, requestDescription, scopes.ADMIN)
+
+  private def isAdminTeam(team: Team, requestDescription: String)(implicit teamService: TeamService): Directive0 = {
     if (teamService.isAdminTeam(team)) {
       pass
     } else {

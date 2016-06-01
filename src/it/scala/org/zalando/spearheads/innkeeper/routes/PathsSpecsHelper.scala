@@ -65,10 +65,4 @@ object PathsSpecsHelper {
     futureResponse.futureValue
   }
 
-  def createPathInJsonString(uri: String, hostIds: List[Long]): String = s"""{
-    |  "uri": "$uri",
-    |  "host_ids": [${hostIds.mkString(", ")}]
-    |}
-  """.stripMargin
-
 }
