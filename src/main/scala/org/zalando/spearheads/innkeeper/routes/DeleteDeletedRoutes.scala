@@ -46,7 +46,7 @@ class DeleteDeletedRoutes @Inject() (
           team(authenticatedUser, token, requestDescription) { team =>
             hasAdminAuthorization(authenticatedUser, team, requestDescription, scopes)(teamService) {
               removeDeleteBeforeRoutes(authenticatedUser, dateTime, requestDescription)
-            } ~ reject(InnkeeperAuthorizationFailedRejection(requestDescription))
+            }
           }
         case None =>
           reject(InvalidDateTimeRejection(requestDescription))
