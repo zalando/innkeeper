@@ -8,7 +8,7 @@ import org.slf4j.LoggerFactory
 import org.zalando.spearheads.innkeeper.Rejections.UnmarshallRejection
 import org.zalando.spearheads.innkeeper.api.{RouteIn, RouteOut, UserName}
 import org.zalando.spearheads.innkeeper.metrics.RouteMetrics
-import org.zalando.spearheads.innkeeper.oauth.OAuthDirectives.{hasOneOfTheScopes, isValidRoute, routeTeamAuthorization, team}
+import org.zalando.spearheads.innkeeper.oauth.OAuthDirectives.{hasAdminAuthorization, hasOneOfTheScopes, isValidRoute, routeTeamAuthorization, team}
 import org.zalando.spearheads.innkeeper.oauth.{AuthenticatedUser, Scopes}
 import org.zalando.spearheads.innkeeper.services.{PathsService, RoutesService, ServiceResult}
 import org.zalando.spearheads.innkeeper.services.team.TeamService
@@ -43,11 +43,13 @@ class PostRoutes @Inject() (
           findPath(route.pathId, pathsService, reqDesc)(executionContext) { path =>
             logger.debug(s"post /routes path $path")
 
-            (routeTeamAuthorization(team, path.ownedByTeam, reqDesc) & hasOneOfTheScopes(authenticatedUser, reqDesc, scopes.WRITE)) {
-              isValidRoute(route.route, reqDesc)(routeValidationService) {
-                handleWith(saveRoute(UserName(authenticatedUser.username), s"$reqDesc other"))
+            ((routeTeamAuthorization(team, path.ownedByTeam, reqDesc) & hasOneOfTheScopes(authenticatedUser, reqDesc, scopes.WRITE)) |
+              hasAdminAuthorization(authenticatedUser, team, reqDesc, scopes)
+            ) {
+                isValidRoute(route.route, reqDesc)(routeValidationService) {
+                  handleWith(saveRoute(UserName(authenticatedUser.username), s"$reqDesc other"))
+                }
               }
-            }
           }
         }
       } ~ {
