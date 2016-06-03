@@ -104,6 +104,7 @@ class PostRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
         it("should return the 403 Forbidden status") {
           val response = postRoute(routeName, token, "")
           response.status should be(StatusCodes.Forbidden)
+          entityString(response).parseJson.convertTo[Error].errorType should be("AUTH3")
         }
       }
 
@@ -113,6 +114,7 @@ class PostRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
         it("should return the 403 Forbidden status") {
           val response = postRoute(routeName, token, token.teamName)
           response.status should be(StatusCodes.Forbidden)
+          entityString(response).parseJson.convertTo[Error].errorType should be("AUTH1")
         }
       }
 
@@ -122,15 +124,17 @@ class PostRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
         it("should return the 403 Forbidden status") {
           val response = postRoute(routeName, token, token.teamName)
           response.status should be(StatusCodes.Forbidden)
+          entityString(response).parseJson.convertTo[Error].errorType should be("TNF")
         }
       }
 
       describe("when an user is not part of an authorized team for the path") {
-        val token = READ_TOKEN
+        val token = WRITE_TOKEN
 
         it("should return the 403 Forbidden status") {
           val response = postRoute(routeName, token, "unauthorized-team-name")
           response.status should be(StatusCodes.Forbidden)
+          entityString(response).parseJson.convertTo[Error].errorType should be("ITE")
         }
       }
     }

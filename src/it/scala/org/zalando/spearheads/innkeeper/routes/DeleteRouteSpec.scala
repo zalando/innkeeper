@@ -2,9 +2,14 @@ package org.zalando.spearheads.innkeeper.routes
 
 import akka.http.scaladsl.model.StatusCodes
 import org.scalatest.{BeforeAndAfter, FunSpec, Matchers}
+import org.zalando.spearheads.innkeeper.api.Error
 import org.zalando.spearheads.innkeeper.routes.AcceptanceSpecToken._
+import org.zalando.spearheads.innkeeper.routes.AcceptanceSpecsHelper._
 import org.zalando.spearheads.innkeeper.routes.RoutesRepoHelper.{insertRoute, recreateSchema}
 import org.zalando.spearheads.innkeeper.routes.RoutesSpecsHelper._
+import org.zalando.spearheads.innkeeper.api.JsonProtocols._
+import spray.json._
+import spray.json.DefaultJsonProtocol._
 
 class DeleteRouteSpec extends FunSpec with BeforeAndAfter with Matchers {
 
@@ -59,6 +64,7 @@ class DeleteRouteSpec extends FunSpec with BeforeAndAfter with Matchers {
           insertRoute("R2", ownedByTeam = "team2")
           val response = deleteSlashRoute(1, token)
           response.status should be(StatusCodes.Forbidden)
+          entityString(response).parseJson.convertTo[Error].errorType should be("ITE")
         }
       }
 
@@ -95,6 +101,7 @@ class DeleteRouteSpec extends FunSpec with BeforeAndAfter with Matchers {
         it("should return the 403 Forbidden status") {
           val response = deleteSlashRoute(2, token)
           response.status should be(StatusCodes.Forbidden)
+          entityString(response).parseJson.convertTo[Error].errorType should be("AUTH3")
         }
       }
 
@@ -106,6 +113,7 @@ class DeleteRouteSpec extends FunSpec with BeforeAndAfter with Matchers {
 
           val response = deleteSlashRoute(instertedRoute.id.get, token)
           response.status should be(StatusCodes.Forbidden)
+          entityString(response).parseJson.convertTo[Error].errorType should be("AUTH1")
         }
       }
     }

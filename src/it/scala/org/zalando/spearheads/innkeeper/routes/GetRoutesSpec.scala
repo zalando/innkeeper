@@ -7,7 +7,7 @@ import org.scalatest.{BeforeAndAfter, FunSpec, Matchers}
 import org.zalando.spearheads.innkeeper.routes.AcceptanceSpecToken.{INVALID_TOKEN, READ_TOKEN, WRITE_TOKEN}
 import org.zalando.spearheads.innkeeper.routes.AcceptanceSpecsHelper._
 import org.zalando.spearheads.innkeeper.routes.RoutesRepoHelper.{deleteRoute, insertRoute, recreateSchema, routesRepo}
-import org.zalando.spearheads.innkeeper.api.RouteOut
+import org.zalando.spearheads.innkeeper.api.{Error, RouteOut}
 import spray.json._
 import spray.json.DefaultJsonProtocol._
 import org.zalando.spearheads.innkeeper.api.JsonProtocols._
@@ -92,15 +92,17 @@ class GetRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
           it("should return the 403 Forbidden status") {
             val response = getSlashRoutes(token)
             response.status should be(StatusCodes.Forbidden)
+            entityString(response).parseJson.convertTo[Error].errorType should be("AUTH3")
           }
         }
 
-        describe("when a token without the write scope is provided") {
+        describe("when a token without the read scope is provided") {
           val token = WRITE_TOKEN
 
           it("should return the 403 Forbidden status") {
             val response = getSlashRoutes(token)
             response.status should be(StatusCodes.Forbidden)
+            entityString(response).parseJson.convertTo[Error].errorType should be("AUTH1")
           }
         }
       }
@@ -112,6 +114,7 @@ class GetRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
           it("should return the 400 Bad Request status") {
             val response = getSlashRoutesByName("1234INVALID", token)
             response.status should be(StatusCodes.BadRequest)
+            entityString(response).parseJson.convertTo[Error].errorType should be("IRN")
           }
         }
       }

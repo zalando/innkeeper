@@ -117,6 +117,7 @@ class PostPathsSpec extends FunSpec with BeforeAndAfter with Matchers {
         it("should return the 403 Forbidden status") {
           val response = PathsSpecsHelper.postSlashPaths(pathJsonString, INVALID_TOKEN)
           response.status should be(StatusCodes.Forbidden)
+          entityString(response).parseJson.convertTo[Error].errorType should be("AUTH3")
         }
       }
 
@@ -124,6 +125,7 @@ class PostPathsSpec extends FunSpec with BeforeAndAfter with Matchers {
         it("should return the 403 Forbidden status") {
           val response = PathsSpecsHelper.postSlashPaths(pathJsonString, READ_TOKEN)
           response.status should be(StatusCodes.Forbidden)
+          entityString(response).parseJson.convertTo[Error].errorType should be("AUTH1")
         }
       }
 
@@ -133,6 +135,7 @@ class PostPathsSpec extends FunSpec with BeforeAndAfter with Matchers {
         it("should return the 403 Forbidden status") {
           val response = PathsSpecsHelper.postSlashPaths(pathJsonString, token)
           response.status should be(StatusCodes.Forbidden)
+          entityString(response).parseJson.convertTo[Error].errorType should be("TNF")
         }
       }
     }
