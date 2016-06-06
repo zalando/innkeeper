@@ -2,7 +2,7 @@ package org.zalando.spearheads.innkeeper.routes
 
 import akka.http.scaladsl.model.StatusCodes
 import org.scalatest.{FunSpec, Matchers}
-import org.zalando.spearheads.innkeeper.api.Host
+import org.zalando.spearheads.innkeeper.api.{Error, Host}
 import org.zalando.spearheads.innkeeper.routes.AcceptanceSpecToken._
 import org.zalando.spearheads.innkeeper.routes.AcceptanceSpecsHelper._
 import spray.json._
@@ -37,6 +37,7 @@ class GetHostsSpec extends FunSpec with Matchers {
         val response = getSlashHosts(WRITE_TOKEN)
 
         response.status should be (StatusCodes.Forbidden)
+        entityString(response).parseJson.convertTo[Error].errorType should be("AUTH1")
       }
     }
   }

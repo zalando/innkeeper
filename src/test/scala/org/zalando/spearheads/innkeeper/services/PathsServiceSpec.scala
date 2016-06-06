@@ -11,6 +11,7 @@ import org.scalatest.{FunSpec, Matchers}
 import org.zalando.spearheads.innkeeper.FakeDatabasePublisher
 import org.zalando.spearheads.innkeeper.api.{PathIn, PathOut, TeamName, UserName}
 import org.zalando.spearheads.innkeeper.dao.{PathRow, PathsRepo, RouteRow}
+import org.zalando.spearheads.innkeeper.oauth.Scopes
 
 import scala.concurrent.duration.DurationInt
 import scala.collection.immutable.List

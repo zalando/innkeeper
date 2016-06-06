@@ -61,6 +61,7 @@ class GetPathSpec extends FunSpec with BeforeAndAfter with Matchers {
         it("should return the 403 Forbidden status") {
           val response = getSlashPath(2, token)
           response.status should be(StatusCodes.Forbidden)
+          entityString(response).parseJson.convertTo[Error].errorType should be("AUTH3")
         }
       }
 
@@ -70,6 +71,7 @@ class GetPathSpec extends FunSpec with BeforeAndAfter with Matchers {
         it("should return the 403 Forbidden status") {
           val response = getSlashPath(2, token)
           response.status should be(StatusCodes.Forbidden)
+          entityString(response).parseJson.convertTo[Error].errorType should be("AUTH1")
         }
       }
     }

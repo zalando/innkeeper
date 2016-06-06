@@ -3,8 +3,8 @@ package org.zalando.spearheads.innkeeper.routes
 import java.time.LocalDateTime
 
 import akka.http.scaladsl.model.StatusCodes
-import org.scalatest.{Matchers, BeforeAndAfter, FunSpec}
-import org.zalando.spearheads.innkeeper.api.{RouteName, RouteOut}
+import org.scalatest.{BeforeAndAfter, FunSpec, Matchers}
+import org.zalando.spearheads.innkeeper.api.{Error, RouteName, RouteOut}
 import org.zalando.spearheads.innkeeper.routes.AcceptanceSpecsHelper._
 import org.zalando.spearheads.innkeeper.routes.AcceptanceSpecToken._
 import org.zalando.spearheads.innkeeper.routes.RoutesRepoHelper._
@@ -68,6 +68,7 @@ class GetDeletedRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
         val response = getDeletedRoutes(LocalDateTime.now(), INVALID_TOKEN)
 
         response.status should be (StatusCodes.Forbidden)
+        entityString(response).parseJson.convertTo[Error].errorType should be("AUTH3")
       }
 
       it("should return 400 if wrong date was provided") {

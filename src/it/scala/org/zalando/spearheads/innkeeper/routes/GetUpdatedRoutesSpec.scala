@@ -8,7 +8,7 @@ import org.scalatest.{BeforeAndAfter, FunSpec, Matchers}
 import org.zalando.spearheads.innkeeper.routes.AcceptanceSpecToken.{INVALID_TOKEN, READ_TOKEN, WRITE_TOKEN}
 import org.zalando.spearheads.innkeeper.routes.AcceptanceSpecsHelper._
 import org.zalando.spearheads.innkeeper.routes.RoutesRepoHelper.{insertRoute, recreateSchema}
-import org.zalando.spearheads.innkeeper.api.{EskipRouteWrapper, RouteOut}
+import org.zalando.spearheads.innkeeper.api.{Error, EskipRouteWrapper, RouteOut}
 import spray.json._
 import spray.json.DefaultJsonProtocol._
 import org.zalando.spearheads.innkeeper.api.JsonProtocols._
@@ -60,6 +60,7 @@ class GetUpdatedRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
           it("should return the 403 Forbidden status") {
             val response = getUpdatedRoutes(LocalDateTime.now(), token)
             response.status should be(StatusCodes.Forbidden)
+            entityString(response).parseJson.convertTo[Error].errorType should be("AUTH3")
           }
         }
 
@@ -69,6 +70,7 @@ class GetUpdatedRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
           it("should return the 403 Forbidden status") {
             val response = getUpdatedRoutes(LocalDateTime.now(), token)
             response.status should be(StatusCodes.Forbidden)
+            entityString(response).parseJson.convertTo[Error].errorType should be("AUTH1")
           }
         }
 

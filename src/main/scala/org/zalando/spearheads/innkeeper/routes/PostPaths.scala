@@ -36,17 +36,17 @@ class PostPaths @Inject() (
         team(authenticatedUser, token, "path") { team =>
           logger.debug(s"post /paths team $team")
 
-          hasAdminAuthorization(authenticatedUser, team, reqDesc, scopes)(teamService) {
-            logger.debug(s"post /paths admin team $team")
+          hasOneOfTheScopes(authenticatedUser, reqDesc, scopes.WRITE) {
+            logger.debug(s"post /paths non-admin team $team")
 
-            val teamName = path.ownedByTeam.getOrElse(TeamName(team.name))
-
-            handleWith(savePath(UserName(authenticatedUser.username), teamName, reqDesc))
+            handleWith(savePath(UserName(authenticatedUser.username), TeamName(team.name), reqDesc))
           } ~
-            hasOneOfTheScopes(authenticatedUser, reqDesc, scopes.WRITE) {
-              logger.debug(s"post /paths non-admin team $team")
+            hasAdminAuthorization(authenticatedUser, team, reqDesc, scopes)(teamService) {
+              logger.debug(s"post /paths admin team $team")
 
-              handleWith(savePath(UserName(authenticatedUser.username), TeamName(team.name), reqDesc))
+              val teamName = path.ownedByTeam.getOrElse(TeamName(team.name))
+
+              handleWith(savePath(UserName(authenticatedUser.username), teamName, reqDesc))
             }
         }
       } ~ {
