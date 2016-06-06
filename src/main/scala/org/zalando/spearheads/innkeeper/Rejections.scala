@@ -96,4 +96,10 @@ object Rejections {
     def message: String = "Authorization Failed"
     def code: String = "AUTH1"
   }
+
+  case class DuplicateRouteNameRejection(requestDescription: String) extends Rejection with InnkeeperRejection {
+    def statusCode: StatusCode = StatusCodes.BadRequest
+    def message: String = "A route with the provided name already exists"
+    def code: String = "DRN"
+  }
 }

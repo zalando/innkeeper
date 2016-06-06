@@ -12,7 +12,7 @@ import org.zalando.spearheads.innkeeper.FakeDatabasePublisher
 import org.zalando.spearheads.innkeeper.api.JsonProtocols._
 import org.zalando.spearheads.innkeeper.api.{NewRoute, NumericArg, Predicate, RouteIn, RouteName, RouteOut, StringArg, UserName}
 import org.zalando.spearheads.innkeeper.dao.{RouteRow, RoutesRepo}
-import org.zalando.spearheads.innkeeper.services.ServiceResult.NotFound
+import org.zalando.spearheads.innkeeper.services.ServiceResult.{NotFound, DuplicateRouteName}
 import org.zalando.spearheads.innkeeper.utils.EnvConfig
 import spray.json.pimpAny
 
@@ -38,6 +38,8 @@ class RoutesServiceSpec extends FunSpec with Matchers with MockFactory with Scal
 
         (routesRepo.insert _).expects(routeRowWithoutId)
           .returning(Future(routeRow))
+        (routesRepo.routeWithNameExists _).expects(routeIn.name.name)
+          .returning(Future(false))
 
         val result = routesService.create(routeIn, UserName(createdBy), createdAt).futureValue
 
@@ -51,20 +53,22 @@ class RoutesServiceSpec extends FunSpec with Matchers with MockFactory with Scal
           activateAt = createdAt.plusMinutes(5),
           disableAt = None))
           .returning(Future(routeRow.copy(activateAt = createdAt.plusMinutes(5))))
+        (routesRepo.routeWithNameExists _).expects(routeIn.name.name)
+          .returning(Future(false))
 
         val result = routesService.create(routeInNoActivationOrDisableDate, UserName(createdBy), createdAt).futureValue
 
         result should be(ServiceResult.Success(savedRoute.copy(activateAt = createdAt.plusMinutes(5))))
       }
 
-      it("should fail to create a route") {
+      it("should fail to create a route with an existing name") {
 
-        (routesRepo.insert _).expects(routeRowWithoutId)
-          .returning(Future(routeRowWithoutId))
+        (routesRepo.routeWithNameExists _).expects(routeIn.name.name)
+          .returning(Future(true))
 
         val result = routesService.create(routeIn, UserName(createdBy), createdAt).futureValue
 
-        result should be(ServiceResult.Failure(NotFound()))
+        result should be(ServiceResult.Failure(DuplicateRouteName()))
       }
     }
 

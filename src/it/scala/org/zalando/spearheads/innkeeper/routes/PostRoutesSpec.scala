@@ -141,6 +141,23 @@ class PostRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
           entityString(response).parseJson.convertTo[Error].errorType should be("ITE")
         }
       }
+
+      describe("when a route with the same name exists") {
+        val token = WRITE_TOKEN
+
+        it("should return the 400 Bad Request status") {
+          val pathId = insertPath(token.teamName)
+
+          RoutesRepoHelper.insertRoute(
+            name = routeName,
+            pathId = Some(pathId)
+          )
+
+          val response = postRouteToSlashRoutes(routeName, pathId, token)
+          response.status should be(StatusCodes.BadRequest)
+          entityString(response).parseJson.convertTo[Error].errorType should be("DRN")
+        }
+      }
     }
   }
 
