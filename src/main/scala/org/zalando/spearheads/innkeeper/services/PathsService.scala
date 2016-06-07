@@ -1,13 +1,15 @@
 package org.zalando.spearheads.innkeeper.services
 
 import java.time.LocalDateTime
+
 import akka.NotUsed
 import akka.stream.scaladsl.Source
 import com.google.inject.Inject
 import org.zalando.spearheads.innkeeper.api.{PathIn, PathOut, TeamName, UserName}
 import org.zalando.spearheads.innkeeper.dao.{PathRow, PathsRepo}
-import org.zalando.spearheads.innkeeper.services.ServiceResult.{Failure, NotFound, Result, Success}
+import org.zalando.spearheads.innkeeper.services.ServiceResult._
 import slick.backend.DatabasePublisher
+
 import scala.concurrent.{ExecutionContext, Future}
 
 trait PathsService {
@@ -47,7 +49,11 @@ class DefaultPathsService @Inject() (pathsRepo: PathsRepo)(implicit val executio
       createdAt = createdAt
     )
 
-    pathsRepo.insert(pathRow).flatMap(rowToEventualMaybePath)
+    pathsRepo.pathWithUriExists(path.uri)
+      .flatMap {
+        case false => pathsRepo.insert(pathRow).flatMap(rowToEventualMaybePath)
+        case true  => Future.successful(Failure(DuplicatePathUri()))
+      }
   }
 
   override def findById(id: Long): Future[ServiceResult.Result[PathOut]] = {

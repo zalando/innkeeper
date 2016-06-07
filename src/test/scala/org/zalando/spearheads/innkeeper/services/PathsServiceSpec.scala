@@ -12,6 +12,7 @@ import org.zalando.spearheads.innkeeper.FakeDatabasePublisher
 import org.zalando.spearheads.innkeeper.api.{PathIn, PathOut, TeamName, UserName}
 import org.zalando.spearheads.innkeeper.dao.{PathRow, PathsRepo, RouteRow}
 import org.zalando.spearheads.innkeeper.oauth.Scopes
+import org.zalando.spearheads.innkeeper.services.ServiceResult.DuplicatePathUri
 
 import scala.concurrent.duration.DurationInt
 import scala.collection.immutable.List
@@ -33,6 +34,8 @@ class PathsServiceSpec extends FunSpec with Matchers with MockFactory with Scala
       it("should create a new path") {
         (pathsRepo.insert _).expects(pathRowWithoutId)
           .returning(Future(pathRow))
+        (pathsRepo.pathWithUriExists _).expects(pathIn.uri)
+          .returning(Future(false))
 
         val result = pathsService.create(pathIn, TeamName(ownedByTeam),
           UserName(createdBy), createdAt).futureValue
@@ -43,11 +46,24 @@ class PathsServiceSpec extends FunSpec with Matchers with MockFactory with Scala
       it("should fail to create a path") {
         (pathsRepo.insert _).expects(pathRowWithoutId)
           .returning(Future(pathRowWithoutId))
+        (pathsRepo.pathWithUriExists _).expects(pathIn.uri)
+          .returning(Future(false))
 
         val result = pathsService.create(pathIn, TeamName(ownedByTeam),
           UserName(createdBy), createdAt).futureValue
 
         result should be(ServiceResult.Failure(ServiceResult.NotFound()))
+      }
+
+      it("should fail to create a route with an existing name") {
+
+        (pathsRepo.pathWithUriExists _).expects(pathIn.uri)
+          .returning(Future(true))
+
+        val result = pathsService.create(pathIn, TeamName(ownedByTeam), UserName(createdBy), createdAt)
+          .futureValue
+
+        result should be(ServiceResult.Failure(DuplicatePathUri()))
       }
     }
 

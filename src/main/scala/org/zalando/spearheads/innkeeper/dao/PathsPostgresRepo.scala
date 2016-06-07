@@ -74,6 +74,14 @@ class PathsPostgresRepo @Inject() (
     }
   }
 
+  override def pathWithUriExists(uri: String): Future[Boolean] = {
+    logger.debug(s"path with uri $uri exists")
+
+    db.run {
+      Paths.filter(_.uri === uri).exists.result
+    }
+  }
+
   private lazy val selectAllQuery = for {
     pathRow <- Paths
   } yield pathRow
