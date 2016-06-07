@@ -137,7 +137,7 @@ class DeleteDeletedRoutesSpec extends FunSpec with BeforeAndAfter with Matchers 
           val response = deleteDeletedRoutes(LocalDateTime.now(), WRITE_TOKEN)
 
           response.status should be (StatusCodes.Forbidden)
-          entityString(response).parseJson.convertTo[Error].errorType should be("ITE")
+          entityString(response).parseJson.convertTo[Error].errorType should be("AUTH1")
         }
       }
     }
