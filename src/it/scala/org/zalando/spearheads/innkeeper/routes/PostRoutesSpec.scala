@@ -24,14 +24,16 @@ class PostRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
 
       describe("when a token with the admin team is provided") {
         it("should create the new route") {
-          validateRouteCreation(ADMIN_TEAM_TOKEN)
+          val token = ADMIN_TEAM_TOKEN
+          validateRouteCreation(token, Some(token.teamName + "-some-other-team"))
 
         }
       }
 
       describe("when a token with the admin scope is provided") {
         it("should create the new route") {
-          validateRouteCreation(ADMIN_TOKEN)
+          val token = ADMIN_TOKEN
+          validateRouteCreation(token, Some(token.teamName + "-some-other-team"))
         }
       }
 
@@ -141,12 +143,29 @@ class PostRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
           entityString(response).parseJson.convertTo[Error].errorType should be("ITE")
         }
       }
+
+      describe("when a route with the same name exists") {
+        val token = WRITE_TOKEN
+
+        it("should return the 400 Bad Request status") {
+          val pathId = insertPath(token.teamName)
+
+          RoutesRepoHelper.insertRoute(
+            name = routeName,
+            pathId = Some(pathId)
+          )
+
+          val response = postRouteToSlashRoutes(routeName, pathId, token)
+          response.status should be(StatusCodes.BadRequest)
+          entityString(response).parseJson.convertTo[Error].errorType should be("DRN")
+        }
+      }
     }
   }
 
-  private def validateRouteCreation(token: AcceptanceSpecToken) = {
+  private def validateRouteCreation(token: AcceptanceSpecToken, pathTeamName: Option[String] = None) = {
     val routeName = "route_1"
-    val response = postRoute(routeName, token, token.teamName)
+    val response = postRoute(routeName, token, pathTeamName.getOrElse(token.teamName))
     response.status should be(StatusCodes.OK)
     val entity = entityString(response)
     val route = entity.parseJson.convertTo[RouteOut]

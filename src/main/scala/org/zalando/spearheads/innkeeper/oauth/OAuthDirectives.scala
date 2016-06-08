@@ -7,7 +7,7 @@ import akka.http.scaladsl.server.Directives._
 import org.slf4j.LoggerFactory
 import org.zalando.spearheads.innkeeper.Rejections._
 import org.zalando.spearheads.innkeeper.api.validation.{Invalid, RouteValidationService, Valid}
-import org.zalando.spearheads.innkeeper.api.{NewRoute, RouteOut, TeamName}
+import org.zalando.spearheads.innkeeper.api.{NewRoute, TeamName}
 import org.zalando.spearheads.innkeeper.services.ServiceResult
 import org.zalando.spearheads.innkeeper.services.ServiceResult.{Ex, NotFound}
 
@@ -101,7 +101,7 @@ trait OAuthDirectives {
     if (teamService.isAdminTeam(team)) {
       pass
     } else {
-      reject(IncorrectTeamRejection(requestDescription))
+      reject
     }
   }
 
@@ -122,10 +122,12 @@ trait OAuthDirectives {
 
   def hasOneOfTheScopes(authorizedUser: AuthenticatedUser, requestDescription: String, scope: Scope*): Directive0 = {
     val configuredScopeNames = scope.flatMap(_.scopeNames).toSet
-    authorizedUser.scope.scopeNames.intersect(configuredScopeNames).isEmpty match {
+    val result: Directive0 = authorizedUser.scope.scopeNames.intersect(configuredScopeNames).isEmpty match {
       case false => pass
       case _     => reject(InnkeeperAuthorizationFailedRejection(requestDescription))
     }
+
+    result & cancelRejections(classOf[InnkeeperAuthorizationFailedRejection])
   }
 
   private def authorization(): HttpHeader ⇒ Option[String] = {

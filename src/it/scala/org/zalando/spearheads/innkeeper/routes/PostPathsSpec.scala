@@ -138,6 +138,19 @@ class PostPathsSpec extends FunSpec with BeforeAndAfter with Matchers {
           entityString(response).parseJson.convertTo[Error].errorType should be("TNF")
         }
       }
+
+      describe("when a path with the same uri exists") {
+        val token = WRITE_TOKEN
+
+        it("should return the 400 Bad Request status") {
+          val path = PathsRepoHelper.samplePath(uri = pathUri)
+          PathsRepoHelper.insertPath(path)
+
+          val response = PathsSpecsHelper.postSlashPaths(pathJsonString, token)
+          response.status should be(StatusCodes.BadRequest)
+          entityString(response).parseJson.convertTo[Error].errorType should be("DPU")
+        }
+      }
     }
   }
 }

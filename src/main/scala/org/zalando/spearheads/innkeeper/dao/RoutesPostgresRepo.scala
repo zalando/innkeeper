@@ -129,6 +129,14 @@ class RoutesPostgresRepo @Inject() (
     }
   }
 
+  override def routeWithNameExists(name: String): Future[Boolean] = {
+    logger.debug(s"route with name $name exists")
+
+    db.run {
+      Routes.filter(_.name === name).exists.result
+    }
+  }
+
   private def activeRouteIds(currentTime: LocalDateTime) = (for {
     routeRow <- Routes
     if routeRow.deletedAt.isEmpty && routeRow.activateAt < currentTime &&

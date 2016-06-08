@@ -8,7 +8,7 @@ import com.google.inject.Inject
 import org.zalando.spearheads.innkeeper.api.JsonProtocols._
 import org.zalando.spearheads.innkeeper.api.{NewRoute, RouteIn, RouteName, RouteOut, TeamName, UserName}
 import org.zalando.spearheads.innkeeper.dao.{RouteRow, RoutesRepo}
-import org.zalando.spearheads.innkeeper.services.ServiceResult.{Failure, NotFound, Result, Success}
+import org.zalando.spearheads.innkeeper.services.ServiceResult._
 import org.zalando.spearheads.innkeeper.utils.EnvConfig
 import slick.backend.DatabasePublisher
 import spray.json.{pimpAny, pimpString}
@@ -59,7 +59,11 @@ class DefaultRoutesService @Inject() (
       disableAt = route.disableAt
     )
 
-    routesRepo.insert(routeRow).flatMap(rowToEventualMaybeRoute)
+    routesRepo.routeWithNameExists(routeRow.name)
+      .flatMap {
+        case false => routesRepo.insert(routeRow).flatMap(rowToEventualMaybeRoute)
+        case true  => Future.successful(Failure(DuplicateRouteName()))
+      }
   }
 
   private[services] def defaultNumberOfMinutesToActivateRoute() = {

@@ -29,6 +29,10 @@ trait ServiceResult {
   case class NotFound(message: String = "") extends FailureReason
 
   case class Ex(throwable: Throwable, message: String = "") extends FailureReason
+
+  case class DuplicateRouteName(message: String = "") extends FailureReason
+
+  case class DuplicatePathUri(message: String = "") extends FailureReason
 }
 
 object ServiceResult extends ServiceResult

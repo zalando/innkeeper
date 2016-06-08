@@ -1,23 +1,24 @@
 package org.zalando.spearheads.innkeeper.routes
 
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
-import akka.http.scaladsl.server.Directives.{as, entity, handleWith, post, reject}
+import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import com.google.inject.Inject
 import org.slf4j.LoggerFactory
-import org.zalando.spearheads.innkeeper.Rejections.UnmarshallRejection
-import org.zalando.spearheads.innkeeper.api.{RouteIn, RouteOut, UserName}
+import org.zalando.spearheads.innkeeper.Rejections.{DuplicateRouteNameRejection, UnmarshallRejection}
+import org.zalando.spearheads.innkeeper.api.{RouteIn, UserName}
 import org.zalando.spearheads.innkeeper.metrics.RouteMetrics
 import org.zalando.spearheads.innkeeper.oauth.OAuthDirectives.{hasAdminAuthorization, hasOneOfTheScopes, isValidRoute, routeTeamAuthorization, team}
 import org.zalando.spearheads.innkeeper.oauth.{AuthenticatedUser, Scopes}
 import org.zalando.spearheads.innkeeper.services.{PathsService, RoutesService, ServiceResult}
 import org.zalando.spearheads.innkeeper.services.team.TeamService
 import org.zalando.spearheads.innkeeper.api.JsonProtocols._
-import akka.http.scaladsl.server.Directives._
 import org.zalando.spearheads.innkeeper.RouteDirectives.findPath
 import org.zalando.spearheads.innkeeper.api.validation.RouteValidationService
+import org.zalando.spearheads.innkeeper.services.ServiceResult.DuplicateRouteName
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
+import scala.util.Success
 
 class PostRoutes @Inject() (
     routesService: RoutesService,
@@ -47,23 +48,22 @@ class PostRoutes @Inject() (
               hasAdminAuthorization(authenticatedUser, team, reqDesc, scopes)
             ) {
                 isValidRoute(route.route, reqDesc)(routeValidationService) {
-                  handleWith(saveRoute(UserName(authenticatedUser.username), s"$reqDesc other"))
+                  metrics.postRoutes.time {
+                    logger.debug(s"$reqDesc saveRoute")
+                    onComplete(routesService.create(route, UserName(authenticatedUser.username))) {
+                      case Success(ServiceResult.Success(route))                 => complete(route)
+                      case Success(ServiceResult.Failure(DuplicateRouteName(_))) => reject(DuplicateRouteNameRejection(reqDesc))
+                      case _                                                     => reject
+                    }
+                  }
+
                 }
               }
+
           }
         }
       } ~ {
         reject(UnmarshallRejection(reqDesc))
-      }
-    }
-  }
-
-  private def saveRoute(createdBy: UserName, reqDesc: String): (RouteIn) => Future[Option[RouteOut]] = (route: RouteIn) => {
-    metrics.postRoutes.time {
-      logger.debug(s"$reqDesc saveRoute")
-      routesService.create(route, createdBy).map {
-        case ServiceResult.Success(route) => Some(route)
-        case _                            => None
       }
     }
   }
