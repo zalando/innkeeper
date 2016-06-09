@@ -5,7 +5,7 @@ import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import com.google.inject.Inject
 import org.slf4j.LoggerFactory
-import org.zalando.spearheads.innkeeper.Rejections.{DuplicateRouteNameRejection, UnmarshallRejection}
+import org.zalando.spearheads.innkeeper.Rejections.{DuplicateRouteNameRejection, IncorrectTeamRejection, UnmarshallRejection}
 import org.zalando.spearheads.innkeeper.api.{RouteIn, UserName}
 import org.zalando.spearheads.innkeeper.metrics.RouteMetrics
 import org.zalando.spearheads.innkeeper.oauth.OAuthDirectives.{hasAdminAuthorization, hasOneOfTheScopes, isValidRoute, routeTeamAuthorization, team}
@@ -45,7 +45,7 @@ class PostRoutes @Inject() (
             logger.debug(s"post /routes path $path")
 
             ((routeTeamAuthorization(team, path.ownedByTeam, reqDesc) & hasOneOfTheScopes(authenticatedUser, reqDesc, scopes.WRITE)) |
-              hasAdminAuthorization(authenticatedUser, team, reqDesc, scopes)
+              (hasAdminAuthorization(authenticatedUser, team, reqDesc, scopes) & cancelRejections(classOf[IncorrectTeamRejection]))
             ) {
                 isValidRoute(route.route, reqDesc)(routeValidationService) {
                   metrics.postRoutes.time {
