@@ -5,7 +5,7 @@ import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import com.google.inject.Inject
 import org.slf4j.LoggerFactory
-import org.zalando.spearheads.innkeeper.Rejections.{DuplicatePathUriRejection, UnmarshallRejection}
+import org.zalando.spearheads.innkeeper.Rejections.{DuplicatePathUriRejection, PathOwnedByTeamAuthorizationRejection, UnmarshallRejection}
 import org.zalando.spearheads.innkeeper.api.JsonProtocols._
 import org.zalando.spearheads.innkeeper.api.{PathIn, TeamName, UserName}
 import org.zalando.spearheads.innkeeper.metrics.RouteMetrics
@@ -41,10 +41,15 @@ class PostPaths @Inject() (
           hasOneOfTheScopes(authenticatedUser, reqDesc, scopes.WRITE) {
             logger.debug(s"post /paths non-admin team $team")
 
-            val ownedByTeam = TeamName(team.name)
-            val createdBy = UserName(authenticatedUser.username)
+            if (path.ownedByTeam.isDefined) {
+              reject(PathOwnedByTeamAuthorizationRejection(reqDesc))
+            } else {
 
-            savePathRoute(path, ownedByTeam, createdBy, reqDesc)
+              val ownedByTeam = TeamName(team.name)
+              val createdBy = UserName(authenticatedUser.username)
+
+              savePathRoute(path, ownedByTeam, createdBy, reqDesc)
+            }
           } ~
             hasAdminAuthorization(authenticatedUser, team, reqDesc, scopes)(teamService) {
               logger.debug(s"post /paths admin team $team")
