@@ -87,23 +87,6 @@ class PostPathsSpec extends FunSpec with BeforeAndAfter with Matchers {
       }
     }
 
-    describe("when a token without admin privileges is provided") {
-      it("should create the new path with the owning team set to the user's team") {
-        val token = WRITE_TOKEN
-
-        val response = PathsSpecsHelper.postSlashPaths(pathWithOwningTeamJsonString, token)
-
-        response.status should be(StatusCodes.OK)
-        val entity = entityString(response)
-        val path = entity.parseJson.convertTo[PathOut]
-
-        path.uri should be(pathUri)
-        path.ownedByTeam should be(TeamName(token.teamName))
-        path.createdBy should be(UserName(token.userName))
-        path.hostIds should be(hostIds)
-      }
-    }
-
     describe("failure") {
       describe("when no token is provided") {
 
@@ -149,6 +132,17 @@ class PostPathsSpec extends FunSpec with BeforeAndAfter with Matchers {
           val response = PathsSpecsHelper.postSlashPaths(pathJsonString, token)
           response.status should be(StatusCodes.BadRequest)
           entityString(response).parseJson.convertTo[Error].errorType should be("DPU")
+        }
+      }
+
+      describe("when a token without admin privileges is provided and owned_by_team is defined") {
+        it("should return the 403 Forbidden status") {
+          val token = WRITE_TOKEN
+
+          val response = PathsSpecsHelper.postSlashPaths(pathWithOwningTeamJsonString, token)
+
+          response.status should be(StatusCodes.Forbidden)
+          entityString(response).parseJson.convertTo[Error].errorType should be("AUTH4")
         }
       }
     }

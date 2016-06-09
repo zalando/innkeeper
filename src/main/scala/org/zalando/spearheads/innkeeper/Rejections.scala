@@ -75,7 +75,7 @@ object Rejections {
 
   case class UnmarshallRejection(requestDescription: String) extends Rejection with InnkeeperRejection {
     def statusCode: StatusCode = StatusCodes.BadRequest
-    def message: String = "Failed to unmarshall route"
+    def message: String = "Failed to unmarshall"
     def code: String = "UNMAR1"
   }
 
@@ -95,6 +95,12 @@ object Rejections {
     def statusCode: StatusCode = StatusCodes.Forbidden
     def message: String = "Authorization Failed"
     def code: String = "AUTH1"
+  }
+
+  case class PathOwnedByTeamAuthorizationRejection(requestDescription: String) extends Rejection with InnkeeperRejection {
+    def statusCode: StatusCode = StatusCodes.Forbidden
+    def message: String = "Admin authorization is required for specifying owning team"
+    def code: String = "AUTH4"
   }
 
   case class DuplicateRouteNameRejection(requestDescription: String) extends Rejection with InnkeeperRejection {
