@@ -5,7 +5,7 @@ import org.scalatest.{BeforeAndAfter, FunSpec, Matchers}
 import org.zalando.spearheads.innkeeper.routes.AcceptanceSpecToken._
 import org.zalando.spearheads.innkeeper.routes.AcceptanceSpecsHelper._
 import org.zalando.spearheads.innkeeper.routes.RoutesRepoHelper._
-import org.zalando.spearheads.innkeeper.api.{UserName, RouteName, RouteOut, Error}
+import org.zalando.spearheads.innkeeper.api.{Error, RouteName, RouteOut, UserName}
 import spray.json.pimpString
 import spray.json.DefaultJsonProtocol._
 import org.zalando.spearheads.innkeeper.api.JsonProtocols._
@@ -149,6 +149,24 @@ class PostRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
 
         it("should return the 400 Bad Request status") {
           val pathId = insertPath(token.teamName)
+
+          RoutesRepoHelper.insertRoute(
+            name = routeName,
+            pathId = Some(pathId)
+          )
+
+          val response = postRouteToSlashRoutes(routeName, pathId, token)
+          response.status should be(StatusCodes.BadRequest)
+          entityString(response).parseJson.convertTo[Error].errorType should be("DRN")
+        }
+      }
+
+      describe("when a route with the same name exists") {
+        val token = ADMIN_TOKEN
+
+        it("should give a bad request for duplicate name") {
+          val routeName = "route_1"
+          val pathId = insertPath(token.teamName + "-some-other-team")
 
           RoutesRepoHelper.insertRoute(
             name = routeName,
