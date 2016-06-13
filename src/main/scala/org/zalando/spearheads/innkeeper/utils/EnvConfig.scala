@@ -3,7 +3,7 @@ package org.zalando.spearheads.innkeeper.utils
 import com.google.inject.Inject
 import com.typesafe.config.{Config, ConfigObject}
 import scala.collection.immutable.Seq
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 import scala.util.Try
 
 /**
@@ -49,19 +49,23 @@ class InnkeeperEnvConfig @Inject() (val config: Config) extends EnvConfig {
   }
 
   override def getStringSet(key: String): Set[String] = {
-    Try {
-      config.getStringList(envKey(key)).toSet
+    val values = Try {
+      config.getStringList(envKey(key))
     }.getOrElse {
-      config.getStringList(key).toSet
+      config.getStringList(key)
     }
+
+    values.asScala.toSet
   }
 
   override def getStringSeq(key: String): Seq[String] = {
-    Try {
-      config.getStringList(envKey(key)).toList
+    val values = Try {
+      config.getStringList(envKey(key))
     }.getOrElse {
-      config.getStringList(key).toList
+      config.getStringList(key)
     }
+
+    values.asScala.toList
   }
 
   override def getObject(key: String): ConfigObject = {

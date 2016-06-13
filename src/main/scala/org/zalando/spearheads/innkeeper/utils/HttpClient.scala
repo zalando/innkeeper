@@ -20,7 +20,7 @@ trait HttpClient {
     method: HttpMethod = HttpMethods.GET): Future[JsValue]
 }
 
-class AkkaHttpClient(uri: Uri)(
+class AkkaHttpClient(
     implicit
     val actorSystem: ActorSystem,
     implicit val materializer: ActorMaterializer,
@@ -51,7 +51,7 @@ class AkkaHttpClient(uri: Uri)(
   private[this] def headersForToken(token: Option[String]): Seq[HttpHeader] = {
     token match {
       case Some(t) ⇒ Seq[HttpHeader](Authorization(OAuth2BearerToken(t)))
-      case None    ⇒ Seq()
+      case None    ⇒ Seq.empty
     }
   }
 }
