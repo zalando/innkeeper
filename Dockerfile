@@ -1,7 +1,7 @@
 FROM registry.opensource.zalan.do/stups/openjdk:8-26
 MAINTAINER Team Pathfinder <team-pathfinder@zalando.de>
 
-EXPOSE 8080
+EXPOSE 9080
 
 RUN mkdir -p /opt/innkeeper
 

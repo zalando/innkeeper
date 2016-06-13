@@ -8,7 +8,7 @@ docker-push:
 	docker push pierone.stups.zalan.do/pathfinder/innkeeper:$(version)
 
 docker-run:
-	docker run -p 8080:8080 \
+	docker run -p 9080:9080 \
 	 -e INNKEEPER_ENV=dev -e SCHEMA_RECREATE=true \
 	 -t pierone.stups.zalan.do/pathfinder/innkeeper:$(version)
 
@@ -20,7 +20,7 @@ docker-push-snapshot:
 	docker push pierone.stups.zalan.do/pathfinder/innkeeper:latest-SNAPSHOT
 
 docker-run-snapshot:
-	docker run -p 8080:8080 \
+	docker run -p 9080:9080 \
 	-e INNKEEPER_ENV=test -e SCHEMA_RECREATE=true \
 	-t pierone.stups.zalan.do/pathfinder/innkeeper:latest-SNAPSHOT
 

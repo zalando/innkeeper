@@ -18,7 +18,7 @@ innkeeper:
   volumes:
     - .:/opt/app
   ports:
-    - "8080:8080"
+    - "9080:9080"
   environment:
     - INNKEEPER_ENV=acceptance-test
     - SCHEMA_RECREATE=true

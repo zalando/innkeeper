@@ -19,7 +19,7 @@ class GetStatusSpec extends FunSpec with Matchers with ScalaFutures {
   describe("get /status") {
 
     it("should return the OK status code") {
-      val futureResponse: Future[HttpResponse] = Http().singleRequest(HttpRequest(uri = "http://localhost:8080/status"))
+      val futureResponse: Future[HttpResponse] = Http().singleRequest(HttpRequest(uri = s"${AcceptanceSpecsHelper.baseUri}/status"))
       val response = futureResponse.futureValue
       response.status should be(StatusCodes.OK)
       val entity = response.entity.dataBytes.map(bs => bs.utf8String).runFold("")((a, b) => a + b).futureValue
