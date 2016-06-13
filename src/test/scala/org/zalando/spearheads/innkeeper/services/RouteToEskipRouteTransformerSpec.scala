@@ -49,7 +49,7 @@ class RouteToEskipRouteTransformerSpec extends FunSpec with Matchers with MockFa
     name = routeName,
     predicates = Seq(
       NameWithStringArgs("Path", Seq(s""""$pathUri"""")),
-      NameWithStringArgs("Host", Seq("/^first.com|second.com|third.com$/")),
+      NameWithStringArgs("Host", Seq("/^(first[.]com|second[.]com|third[.]com)$/")),
       NameWithStringArgs("somePredicate", Seq(""""Hello"""", "123")),
       NameWithStringArgs("somePredicate1", Seq("/^Hello$/", "123"))),
     filters = Seq(
