@@ -26,7 +26,7 @@ class DefaultHostsServiceSpec extends FunSpec with Matchers {
     describe("#getByIds") {
 
       it("should return all the hosts for the specified ids") {
-        hostsService.getByIds(Set(1, 3)) should be(Seq("service.com", "other.service.com"))
+        hostsService.getByIds(Set(1, 3)).toSet should be(Set("service.com", "other.service.com"))
       }
     }
   }

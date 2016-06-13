@@ -26,25 +26,25 @@ class UtilsModule extends AbstractModule with ScalaModule {
 }
 
 private class OAuthServiceClientProvider @Inject() (
-  config: EnvConfig,
-  implicit val actorSystem: ActorSystem,
+  implicit
+  val actorSystem: ActorSystem,
   implicit val materializer: ActorMaterializer,
   implicit val executionContext: ExecutionContext)
     extends Provider[HttpClient] {
 
   override def get(): HttpClient = {
-    new AkkaHttpClient(config.getString("oauth.url"))
+    new AkkaHttpClient()
   }
 }
 
 private class TeamServiceClientProvider @Inject() (
-  config: EnvConfig,
-  implicit val actorSystem: ActorSystem,
+  implicit
+  val actorSystem: ActorSystem,
   implicit val materializer: ActorMaterializer,
   implicit val executionContext: ExecutionContext)
     extends Provider[HttpClient] {
 
   override def get(): HttpClient = {
-    new AkkaHttpClient(config.getString("team.member.service.url"))
+    new AkkaHttpClient()
   }
 }

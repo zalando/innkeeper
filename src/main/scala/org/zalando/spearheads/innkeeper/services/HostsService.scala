@@ -24,7 +24,13 @@ class DefaultHostsService @Inject() (config: EnvConfig) extends HostsService {
 
     val hosts = config.getObject("hosts").asScala
 
-    hosts.mapValues(_.unwrapped().asInstanceOf[Int].toLong).toMap
+    hosts.flatMap {
+      case (key, value) =>
+        value.unwrapped() match {
+          case intValue: Integer => Some(key -> intValue.toLong)
+          case _                 => None
+        }
+    }.toMap
   }
 
   private lazy val hostsByIds = getHosts.map {
@@ -33,6 +39,6 @@ class DefaultHostsService @Inject() (config: EnvConfig) extends HostsService {
   }
 
   override def getByIds(ids: Set[Long]): Seq[String] = {
-    hostsByIds.filterKeys(ids.contains(_)).values.toList
+    hostsByIds.filterKeys(ids.contains).values.toList
   }
 }

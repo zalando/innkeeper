@@ -30,17 +30,14 @@ trait OAuthDirectives {
 
     onComplete(authService.authenticate(token)) {
       case Success(userResult) => userResult match {
-        case ServiceResult.Success(team) => {
+        case ServiceResult.Success(team) =>
           authUserToRoute(team)
-        }
-        case ServiceResult.Failure(Ex(ex, _)) => {
+        case ServiceResult.Failure(Ex(ex, _)) =>
           logger.error(s"OAuthService failed with exception $ex")
           reject(CredentialsRejectedRejection(requestDescription))
-        }
-        case ServiceResult.Failure(_) => {
-          logger.error(s"OAuthService failed")
+        case ServiceResult.Failure(_) =>
+          logger.error("OAuthService failed")
           reject(CredentialsRejectedRejection(requestDescription))
-        }
       }
 
       case Failure(ex) =>
@@ -55,30 +52,27 @@ trait OAuthDirectives {
       case Some(username) =>
         onComplete(teamService.getForUsername(username, token)) {
           case Success(teamResult) => teamResult match {
-            case ServiceResult.Success(team) => {
+            case ServiceResult.Success(team) =>
               teamToRoute(team)
-            }
-            case ServiceResult.Failure(NotFound(_)) => {
+            case ServiceResult.Failure(NotFound(_)) =>
               logger.error(s"AuthenticatedUser does not have a team $authenticatedUser")
               reject(TeamNotFoundRejection(requestDescription))
-            }
-            case ServiceResult.Failure(Ex(ex, _)) => {
+            case ServiceResult.Failure(Ex(ex, _)) =>
               logger.error(s"TeamService failed with exception $ex")
               reject(InternalServerErrorRejection(requestDescription))
-            }
-            case ServiceResult.Failure(_) => {
-              logger.error(s"TeamService failed")
+            case ServiceResult.Failure(_) =>
+              logger.error("TeamService failed")
               reject(InternalServerErrorRejection(requestDescription))
-            }
           }
+
           case Failure(ex) =>
             logger.error(s"Error getting the team from the Team Service for $requestDescription")
             reject(InternalServerErrorRejection(requestDescription))
         }
-      case None => {
+
+      case None =>
         logger.error(s"AuthenticatedUser does not have an username $authenticatedUser")
         reject(TeamNotFoundRejection(requestDescription))
-      }
     }
   }
 

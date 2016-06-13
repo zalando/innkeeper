@@ -1,13 +1,12 @@
 package org.zalando.spearheads.innkeeper.metrics
 
+import java.util
 import java.util.concurrent.TimeUnit
 
 import scala.collection.JavaConverters._
 import scala.collection.immutable.SortedMap
-import scala.util.{Try, Success, Failure}
-
+import scala.util.{Failure, Success, Try}
 import com.codahale.metrics._
-
 import spray.json._
 
 /**
@@ -147,15 +146,15 @@ trait AnyFormat {
 
   implicit object AnyJsonFormat extends JsonFormat[Any] {
     def write(in: Any) = {
-      if (in.isInstanceOf[java.util.Collection[_]]) writeCollection(in.asInstanceOf[java.util.Collection[_]])
-      else if (in.isInstanceOf[java.util.Map[_, _]]) writeMap(in.asInstanceOf[java.util.Map[_, _]])
-      else in match {
-        case n: Int     => JsNumber(n)
-        case n: Long    => JsNumber(n)
-        case f: Float   => JsNumber(f)
-        case f: Double  => JsNumber(f)
-        case s: String  => JsString(s)
-        case b: Boolean => if (b) JsTrue else JsFalse
+      in match {
+        case c: util.Collection[_] => writeCollection(c)
+        case m: util.Map[_, _]     => writeMap(m)
+        case n: Int                => JsNumber(n)
+        case n: Long               => JsNumber(n)
+        case f: Float              => JsNumber(f)
+        case f: Double             => JsNumber(f)
+        case s: String             => JsString(s)
+        case b: Boolean            => if (b) JsTrue else JsFalse
       }
     }
 

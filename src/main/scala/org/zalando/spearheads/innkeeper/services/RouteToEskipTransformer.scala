@@ -51,7 +51,7 @@ class DefaultRouteToEskipTransformer @Inject() (envConfig: EnvConfig, hostsServi
     if (useCommonFilters) {
       envConfig.getStringSeq(key)
     } else {
-      Seq()
+      Seq.empty
     }
   }
 
@@ -76,7 +76,7 @@ class DefaultRouteToEskipTransformer @Inject() (envConfig: EnvConfig, hostsServi
       predicate =>
         val args = argsToEskipArgs(predicate.args)
         NameWithStringArgs(predicate.name, args)
-    }).getOrElse(Seq())
+    }).getOrElse(Seq.empty)
   }
 
   private[this] def argsToEskipArgs(args: Seq[Arg]): Seq[String] = {

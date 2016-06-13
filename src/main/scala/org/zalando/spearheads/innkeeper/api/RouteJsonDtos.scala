@@ -21,7 +21,7 @@ object InvalidRouteNameException
 
 object InvalidUsereNameException
   extends RuntimeException(
-    s"Invalid uid for your token")
+    "Invalid uid for your token")
 
 sealed trait Route {
 
