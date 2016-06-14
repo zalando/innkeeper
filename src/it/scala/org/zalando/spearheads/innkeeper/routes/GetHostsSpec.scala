@@ -22,7 +22,7 @@ class GetHostsSpec extends FunSpec with Matchers {
 
         val hosts = entity.parseJson.convertTo[Seq[Host]]
         hosts.size should be(2)
-        hosts should contain theSameElementsAs Seq(Host("1", "service.com"), Host("2", "m.service.com"))
+        hosts should contain theSameElementsAs Seq(Host(1L, "service.com"), Host(2L, "m.service.com"))
       }
     }
 
@@ -41,5 +41,4 @@ class GetHostsSpec extends FunSpec with Matchers {
       }
     }
   }
-
 }

@@ -362,12 +362,12 @@ class JsonProtocolsSpec extends FunSpec with Matchers {
 
   describe("Host") {
 
-    val host = Host("id", "name")
+    val host = Host(1, "name")
 
     it("should marshall") {
       host.toJson.prettyPrint should be(
         """{
-          |  "id": "id",
+          |  "id": 1,
           |  "name": "name"
           |}""".stripMargin)
     }

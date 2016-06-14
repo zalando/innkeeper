@@ -17,4 +17,4 @@ case class Error(
   errorType: String,
   detail: Option[String] = None)
 
-case class Host(id: String, name: String)
+case class Host(id: Long, name: String)
