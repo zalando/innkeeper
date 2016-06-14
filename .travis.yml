@@ -24,6 +24,7 @@ before_install:
 
 script:
   - cp src/main/resources/travis.application.conf src/main/resources/application.conf
+  - ./scripts/generate-docker-file.sh 0.3.4
   - ./scripts/acceptance-tests.sh
 
 notifications:
