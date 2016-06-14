@@ -1,6 +1,5 @@
-version=0.3.3
-
 docker:
+	./scripts/generate-docker-file.sh $(version)
 	./scripts/docker-build.sh pierone.stups.zalan.do/pathfinder/innkeeper $(version)
 
 docker-push:
