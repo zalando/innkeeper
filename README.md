@@ -31,7 +31,7 @@ To run the integration test suite, run `sbt it:test`.
 
 ```bash
 # create a path for that route
-curl -i -XPOST localhost:8080/paths -d '{
+curl -i -XPOST localhost:9080/paths -d '{
     "uri": "/the-uri",
     "host_ids": [1, 2, 3, 4]
 }' -H 'Content-Type: application/json' -H 'Authorization: Bearer oauth-token-with-write-scope'
@@ -49,7 +49,7 @@ HTTP/1.1 200 OK
 
 # create a route for that path
 
-curl -i -XPOST localhost:8080/routes -d '{
+curl -i -XPOST localhost:9080/routes -d '{
   "name": "theRoute1",
   "description": "this is a route",
   "activate_at": "2015-10-10T10:10:10",
@@ -70,15 +70,15 @@ curl -i -XPOST localhost:8080/routes -d '{
 
 ### Getting all routes
 
-    curl http://localhost:8080/routes -H 'Authorization: Bearer oauth-token-with-read-scope'
+    curl http://localhost:9080/routes -H 'Authorization: Bearer oauth-token-with-read-scope'
     
 To see it streaming:
 
-    curl -i --limit-rate 3000 http://localhost:8080/routes -H 'Authorization: oauth-token'
+    curl -i --limit-rate 3000 http://localhost:9080/routes -H 'Authorization: oauth-token'
 
 ### Getting last modified routes
 
-    curl -i http://localhost:8080/updated-routes/2015-08-21T15:23:05.731 -H 'Authorization: Bearer oauth-token'
+    curl -i http://localhost:9080/updated-routes/2015-08-21T15:23:05.731 -H 'Authorization: Bearer oauth-token'
 
 Here are more [examples](EXAMPLES.md)
 
@@ -118,7 +118,7 @@ Assuming the docker-machine is named `default` this can be achieved via:
 $ VBoxManage controlvm "default" natpf1 "tcp-port6767,tcp,,6767,,6767"
 $ VBoxManage controlvm "default" natpf1 "tcp-port6768,tcp,,6768,,6768"
 $ VBoxManage controlvm "default" natpf1 "tcp-port5433,tcp,,5433,,5433"
-$ VBoxManage controlvm "default" natpf1 "tcp-port8080,tcp,,8080,,8080"
+$ VBoxManage controlvm "default" natpf1 "tcp-port9080,tcp,,9080,,9080"
 ```
 
 # Acceptance Tests

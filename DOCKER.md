@@ -12,4 +12,4 @@ If parameters are not specified then default values are used. Default image name
 
 ## How to run a docker image
 
-    docker run -p 8080:8080 -e INNKEEPER_ENV=test -e SCHEMA_RECREATE=true zalando/innkeeper:latest
+    docker run -p 9080:9080 -e INNKEEPER_ENV=test -e SCHEMA_RECREATE=true zalando/innkeeper:latest

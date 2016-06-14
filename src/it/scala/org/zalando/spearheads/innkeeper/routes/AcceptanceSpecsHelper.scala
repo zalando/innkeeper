@@ -17,7 +17,7 @@ import scala.language.implicitConversions
  */
 object AcceptanceSpecsHelper extends ScalaFutures with Matchers {
 
-  private[routes] val baseUri = "http://localhost:8080"
+  private[routes] val baseUri = "http://localhost:9080"
 
   override implicit val patienceConfig = PatienceConfig(timeout = Span(5, Seconds))
 

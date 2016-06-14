@@ -1,5 +1,7 @@
 package org.zalando.spearheads.innkeeper.utils
 
+import java.io.File
+
 import com.google.inject.{AbstractModule, Provider}
 import com.typesafe.config.{Config, ConfigFactory}
 import net.codingwell.scalaguice.ScalaModule
@@ -7,7 +9,13 @@ import org.zalando.spearheads.innkeeper.utils.ConfigModule.ConfigProvider
 
 object ConfigModule {
   class ConfigProvider extends Provider[Config] {
-    override def get() = ConfigFactory.load()
+    override def get() = {
+      val configFilePath = Option(System.getProperty("config.file"))
+
+      configFilePath.map { filePath =>
+        ConfigFactory.parseFile(new File(filePath))
+      }.getOrElse(ConfigFactory.load())
+    }
   }
 }
 

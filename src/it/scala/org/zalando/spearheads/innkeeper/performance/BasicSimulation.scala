@@ -9,7 +9,7 @@ import scala.language.postfixOps
 class BasicSimulation extends Simulation {
 
   val httpConf = http
-    .baseURL("http://localhost:8080")
+    .baseURL("http://localhost:9080")
     .acceptHeader("application/json")
     .authorizationHeader("Bearer token-user~1-employees-route.read")
 
