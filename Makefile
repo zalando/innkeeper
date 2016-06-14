@@ -1,7 +1,6 @@
 version=0.3.3
 
 docker:
-	sbt assembly
 	./scripts/docker-build.sh pierone.stups.zalan.do/pathfinder/innkeeper $(version)
 
 docker-push:

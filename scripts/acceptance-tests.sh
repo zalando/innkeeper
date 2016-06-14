@@ -10,9 +10,7 @@ if [ "$1" != "-fast" ]; then
   docker-compose --version
   echo
 
-  source scripts/generate-scm-source.sh
   docker-compose build
-  rm scm-source.json
 fi
 
 if [ "$1" == "-nat" ]; then
