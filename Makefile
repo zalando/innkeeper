@@ -1,4 +1,4 @@
-version=0.3.4
+version=$(shell ./scripts/version.sh)
 
 docker:
 	./scripts/generate-docker-file.sh $(version)
