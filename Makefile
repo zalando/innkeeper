@@ -1,3 +1,5 @@
+version=0.3.4
+
 docker:
 	./scripts/generate-docker-file.sh $(version)
 	./scripts/docker-build.sh pierone.stups.zalan.do/pathfinder/innkeeper $(version)
@@ -35,7 +37,9 @@ kill-all-docker:
 	./scripts/kill-all.sh
 
 acceptance-tests:
+	./scripts/generate-docker-file.sh $(version)
 	./scripts/acceptance-tests.sh
 
 acceptance-tests-fast:
+	./scripts/generate-docker-file.sh $(version)
 	./scripts/acceptance-tests.sh -fast
