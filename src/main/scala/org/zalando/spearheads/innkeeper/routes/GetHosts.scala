@@ -31,7 +31,7 @@ class GetHosts @Inject() (hostsService: HostsService, jsonService: JsonService, 
 
           val jsonSource = jsonService.sourceToJsonSource {
             Source.fromIterator(() => hostsService.getHosts.iterator).map { host =>
-              Host(host._2.toString, host._1)
+              Host(host._2, host._1)
             }
           }
 
