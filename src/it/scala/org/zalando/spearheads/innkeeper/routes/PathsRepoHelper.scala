@@ -3,7 +3,7 @@ package org.zalando.spearheads.innkeeper.routes
 import java.time.LocalDateTime
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.time.{Seconds, Span}
-import org.zalando.spearheads.innkeeper.dao.{PathRow}
+import org.zalando.spearheads.innkeeper.dao.PathRow
 import scala.collection.immutable.List
 
 object PathsRepoHelper extends ScalaFutures with DaoHelper {
@@ -18,7 +18,8 @@ object PathsRepoHelper extends ScalaFutures with DaoHelper {
       hostIds = pathRow.hostIds,
       ownedByTeam = pathRow.ownedByTeam,
       createdBy = pathRow.createdBy,
-      createdAt = pathRow.createdAt)).futureValue
+      createdAt = pathRow.createdAt,
+      updatedAt = pathRow.updatedAt)).futureValue
   }
 
   def samplePath(
@@ -28,8 +29,16 @@ object PathsRepoHelper extends ScalaFutures with DaoHelper {
     createdBy: String = "testuser",
     ownedByTeam: String = "testteam",
     createdAt: LocalDateTime = LocalDateTime.now(),
+    updatedAt: LocalDateTime = LocalDateTime.now(),
     activateAt: LocalDateTime = LocalDateTime.now().minusHours(2)) = {
-    PathRow(id = Some(id), uri = uri, hostIds = hostIds, ownedByTeam = ownedByTeam,
-      createdBy = createdBy, createdAt = createdAt)
+    PathRow(
+      id = Some(id),
+      uri = uri,
+      hostIds = hostIds,
+      ownedByTeam = ownedByTeam,
+      createdBy = createdBy,
+      createdAt = createdAt,
+      updatedAt = updatedAt
+    )
   }
 }

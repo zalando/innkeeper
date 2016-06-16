@@ -1,6 +1,10 @@
 package org.zalando.spearheads.innkeeper.dao
 
+import java.time.LocalDateTime
+
+import org.zalando.spearheads.innkeeper.api.PathPatch
 import slick.backend.DatabasePublisher
+
 import scala.concurrent.Future
 
 trait PathsRepo {
@@ -11,4 +15,5 @@ trait PathsRepo {
   def selectAll: DatabasePublisher[PathRow]
   def selectByOwnerTeamAndUri(ownedByTeam: Option[String], uri: Option[String]): DatabasePublisher[PathRow]
   def pathWithUriExists(uri: String): Future[Boolean]
+  def patch(id: Long, pathPatch: PathPatch, updatedAt: LocalDateTime): Future[Option[PathRow]]
 }

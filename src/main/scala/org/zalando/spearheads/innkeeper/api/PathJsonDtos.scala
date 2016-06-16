@@ -21,4 +21,10 @@ case class PathOut(
   hostIds: Seq[Long],
   ownedByTeam: TeamName,
   createdBy: UserName,
-  createdAt: LocalDateTime = LocalDateTime.now()) extends Path
+  createdAt: LocalDateTime,
+  updatedAt: LocalDateTime) extends Path
+
+case class PathPatch(
+  hostIds: Option[Seq[Long]],
+  ownedByTeam: Option[TeamName]
+)

@@ -50,6 +50,22 @@ object PathsSpecsHelper {
     futureResponse.futureValue
   }
 
+  def patchSlashPaths(id: Long, pathJsonString: String, token: String): HttpResponse = {
+
+    val entity = HttpEntity(ContentType(MediaTypes.`application/json`), pathJsonString)
+
+    val headers = Seq[HttpHeader](Authorization(OAuth2BearerToken(token)))
+
+    val request = HttpRequest(
+      method = HttpMethods.PATCH,
+      uri = pathUri(id),
+      entity = entity,
+      headers = headers)
+
+    val futureResponse = Http().singleRequest(request)
+    futureResponse.futureValue
+  }
+
   private def slashPath(
     id: Long,
     token: Option[String] = None,

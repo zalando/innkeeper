@@ -1,8 +1,12 @@
 package org.zalando.spearheads.innkeeper.dao
 
+import java.time.LocalDateTime
+
 import com.google.inject.{Inject, Singleton}
 import org.slf4j.LoggerFactory
+import org.zalando.spearheads.innkeeper.api.PathPatch
 import slick.backend.DatabasePublisher
+
 import scala.collection.immutable.List
 import scala.concurrent.{ExecutionContext, Future}
 import org.zalando.spearheads.innkeeper.dao.MyPostgresDriver.api._
@@ -79,6 +83,36 @@ class PathsPostgresRepo @Inject() (
 
     db.run {
       Paths.filter(_.uri === uri).exists.result
+    }
+  }
+
+  override def patch(id: Long, pathPatch: PathPatch, updatedAt: LocalDateTime): Future[Option[PathRow]] = {
+    logger.debug(s"patch $id")
+
+    val updateHostIdsActionOpt = pathPatch.hostIds.map { hostsIds =>
+      Paths
+        .filter(_.id === id)
+        .map(path => (path.updatedAt, path.hostIds))
+        .update((updatedAt, hostsIds))
+    }
+
+    val updateOwnedByTeamActionOpt = pathPatch.ownedByTeam.map { ownedByTeam =>
+      Paths
+        .filter(_.id === id)
+        .map(path => (path.updatedAt, path.ownedByTeam))
+        .update((updatedAt, ownedByTeam.name))
+    }
+
+    val actions = List(
+      updateHostIdsActionOpt,
+      updateOwnedByTeamActionOpt,
+      Some(Paths.filter(_.id === id).result)
+    ).flatten
+
+    db.run {
+      DBIO.sequence(actions).transactionally
+    }.flatMap { _ =>
+      selectById(id)
     }
   }
 
