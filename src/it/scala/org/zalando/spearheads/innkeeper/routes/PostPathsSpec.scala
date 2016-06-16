@@ -52,38 +52,38 @@ class PostPathsSpec extends FunSpec with BeforeAndAfter with Matchers {
           path.hostIds should be(hostIds)
         }
       }
-    }
 
-    describe("when a token with the admin scope is provided") {
-      it("should create the new path with the provided owning team") {
-        val token = ADMIN_TOKEN
-        val response = PathsSpecsHelper.postSlashPaths(pathWithOwningTeamJsonString, token)
+      describe("when a token with the admin scope is provided") {
+        it("should create the new path with the provided owning team") {
+          val token = ADMIN_TOKEN
+          val response = PathsSpecsHelper.postSlashPaths(pathWithOwningTeamJsonString, token)
 
-        response.status should be(StatusCodes.OK)
-        val entity = entityString(response)
-        val path = entity.parseJson.convertTo[PathOut]
+          response.status should be(StatusCodes.OK)
+          val entity = entityString(response)
+          val path = entity.parseJson.convertTo[PathOut]
 
-        path.uri should be(pathUri)
-        path.ownedByTeam should be(TeamName(otherOwningTeam))
-        path.createdBy should be(UserName(token.userName))
-        path.hostIds should be(hostIds)
+          path.uri should be(pathUri)
+          path.ownedByTeam should be(TeamName(otherOwningTeam))
+          path.createdBy should be(UserName(token.userName))
+          path.hostIds should be(hostIds)
+        }
       }
-    }
 
-    describe("when an admin team token is provided") {
-      it("should create the new path with the provided owning team") {
-        val token = ADMIN_TEAM_TOKEN
+      describe("when an admin team token is provided") {
+        it("should create the new path with the provided owning team") {
+          val token = ADMIN_TEAM_TOKEN
 
-        val response = PathsSpecsHelper.postSlashPaths(pathWithOwningTeamJsonString, token)
+          val response = PathsSpecsHelper.postSlashPaths(pathWithOwningTeamJsonString, token)
 
-        response.status should be(StatusCodes.OK)
-        val entity = entityString(response)
-        val path = entity.parseJson.convertTo[PathOut]
+          response.status should be(StatusCodes.OK)
+          val entity = entityString(response)
+          val path = entity.parseJson.convertTo[PathOut]
 
-        path.uri should be(pathUri)
-        path.ownedByTeam should be(TeamName(otherOwningTeam))
-        path.createdBy should be(UserName(token.userName))
-        path.hostIds should be(hostIds)
+          path.uri should be(pathUri)
+          path.ownedByTeam should be(TeamName(otherOwningTeam))
+          path.createdBy should be(UserName(token.userName))
+          path.hostIds should be(hostIds)
+        }
       }
     }
 
