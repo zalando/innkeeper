@@ -395,7 +395,7 @@ class JsonProtocolsSpec extends FunSpec with Matchers {
       ownedByTeam = TeamName("team"),
       createdBy = UserName("username"),
       createdAt = LocalDateTime.of(2015, 10, 10, 10, 10, 10),
-      updatedAt = LocalDateTime.of(2015, 10, 10, 10, 10, 10)
+      updatedAt = LocalDateTime.of(2016, 10, 10, 10, 10, 10)
     )
 
     it("should marshall") {
@@ -407,7 +407,7 @@ class JsonProtocolsSpec extends FunSpec with Matchers {
           |  "uri": "/hello",
           |  "id": 1,
           |  "created_at": "2015-10-10T10:10:10",
-          |  "updated_at": "2015-10-10T10:10:10"
+          |  "updated_at": "2016-10-10T10:10:10"
           |}""".stripMargin)
     }
   }

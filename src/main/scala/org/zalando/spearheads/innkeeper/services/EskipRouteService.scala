@@ -72,14 +72,13 @@ class EskipRouteService @Inject() (routesRepo: RoutesRepo, routeToEskipTransform
 
     Source.fromPublisher(streamOfRows.mapResult {
       case (routeRow, pathRow) =>
-        val (routeChangeType, timestamp) = if (routeRow.deletedAt.isDefined) {
-          val deletedAt = routeRow.deletedAt
-            .getOrElse(throw new Exception("Invalid state")) // scapegoat fix
-          RouteChangeType.Delete -> deletedAt
-        } else if (pathRow.updatedAt.isAfter(routeRow.createdAt)) {
-          RouteChangeType.Update -> pathRow.updatedAt
-        } else {
-          RouteChangeType.Create -> routeRow.createdAt
+        val (routeChangeType, timestamp) = routeRow.deletedAt match {
+          case Some(deletedAt) => RouteChangeType.Delete -> deletedAt
+          case None => if (pathRow.updatedAt.isAfter(routeRow.createdAt)) {
+            RouteChangeType.Update -> pathRow.updatedAt
+          } else {
+            RouteChangeType.Create -> routeRow.createdAt
+          }
         }
 
         EskipRouteWrapper(

@@ -50,13 +50,9 @@ class RoutesPostgresRepo @Inject() (
 
     val q = for {
       (routeRow, pathRow) <- Routes join Paths on (_.pathId === _.id)
-      if (
-        // all routes created since, without the activatedAt in the future
-        routeRow.createdAt > since && routeRow.activateAt < currentTime) ||
-        // all routes deleted since
-        routeRow.deletedAt > since ||
-        // all routes with the activation data between since and now
-        (routeRow.activateAt > since && routeRow.activateAt < currentTime)
+      routeWasDeleted = routeRow.deletedAt > since
+      routeIsActive = routeRow.activateAt < currentTime
+      if routeWasDeleted || (routeIsActive && (routeRow.activateAt > since || routeRow.createdAt > since || pathRow.updatedAt > since))
     } yield (routeRow, pathRow)
 
     db.stream {
