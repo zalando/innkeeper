@@ -9,7 +9,7 @@ import org.scalamock.scalatest.MockFactory
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.{FunSpec, Matchers}
 import org.zalando.spearheads.innkeeper.FakeDatabasePublisher
-import org.zalando.spearheads.innkeeper.api.{EskipRoute, EskipRouteWrapper, Filter, NameWithStringArgs, NewRoute, NumericArg, Predicate, RegexArg, RouteName, RouteOut, StringArg, TeamName, UserName}
+import org.zalando.spearheads.innkeeper.api.{EskipRoute, EskipRouteWrapper, Filter, NameWithStringArgs, NewRoute, NumericArg, Predicate, RegexArg, RouteName, RouteOut, StringArg, UserName}
 import org.zalando.spearheads.innkeeper.dao.{PathRow, RouteRow, RoutesRepo}
 
 import scala.collection.immutable.Seq
@@ -73,8 +73,7 @@ class EskipRouteServiceSpec extends FunSpec with Matchers with MockFactory with 
                                    | -> someFilter1(/^Hello$/,123)
                                    | -> "endpoint.my.com"""".stripMargin)
 
-          result.createdAt should be(createdAt)
-          result.deletedAt should be(None)
+          result.timestamp should be(createdAt)
         }
       }
     }
@@ -112,10 +111,7 @@ class EskipRouteServiceSpec extends FunSpec with Matchers with MockFactory with 
           | -> appendedSecond(0.8)
           | -> "endpoint.my.com"""".stripMargin)
 
-    result.createdAt should
-      be(createdAt)
-    result.
-      deletedAt should be(None)
+    result.timestamp should be(createdAt)
   }
 
   val currentTime = LocalDateTime.now()
@@ -153,7 +149,9 @@ class EskipRouteServiceSpec extends FunSpec with Matchers with MockFactory with 
     hostIds = hostIds,
     ownedByTeam = "team",
     createdBy = "user",
-    createdAt = LocalDateTime.now())
+    createdAt = createdAt,
+    updatedAt = createdAt
+  )
 
   val routeOut = RouteOut(
     1,

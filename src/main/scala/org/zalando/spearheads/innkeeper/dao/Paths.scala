@@ -12,8 +12,8 @@ case class PathRow(
   hostIds: Seq[Long],
   ownedByTeam: String,
   createdBy: String,
-  createdAt: LocalDateTime = LocalDateTime.now(),
-  updatedAt: LocalDateTime = LocalDateTime.now())
+  createdAt: LocalDateTime,
+  updatedAt: LocalDateTime)
 
 class PathsTable(tag: Tag) extends Table[PathRow](tag, "PATHS") {
   def id = column[Long]("PATH_ID", O.PrimaryKey, O.AutoInc)

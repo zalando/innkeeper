@@ -6,7 +6,7 @@ import akka.NotUsed
 import akka.stream.scaladsl.Source
 import com.google.inject.Inject
 import org.zalando.spearheads.innkeeper.api.JsonProtocols._
-import org.zalando.spearheads.innkeeper.api.{EskipRoute, EskipRouteWrapper, NewRoute, RouteName, RouteOut}
+import org.zalando.spearheads.innkeeper.api._
 import org.zalando.spearheads.innkeeper.dao.{PathRow, RouteRow, RoutesRepo}
 import slick.backend.DatabasePublisher
 import spray.json.pimpString
@@ -72,11 +72,22 @@ class EskipRouteService @Inject() (routesRepo: RoutesRepo, routeToEskipTransform
 
     Source.fromPublisher(streamOfRows.mapResult {
       case (routeRow, pathRow) =>
+        val (routeChangeType, timestamp) = if (routeRow.deletedAt.isDefined) {
+          val deletedAt = routeRow.deletedAt
+            .getOrElse(throw new Exception("Invalid state")) // scapegoat fix
+          RouteChangeType.Delete -> deletedAt
+        } else if (pathRow.updatedAt.isAfter(routeRow.createdAt)) {
+          RouteChangeType.Update -> pathRow.updatedAt
+        } else {
+          RouteChangeType.Create -> routeRow.createdAt
+        }
+
         EskipRouteWrapper(
-          RouteName(routeRow.name),
-          routeToEskipString(routeRow, pathRow),
-          routeRow.createdAt,
-          routeRow.deletedAt)
+          routeChangeType = routeChangeType,
+          name = RouteName(routeRow.name),
+          eskip = routeToEskipString(routeRow, pathRow),
+          timestamp = timestamp
+        )
     })
   }
 }

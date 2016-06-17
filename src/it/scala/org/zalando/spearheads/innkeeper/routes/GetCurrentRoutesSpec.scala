@@ -74,7 +74,7 @@ class GetCurrentRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
         val entity = entityString(response)
         val routes = entity.parseJson.convertTo[Seq[EskipRouteWrapper]]
 
-        routes.map(_.createdAt).toSet should be (Set(route2CreatedAt))
+        routes.map(_.timestamp).toSet should be (Set(route2CreatedAt))
       }
     }
 
