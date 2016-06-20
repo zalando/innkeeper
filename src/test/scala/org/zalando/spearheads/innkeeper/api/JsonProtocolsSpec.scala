@@ -234,18 +234,17 @@ class JsonProtocolsSpec extends FunSpec with Matchers {
                     |  "description": "this is a route",
                     |  "activate_at": "2015-10-10T10:10:10",
                     |  "disable_at": "2015-11-11T11:11:11",
-                    |  "route": {
-                    |    "predicates": [{
-                    |      "name": "somePredicate",
-                    |      "args": [{
-                    |      "value": "Hello",
-                    |      "type": "string"
-                    |    }, {
-                    |      "value": "123",
-                    |      "type": "number"
-                    |    }]
-                    |    }]
-                    |  },
+                    |  "predicates": [{
+                    |    "name": "somePredicate",
+                    |    "args": [{
+                    |    "value": "Hello",
+                    |    "type": "string"
+                    |  }, {
+                    |    "value": "123",
+                    |    "type": "number"
+                    |  }]
+                    |  }],
+                    |  "filters": [],
                     |  "path_id": 1,
                     |  "uses_common_filters": false
                     |}""".stripMargin.parseJson.convertTo[RouteIn]
@@ -256,23 +255,21 @@ class JsonProtocolsSpec extends FunSpec with Matchers {
       routeIn.toJson.prettyPrint should be {
         """{
           |  "name": "THE_ROUTE",
+          |  "predicates": [{
+          |    "name": "somePredicate",
+          |    "args": [{
+          |      "value": "Hello",
+          |      "type": "string"
+          |    }, {
+          |      "value": "123",
+          |      "type": "number"
+          |    }]
+          |  }],
           |  "description": "this is a route",
           |  "uses_common_filters": false,
           |  "activate_at": "2015-10-10T10:10:10",
           |  "disable_at": "2015-11-11T11:11:11",
-          |  "route": {
-          |    "predicates": [{
-          |      "name": "somePredicate",
-          |      "args": [{
-          |        "value": "Hello",
-          |        "type": "string"
-          |      }, {
-          |        "value": "123",
-          |        "type": "number"
-          |      }]
-          |    }],
-          |    "filters": []
-          |  },
+          |  "filters": [],
           |  "path_id": 1
           |}""".stripMargin
       }
@@ -312,47 +309,43 @@ class JsonProtocolsSpec extends FunSpec with Matchers {
                     |  "path_id": 1,
                     |  "created_at": "2015-10-10T10:10:10",
                     |  "deleted_at": "2015-10-10T10:10:10",
-                    |  "route": {
-                    |    "predicates": [{
-                    |       "name": "somePredicate",
-                    |       "args": [{
-                    |        "value": "Hello",
-                    |        "type": "string"
-                    |      }, {
-                    |        "value": "123",
-                    |        "type": "number"
-                    |      }]
+                    |  "predicates": [{
+                    |     "name": "somePredicate",
+                    |     "args": [{
+                    |      "value": "Hello",
+                    |      "type": "string"
+                    |    }, {
+                    |      "value": "123",
+                    |      "type": "number"
                     |    }]
-                    |  }
+                    |  }],
+                    |  "filters": []
                     |}""".stripMargin.parseJson.convertTo[RouteOut]
       route should be(routeOut)
     }
 
     it("should marshall the RouteOut") {
-
       routeOut.toJson.prettyPrint should be {
         """{
           |  "created_by": "user",
           |  "name": "THE_ROUTE",
+          |  "predicates": [{
+          |    "name": "somePredicate",
+          |    "args": [{
+          |      "value": "Hello",
+          |      "type": "string"
+          |    }, {
+          |      "value": "123",
+          |      "type": "number"
+          |    }]
+          |  }],
           |  "description": "this is a route",
           |  "uses_common_filters": false,
           |  "activate_at": "2015-10-10T10:10:10",
           |  "id": 1,
           |  "disable_at": "2015-11-11T11:11:11",
+          |  "filters": [],
           |  "created_at": "2015-10-10T10:10:10",
-          |  "route": {
-          |    "predicates": [{
-          |      "name": "somePredicate",
-          |      "args": [{
-          |        "value": "Hello",
-          |        "type": "string"
-          |      }, {
-          |        "value": "123",
-          |        "type": "number"
-          |      }]
-          |    }],
-          |    "filters": []
-          |  },
           |  "deleted_at": "2015-10-10T10:10:10",
           |  "path_id": 1
           |}""".stripMargin

@@ -79,15 +79,13 @@ class PostRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
                                          |  "name": "route",
                                          |  "path_id": $pathId,
                                          |  "uses_common_filters": false,
-                                         |  "route": {
-                                         |    "predicates": [{
-                                         |     "name": "method",
-                                         |     "args": [{
-                                         |       "value": "Hello",
-                                         |       "type": "string"
-                                         |      }]
+                                         |  "predicates": [{
+                                         |   "name": "method",
+                                         |   "args": [{
+                                         |     "value": "Hello",
+                                         |     "type": "string"
                                          |    }]
-                                         |  }
+                                         |  }]
                                          |}""".stripMargin
 
           val response = postSlashRoutes(invalidPredicateRoute)(token)
