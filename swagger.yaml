@@ -331,7 +331,9 @@ definitions:
   RouteIn:
     required:
       - name
-      - route
+      - predicates
+      - filters
+      - endpoint
       - path_id
     properties:
       name:
@@ -344,8 +346,21 @@ definitions:
       activate_at:
         type: string
         description: The ISO-8601 date time when the route will be activated
-      route:
-        $ref: '#/definitions/NewRoute'
+      predicates:
+        type: array
+        $ref: '#/definitions/Predicate'
+        description: |
+          Definition of predicates to be applied
+      filters:
+        type: array
+        $ref: '#/definitions/Filter'
+        description: |
+          Definition of filters to be applied. fashionStore() filter is a mandatory filter and
+          must always present
+      endpoint:
+        type: string
+        description: |
+          A valid http(s) endpoint that the request should be routed to
       path_id:
         type: string
       host_ids:
@@ -359,7 +374,9 @@ definitions:
     required:
       - id
       - name
-      - route
+      - predicates
+      - filters
+      - endpoint
       - path_id
       - created_at
       - activate_at
@@ -389,8 +406,21 @@ definitions:
         type: string
       created_by:
         type: string
-      route:
-        $ref: '#/definitions/NewRoute'
+      predicates:
+        type: array
+        $ref: '#/definitions/Predicate'
+        description: |
+          Definition of predicates to be applied
+      filters:
+        type: array
+        $ref: '#/definitions/Filter'
+        description: |
+          Definition of filters to be applied. fashionStore() filter is a mandatory filter and
+          must always present
+      endpoint:
+        type: string
+        description: |
+          A valid http(s) endpoint that the request should be routed to
       path_id:
         type: string
   RouteChange:
@@ -412,27 +442,6 @@ definitions:
       eskip:
         type: string
         description: The Route in eskip format
-  NewRoute:
-    required:
-      - predicates
-      - filters
-      - endpoint
-    properties:
-      predicates:
-        type: array
-        $ref: '#/definitions/Predicate'
-        description: |
-          Definition of predicates to be applied
-      filters:
-        type: array
-        $ref: '#/definitions/Filter'
-        description: |
-          Definition of filters to be applied. fashionStore() filter is a mandatory filter and 
-          must always present
-      endpoint:
-        type: string
-        description: |
-          A valid http(s) endpoint that the request should be routed to
   Predicate:
     required:
       - name

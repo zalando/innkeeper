@@ -84,28 +84,26 @@ object RoutesSpecsHelper {
                                 |  "uses_common_filters": false,
                                 |  "description": "this is a route",
                                 |  "activate_at": "2015-10-10T10:10:10",
-                                |  "route": {
-                                |    "predicates": [{
-                                |     "name": "method",
-                                |     "args": [{
-                                |       "value": "GET",
-                                |       "type": "string"
-                                |      }]
-                                |    }],
-                                |    "filters": [{
-                                |      "name": "someFilter",
-                                |      "args": [{
-                                |        "value": "HelloFilter",
-                                |        "type": "string"
-                                |      }, {
-                                |        "value": "123",
-                                |        "type": "number"
-                                |      }, {
-                                |        "value": "0.99",
-                                |        "type": "number"
-                                |      }]
+                                |  "predicates": [{
+                                |   "name": "method",
+                                |   "args": [{
+                                |     "value": "GET",
+                                |     "type": "string"
                                 |    }]
-                                |  }
+                                |  }],
+                                |  "filters": [{
+                                |    "name": "someFilter",
+                                |    "args": [{
+                                |      "value": "HelloFilter",
+                                |      "type": "string"
+                                |    }, {
+                                |      "value": "123",
+                                |      "type": "number"
+                                |    }, {
+                                |      "value": "0.99",
+                                |      "type": "number"
+                                |    }]
+                                |  }]
                                 |}""".stripMargin
 
   def routeFiltersShouldBeCorrect(route: RouteOut) = {
