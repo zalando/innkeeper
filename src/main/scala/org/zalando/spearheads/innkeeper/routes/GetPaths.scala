@@ -23,7 +23,7 @@ class GetPaths @Inject() (
   def apply(authenticatedUser: AuthenticatedUser): Route = {
     get {
       val reqDesc = "get /paths"
-      hasOneOfTheScopes(authenticatedUser, reqDesc, scopes.READ) {
+      hasOneOfTheScopes(authenticatedUser, reqDesc, scopes.READ, scopes.ADMIN) {
         metrics.getPaths.time {
           logger.info(s"try to $reqDesc")
 

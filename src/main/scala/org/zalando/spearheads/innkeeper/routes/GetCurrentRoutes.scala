@@ -26,7 +26,7 @@ class GetCurrentRoutes @Inject() (
   def apply(authenticatedUser: AuthenticatedUser): Route = {
     get {
       val reqDesc = "get /current-routes"
-      hasOneOfTheScopes(authenticatedUser, reqDesc, scopes.READ) {
+      hasOneOfTheScopes(authenticatedUser, reqDesc, scopes.READ, scopes.ADMIN) {
         metrics.getCurrentRoutes.time {
           logger.info(s"try to $reqDesc")
           chunkedResponseOf[EskipRouteWrapper](jsonService) {

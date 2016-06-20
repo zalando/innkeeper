@@ -32,7 +32,7 @@ class GetRoute @Inject() (
 
       logger.info(s"try to $reqDesc")
 
-      hasOneOfTheScopes(authenticatedUser, reqDesc, scopes.READ) {
+      hasOneOfTheScopes(authenticatedUser, reqDesc, scopes.READ, scopes.ADMIN) {
         metrics.getRoute.time {
 
           findRoute(id, routesService, reqDesc)(executionContext) { route =>
