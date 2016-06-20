@@ -44,12 +44,12 @@ class PatchPaths @Inject() (
             if (pathPatch.ownedByTeam.isDefined) {
               reject(PathOwnedByTeamAuthorizationRejection(reqDesc))
             } else {
-              patchPathRoute(id, pathPatch, reqDesc)
+              patchPathRoute(id, pathPatch, authenticatedUser, reqDesc)
             }
           } ~ hasAdminAuthorization(authenticatedUser, team, reqDesc, scopes)(teamService) {
             logger.debug(s"patch /paths admin team $team")
 
-            patchPathRoute(id, pathPatch, reqDesc)
+            patchPathRoute(id, pathPatch, authenticatedUser, reqDesc)
           }
         }
       } ~ {
@@ -58,13 +58,12 @@ class PatchPaths @Inject() (
     }
   }
 
-  private def patchPathRoute(id: Long, pathPatch: PathPatch, reqDesc: String): Route = {
+  private def patchPathRoute(id: Long, pathPatch: PathPatch, authenticatedUser: AuthenticatedUser, reqDesc: String): Route = {
     metrics.postPaths.time {
-      logger.debug(s"$reqDesc patchPath")
+      logger.info(s"$reqDesc by ${authenticatedUser.username.getOrElse("")}: $pathPatch")
       onComplete(pathsService.patch(id, pathPatch)) {
-        case Success(ServiceResult.Success(pathOut))             => complete(pathOut)
-        case Success(ServiceResult.Failure(DuplicatePathUri(_))) => reject(DuplicatePathUriRejection(reqDesc))
-        case _                                                   => reject
+        case Success(ServiceResult.Success(pathOut)) => complete(pathOut)
+        case _                                       => reject
       }
     }
   }
