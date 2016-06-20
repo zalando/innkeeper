@@ -331,6 +331,7 @@ definitions:
   RouteIn:
     required:
       - name
+      - uses_common_filters
       - predicates
       - filters
       - endpoint
@@ -340,6 +341,9 @@ definitions:
         type: string
         pattern: /[A-Z][A-Z0-9_]*
         description: The name of the route in the ROUTE_NAME format
+      uses_common_filters:
+        type: boolean
+        description: Specifies if the route uses the configured common filters
       description:
         type: string
         description: Human readable description for the route
@@ -373,7 +377,9 @@ definitions:
   RouteOut:
     required:
       - id
+      - path_id
       - name
+      - uses_common_filters
       - predicates
       - filters
       - endpoint
@@ -386,10 +392,15 @@ definitions:
       id:
         type: integer
         format: int64
+      path_id:
+        type: number
       name:
         type: string
         pattern: \[a-zA-Z][a-zA-Z0-9_]*
         description: The name of the route in the ROUTE_NAME format
+      uses_common_filters:
+        type: boolean
+        description: Specifies if the route uses the configured common filters
       description:
         type: string
         description: Human readable description for the route
