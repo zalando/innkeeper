@@ -15,5 +15,5 @@ trait PathsRepo {
   def selectAll: DatabasePublisher[PathRow]
   def selectByOwnerTeamAndUri(ownedByTeam: Option[String], uri: Option[String]): DatabasePublisher[PathRow]
   def pathWithUriExists(uri: String): Future[Boolean]
-  def patch(id: Long, pathPatch: PathPatch, updatedAt: LocalDateTime): Future[Option[PathRow]]
+  def update(id: Long, pathPatch: PathPatch, updatedAt: LocalDateTime): Future[Option[PathRow]]
 }

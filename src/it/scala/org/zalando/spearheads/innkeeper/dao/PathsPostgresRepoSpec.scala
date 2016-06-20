@@ -59,7 +59,7 @@ class PathsPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers wi
         val updatedHostId = List(1L)
         val updatedAt = LocalDateTime.now()
         val pathPatch = PathPatch(hostIds = Some(updatedHostId), ownedByTeam = None)
-        val pathRow = pathsRepo.patch(1L, pathPatch, updatedAt).futureValue
+        val pathRow = pathsRepo.update(1L, pathPatch, updatedAt).futureValue
 
         pathRow.isDefined should be (true)
         pathRow.get.id should be ('defined)
@@ -73,7 +73,7 @@ class PathsPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers wi
         val updatedAt = LocalDateTime.now()
         val newOwnedByTeam = TeamName("new-owning-team")
         val pathPatch = PathPatch(hostIds = None, ownedByTeam = Some(newOwnedByTeam))
-        val pathRow = pathsRepo.patch(1L, pathPatch, updatedAt).futureValue
+        val pathRow = pathsRepo.update(1L, pathPatch, updatedAt).futureValue
 
         pathRow.isDefined should be (true)
         pathRow.get.id should be ('defined)
@@ -88,7 +88,7 @@ class PathsPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers wi
         val newOwnedByTeam = TeamName("new-owning-team")
         val updatedAt = LocalDateTime.now()
         val pathPatch = PathPatch(hostIds = Some(updatedHostId), ownedByTeam = Some(newOwnedByTeam))
-        val pathRow = pathsRepo.patch(1L, pathPatch, updatedAt).futureValue
+        val pathRow = pathsRepo.update(1L, pathPatch, updatedAt).futureValue
 
         pathRow.isDefined should be (true)
         pathRow.get.id should be ('defined)

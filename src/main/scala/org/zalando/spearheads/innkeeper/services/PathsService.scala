@@ -67,7 +67,7 @@ class DefaultPathsService @Inject() (pathsRepo: PathsRepo)(implicit val executio
     path: PathPatch,
     updatedAt: LocalDateTime): Future[ServiceResult.Result[PathOut]] = {
 
-    pathsRepo.patch(id, path, updatedAt).flatMap {
+    pathsRepo.update(id, path, updatedAt).flatMap {
       case Some(pathRow) => rowToEventualMaybePath(pathRow)
       case _             => Future(Failure(NotFound()))
     }

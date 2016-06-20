@@ -141,7 +141,7 @@ class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers w
         val createdAt = LocalDateTime.now()
         insertRoute("R3", createdAt = createdAt)
         insertRoute("R4", createdAt = createdAt)
-        pathsRepo.patch(r1.id.get, PathPatch(Some(List(1L)), None), LocalDateTime.now())
+        pathsRepo.update(r1.id.get, PathPatch(Some(List(1L)), None), LocalDateTime.now())
 
         val result = routesRepo.selectModifiedSince(createdAt.minus(1, ChronoUnit.MICROS), LocalDateTime.now())
 

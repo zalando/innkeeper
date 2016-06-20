@@ -86,7 +86,7 @@ class PathsPostgresRepo @Inject() (
     }
   }
 
-  override def patch(id: Long, pathPatch: PathPatch, updatedAt: LocalDateTime): Future[Option[PathRow]] = {
+  override def update(id: Long, pathPatch: PathPatch, updatedAt: LocalDateTime): Future[Option[PathRow]] = {
     logger.debug(s"patch $id")
 
     val updateHostIdsActionOpt = pathPatch.hostIds.map { hostsIds =>
