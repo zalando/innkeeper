@@ -6,8 +6,10 @@ import akka.stream.ActorMaterializer
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.time.{Seconds, Span}
 import org.scalatest.{BeforeAndAfter, FunSpec, Matchers}
+import org.zalando.spearheads.innkeeper.api.{PathPatch, TeamName}
 import org.zalando.spearheads.innkeeper.routes.PathsRepoHelper._
 import org.zalando.spearheads.innkeeper.routes.RoutesRepoHelper
+
 import scala.collection.immutable.List
 import scala.language.postfixOps
 
@@ -51,6 +53,51 @@ class PathsPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers wi
       }
     }
 
+    describe("#patch") {
+      it("should update only host ids") {
+        insertPath()
+        val updatedHostId = List(1L)
+        val updatedAt = LocalDateTime.now()
+        val pathPatch = PathPatch(hostIds = Some(updatedHostId), ownedByTeam = None)
+        val pathRow = pathsRepo.update(1L, pathPatch, updatedAt).futureValue
+
+        pathRow.isDefined should be (true)
+        pathRow.get.id should be ('defined)
+        pathRow.get.uri should be ("/uri")
+        pathRow.get.hostIds should be (updatedHostId)
+        pathRow.get.ownedByTeam should be ("testteam")
+      }
+
+      it("should update only owning team") {
+        insertPath()
+        val updatedAt = LocalDateTime.now()
+        val newOwnedByTeam = TeamName("new-owning-team")
+        val pathPatch = PathPatch(hostIds = None, ownedByTeam = Some(newOwnedByTeam))
+        val pathRow = pathsRepo.update(1L, pathPatch, updatedAt).futureValue
+
+        pathRow.isDefined should be (true)
+        pathRow.get.id should be ('defined)
+        pathRow.get.uri should be ("/uri")
+        pathRow.get.hostIds should be (List(1L, 2L, 3L))
+        pathRow.get.ownedByTeam should be (newOwnedByTeam.name)
+      }
+
+      it("should update host ids and owning team") {
+        insertPath()
+        val updatedHostId = List(1L)
+        val newOwnedByTeam = TeamName("new-owning-team")
+        val updatedAt = LocalDateTime.now()
+        val pathPatch = PathPatch(hostIds = Some(updatedHostId), ownedByTeam = Some(newOwnedByTeam))
+        val pathRow = pathsRepo.update(1L, pathPatch, updatedAt).futureValue
+
+        pathRow.isDefined should be (true)
+        pathRow.get.id should be ('defined)
+        pathRow.get.uri should be ("/uri")
+        pathRow.get.hostIds should be (updatedHostId)
+        pathRow.get.ownedByTeam should be (newOwnedByTeam.name)
+      }
+    }
+
     describe("#selectByRouteId") {
       it("should select a path by route id") {
         val insertedPath = insertPath()
@@ -69,15 +116,16 @@ class PathsPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers wi
 
       it("should select all routes") {
         val createdAt = LocalDateTime.now()
+        val updatedAt = createdAt
         val activateAt = createdAt.minusMinutes(5)
-        insertPath(samplePath(uri = "/hello1", createdAt = createdAt))
-        insertPath(samplePath(uri = "/hello2", createdAt = createdAt))
+        insertPath(samplePath(uri = "/hello1", createdAt = createdAt, updatedAt = updatedAt))
+        insertPath(samplePath(uri = "/hello2", createdAt = createdAt, updatedAt = updatedAt))
 
         val paths: List[PathRow] = pathsRepo.selectAll
 
         paths should not be 'empty
-        paths(0) should be (samplePath(id = 1, uri = "/hello1", createdAt = createdAt, activateAt = activateAt))
-        paths(1) should be (samplePath(id = 2, uri = "/hello2", createdAt = createdAt, activateAt = activateAt))
+        paths(0) should be (samplePath(id = 1, uri = "/hello1", createdAt = createdAt, updatedAt = updatedAt, activateAt = activateAt))
+        paths(1) should be (samplePath(id = 2, uri = "/hello2", createdAt = createdAt, updatedAt = updatedAt, activateAt = activateAt))
       }
     }
 

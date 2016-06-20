@@ -126,6 +126,8 @@ object JsonProtocols {
 
   implicit val pathInFormat = jsonFormat(PathIn, "uri", "host_ids", "owned_by_team")
 
+  implicit val pathPatchFormat = jsonFormat(PathPatch, "host_ids", "owned_by_team")
+
   implicit val pathOutFormat = jsonFormat(
     PathOut,
     "id",
@@ -133,12 +135,29 @@ object JsonProtocols {
     "host_ids",
     "owned_by_team",
     "created_by",
-    "created_at")
+    "created_at",
+    "updated_at"
+  )
+
+  implicit object RouteChangeTypeFormat extends RootJsonFormat[RouteChangeType] {
+
+    override def write(routeChangeType: RouteChangeType): JsValue = JsString(routeChangeType.value)
+
+    override def read(json: JsValue): RouteChangeType = {
+      json match {
+        case JsString(RouteChangeType.Create.value) => RouteChangeType.Create
+        case JsString(RouteChangeType.Update.value) => RouteChangeType.Update
+        case JsString(RouteChangeType.Delete.value) => RouteChangeType.Delete
+        case _                                      => throw new DeserializationException("Error deserializing the team name")
+      }
+    }
+  }
 
   implicit val eskipRouteFormat = jsonFormat(
     EskipRouteWrapper,
+    "type",
     "name",
     "eskip",
-    "created_at",
-    "deleted_at")
+    "timestamp"
+  )
 }

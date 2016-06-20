@@ -5,7 +5,7 @@ import java.time.LocalDateTime
 import akka.NotUsed
 import akka.stream.scaladsl.Source
 import com.google.inject.Inject
-import org.zalando.spearheads.innkeeper.api.{PathIn, PathOut, TeamName, UserName}
+import org.zalando.spearheads.innkeeper.api.{PathIn, PathOut, PathPatch, TeamName, UserName}
 import org.zalando.spearheads.innkeeper.dao.{PathRow, PathsRepo}
 import org.zalando.spearheads.innkeeper.services.ServiceResult._
 import slick.backend.DatabasePublisher
@@ -19,6 +19,11 @@ trait PathsService {
     ownedByTeam: TeamName,
     createdBy: UserName,
     createdAt: LocalDateTime = LocalDateTime.now()): Future[Result[PathOut]]
+
+  def patch(
+    id: Long,
+    path: PathPatch,
+    updatedAt: LocalDateTime = LocalDateTime.now()): Future[Result[PathOut]]
 
   def findById(id: Long): Future[Result[PathOut]]
 
@@ -46,7 +51,8 @@ class DefaultPathsService @Inject() (pathsRepo: PathsRepo)(implicit val executio
       hostIds = path.hostIds,
       ownedByTeam = ownedByTeam.name,
       createdBy = createdBy.name,
-      createdAt = createdAt
+      createdAt = createdAt,
+      updatedAt = createdAt
     )
 
     pathsRepo.pathWithUriExists(path.uri)
@@ -54,6 +60,17 @@ class DefaultPathsService @Inject() (pathsRepo: PathsRepo)(implicit val executio
         case false => pathsRepo.insert(pathRow).flatMap(rowToEventualMaybePath)
         case true  => Future.successful(Failure(DuplicatePathUri()))
       }
+  }
+
+  override def patch(
+    id: Long,
+    path: PathPatch,
+    updatedAt: LocalDateTime): Future[ServiceResult.Result[PathOut]] = {
+
+    pathsRepo.update(id, path, updatedAt).flatMap {
+      case Some(pathRow) => rowToEventualMaybePath(pathRow)
+      case _             => Future(Failure(NotFound()))
+    }
   }
 
   override def findById(id: Long): Future[ServiceResult.Result[PathOut]] = {
@@ -100,6 +117,7 @@ class DefaultPathsService @Inject() (pathsRepo: PathsRepo)(implicit val executio
       uri = pathRow.uri,
       hostIds = pathRow.hostIds,
       createdAt = pathRow.createdAt,
+      updatedAt = pathRow.updatedAt,
       ownedByTeam = TeamName(pathRow.ownedByTeam),
       createdBy = UserName(pathRow.createdBy))
   }

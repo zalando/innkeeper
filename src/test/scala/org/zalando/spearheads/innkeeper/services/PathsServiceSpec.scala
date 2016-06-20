@@ -10,8 +10,7 @@ import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.{FunSpec, Matchers}
 import org.zalando.spearheads.innkeeper.FakeDatabasePublisher
 import org.zalando.spearheads.innkeeper.api.{PathIn, PathOut, TeamName, UserName}
-import org.zalando.spearheads.innkeeper.dao.{PathRow, PathsRepo, RouteRow}
-import org.zalando.spearheads.innkeeper.oauth.Scopes
+import org.zalando.spearheads.innkeeper.dao.{PathRow, PathsRepo}
 import org.zalando.spearheads.innkeeper.services.ServiceResult.DuplicatePathUri
 
 import scala.concurrent.duration.DurationInt
@@ -41,6 +40,10 @@ class PathsServiceSpec extends FunSpec with Matchers with MockFactory with Scala
           UserName(createdBy), createdAt).futureValue
 
         result should be(ServiceResult.Success(pathOut))
+        result match {
+          case ServiceResult.Success(path) => path.updatedAt should be(path.createdAt)
+          case _                           => fail()
+        }
       }
 
       it("should fail to create a path") {
@@ -206,6 +209,7 @@ class PathsServiceSpec extends FunSpec with Matchers with MockFactory with Scala
   val createdBy = "user"
   val ownedByTeam = "team"
   val createdAt = LocalDateTime.now()
+  val updatedAt = createdAt
 
   val pathIn = PathIn(uri, hostIds)
 
@@ -215,7 +219,8 @@ class PathsServiceSpec extends FunSpec with Matchers with MockFactory with Scala
     hostIds = hostIds,
     ownedByTeam = TeamName(ownedByTeam),
     createdBy = UserName(createdBy),
-    createdAt = createdAt)
+    createdAt = createdAt,
+    updatedAt = updatedAt)
 
   val pathRowWithoutId = PathRow(
     id = None,
@@ -223,7 +228,8 @@ class PathsServiceSpec extends FunSpec with Matchers with MockFactory with Scala
     hostIds = hostIds,
     ownedByTeam = ownedByTeam,
     createdBy = createdBy,
-    createdAt = createdAt)
+    createdAt = createdAt,
+    updatedAt = updatedAt)
 
   val pathRow = pathRowWithoutId.copy(id = Some(pathId))
 

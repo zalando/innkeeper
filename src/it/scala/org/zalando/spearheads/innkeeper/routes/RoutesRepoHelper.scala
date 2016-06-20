@@ -106,6 +106,7 @@ object RoutesRepoHelper extends DaoHelper {
       hostIds = List.empty,
       ownedByTeam = ownedByTeam,
       createdAt = createdAt,
+      updatedAt = createdAt,
       createdBy = createdBy
     )).futureValue
 

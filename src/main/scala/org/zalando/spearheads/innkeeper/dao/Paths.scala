@@ -12,7 +12,8 @@ case class PathRow(
   hostIds: Seq[Long],
   ownedByTeam: String,
   createdBy: String,
-  createdAt: LocalDateTime = LocalDateTime.now())
+  createdAt: LocalDateTime,
+  updatedAt: LocalDateTime)
 
 class PathsTable(tag: Tag) extends Table[PathRow](tag, "PATHS") {
   def id = column[Long]("PATH_ID", O.PrimaryKey, O.AutoInc)
@@ -21,10 +22,11 @@ class PathsTable(tag: Tag) extends Table[PathRow](tag, "PATHS") {
   def ownedByTeam = column[String]("OWNED_BY_TEAM")
   def createdBy = column[String]("CREATED_BY")
   def createdAt = column[LocalDateTime]("CREATED_AT")
+  def updatedAt = column[LocalDateTime]("UPDATED_AT")
 
   def uriIndex = index("PATH_URI_IDX", uri, unique = true)
   def ownedByTeamIndex = index("PATH_OWNED_BY_TEAM_IDX", ownedByTeam)
 
   def * = // scalastyle:ignore
-    (id.?, uri, hostIds, ownedByTeam, createdBy, createdAt) <> (PathRow.tupled, PathRow.unapply)
+    (id.?, uri, hostIds, ownedByTeam, createdBy, createdAt, updatedAt) <> (PathRow.tupled, PathRow.unapply)
 }

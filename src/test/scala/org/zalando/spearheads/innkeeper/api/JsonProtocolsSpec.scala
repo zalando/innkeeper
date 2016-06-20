@@ -394,7 +394,8 @@ class JsonProtocolsSpec extends FunSpec with Matchers {
       hostIds = List(1, 2, 3),
       ownedByTeam = TeamName("team"),
       createdBy = UserName("username"),
-      createdAt = LocalDateTime.of(2015, 10, 10, 10, 10, 10)
+      createdAt = LocalDateTime.of(2015, 10, 10, 10, 10, 10),
+      updatedAt = LocalDateTime.of(2016, 10, 10, 10, 10, 10)
     )
 
     it("should marshall") {
@@ -405,7 +406,8 @@ class JsonProtocolsSpec extends FunSpec with Matchers {
           |  "host_ids": [1, 2, 3],
           |  "uri": "/hello",
           |  "id": 1,
-          |  "created_at": "2015-10-10T10:10:10"
+          |  "created_at": "2015-10-10T10:10:10",
+          |  "updated_at": "2016-10-10T10:10:10"
           |}""".stripMargin)
     }
   }

@@ -8,6 +8,7 @@ import org.scalatest.time.{Seconds, Span}
 import org.scalatest.{BeforeAndAfter, FunSpec, Matchers, path}
 import org.zalando.spearheads.innkeeper.routes.RoutesRepoHelper
 import RoutesRepoHelper.{deleteRoute, insertRoute, routeJson, sampleRoute}
+import org.zalando.spearheads.innkeeper.api.PathPatch
 import org.zalando.spearheads.innkeeper.routes.RoutesRepoHelper._
 
 class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers with ScalaFutures {
@@ -132,6 +133,20 @@ class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers w
         val routes: List[(RouteRow, PathRow)] = routesRepo.selectModifiedSince(createdAt.minus(1, ChronoUnit.MICROS), LocalDateTime.now())
 
         routes.map(_._1.id.get).toSet should be (Set(route3Id))
+      }
+
+      it("should select the routes which were updated by a path update") {
+        val r1 = insertRoute("R1")
+        insertRoute("R2")
+        val createdAt = LocalDateTime.now()
+        insertRoute("R3", createdAt = createdAt)
+        insertRoute("R4", createdAt = createdAt)
+        pathsRepo.update(r1.id.get, PathPatch(Some(List(1L)), None), LocalDateTime.now())
+
+        val result = routesRepo.selectModifiedSince(createdAt.minus(1, ChronoUnit.MICROS), LocalDateTime.now())
+
+        result.size should be (3)
+        result.map(_._1.id.get).toSet should be (Set(1, 3, 4))
       }
     }
 

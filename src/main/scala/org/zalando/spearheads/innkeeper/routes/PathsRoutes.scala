@@ -9,13 +9,14 @@ import scala.concurrent.Future
 class PathsRoutes @Inject() (
     getPaths: GetPaths,
     getPath: GetPath,
-    postPaths: PostPaths) {
+    postPaths: PostPaths,
+    patchPaths: PatchPaths) {
 
   def apply(authenticatedUser: AuthenticatedUser, token: String): RequestContext => Future[RouteResult] = {
     path("paths") {
       getPaths(authenticatedUser) ~ postPaths(authenticatedUser, token)
     } ~ path("paths" / LongNumber) { pathId =>
-      getPath(authenticatedUser, pathId)
+      getPath(authenticatedUser, pathId) ~ patchPaths(authenticatedUser, token, pathId)
     }
   }
 }
