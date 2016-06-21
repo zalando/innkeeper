@@ -5,7 +5,7 @@ import java.time.temporal.ChronoUnit
 
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.time.{Seconds, Span}
-import org.scalatest.{BeforeAndAfter, FunSpec, Matchers, path}
+import org.scalatest.{BeforeAndAfter, FunSpec, Matchers}
 import org.zalando.spearheads.innkeeper.routes.RoutesRepoHelper
 import RoutesRepoHelper.{deleteRoute, insertRoute, routeJson, sampleRoute}
 import org.zalando.spearheads.innkeeper.api.PathPatch
@@ -136,14 +136,23 @@ class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers w
       }
 
       it("should select the routes which were updated by a path update") {
-        val r1 = insertRoute("R1")
-        insertRoute("R2")
-        val createdAt = LocalDateTime.now()
-        insertRoute("R3", createdAt = createdAt)
-        insertRoute("R4", createdAt = createdAt)
-        pathsRepo.update(r1.id.get, PathPatch(Some(List(1L)), None), LocalDateTime.now())
+        val createdAt = LocalDateTime.of(2015, 10, 10, 10, 10, 10)
+        val createdAt1 = createdAt.minusDays(3)
+        val createdAt2 = createdAt.minusDays(2)
+        val currentTime: LocalDateTime = createdAt.plusDays(5)
 
-        val result = routesRepo.selectModifiedSince(createdAt.minus(1, ChronoUnit.MICROS), LocalDateTime.now())
+        val r1 = insertRoute("R1", createdAt = createdAt1, activateAt = createdAt1)
+        insertRoute("R2", createdAt = createdAt2, activateAt = createdAt2)
+        insertRoute("R3", createdAt = createdAt, activateAt = createdAt)
+        insertRoute("R4", createdAt = createdAt, activateAt = createdAt)
+
+        val updateFuture = pathsRepo.update(r1.id.get, PathPatch(Some(List(1L)), None), createdAt.plusDays(1))
+        updateFuture.futureValue
+
+        val result = routesRepo.selectModifiedSince(
+          since = createdAt.minusDays(1),
+          currentTime = currentTime
+        )
 
         result.size should be (3)
         result.map(_._1.id.get).toSet should be (Set(1, 3, 4))
