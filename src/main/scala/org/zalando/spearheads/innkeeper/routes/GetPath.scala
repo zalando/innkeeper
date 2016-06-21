@@ -29,7 +29,7 @@ class GetPath @Inject() (
 
       logger.info(s"try to $reqDesc")
 
-      hasOneOfTheScopes(authenticatedUser, reqDesc, scopes.READ) {
+      hasOneOfTheScopes(authenticatedUser, reqDesc, scopes.READ, scopes.ADMIN) {
         metrics.getPath.time {
           findPath(id, pathsService, reqDesc)(executionContext) { path =>
             complete(path.toJson)

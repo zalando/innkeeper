@@ -25,7 +25,7 @@ class GetHosts @Inject() (hostsService: HostsService, jsonService: JsonService, 
     get {
       val requestDescription = "GET /hosts"
 
-      hasOneOfTheScopes(authenticatedUser, requestDescription, scopes.READ) {
+      hasOneOfTheScopes(authenticatedUser, requestDescription, scopes.READ, scopes.ADMIN) {
         metrics.getHosts.time {
           logger.info(s"try to $requestDescription")
 
