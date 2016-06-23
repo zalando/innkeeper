@@ -14,7 +14,7 @@ class PostPathsSpec extends FunSpec with BeforeAndAfter with Matchers {
   private val pathUri = "uri-1"
   private val hostIds = List(1L, 2L)
   private val otherOwningTeam = "otherOwningTeam"
-  private val pathJsonString =
+  private def pathJsonString(pathUri: String = pathUri, hostIds: List[Long] = hostIds) =
     s"""{
         |  "uri": "$pathUri",
         |  "host_ids": [${hostIds.mkString(", ")}]
@@ -40,7 +40,7 @@ class PostPathsSpec extends FunSpec with BeforeAndAfter with Matchers {
       describe("when a token with the write scope is provided") {
         it("should create the new path") {
           val token = WRITE_TOKEN
-          val response = PathsSpecsHelper.postSlashPaths(pathJsonString, token)
+          val response = PathsSpecsHelper.postSlashPaths(pathJsonString(), token)
 
           response.status should be(StatusCodes.OK)
           val entity = entityString(response)
@@ -91,14 +91,14 @@ class PostPathsSpec extends FunSpec with BeforeAndAfter with Matchers {
       describe("when no token is provided") {
 
         it("should return the 401 Unauthorized status") {
-          val response = PathsSpecsHelper.postSlashPaths(pathJsonString, "")
+          val response = PathsSpecsHelper.postSlashPaths(pathJsonString(), "")
           response.status should be(StatusCodes.Unauthorized)
         }
       }
 
       describe("when an invalid token is provided") {
         it("should return the 403 Forbidden status") {
-          val response = PathsSpecsHelper.postSlashPaths(pathJsonString, INVALID_TOKEN)
+          val response = PathsSpecsHelper.postSlashPaths(pathJsonString(), INVALID_TOKEN)
           response.status should be(StatusCodes.Forbidden)
           entityString(response).parseJson.convertTo[Error].errorType should be("AUTH3")
         }
@@ -106,7 +106,7 @@ class PostPathsSpec extends FunSpec with BeforeAndAfter with Matchers {
 
       describe("when a token without the write scope is provided") {
         it("should return the 403 Forbidden status") {
-          val response = PathsSpecsHelper.postSlashPaths(pathJsonString, READ_TOKEN)
+          val response = PathsSpecsHelper.postSlashPaths(pathJsonString(), READ_TOKEN)
           response.status should be(StatusCodes.Forbidden)
           entityString(response).parseJson.convertTo[Error].errorType should be("AUTH1")
         }
@@ -116,22 +116,51 @@ class PostPathsSpec extends FunSpec with BeforeAndAfter with Matchers {
         val token = "token--employees-route.write_strict"
 
         it("should return the 403 Forbidden status") {
-          val response = PathsSpecsHelper.postSlashPaths(pathJsonString, token)
+          val response = PathsSpecsHelper.postSlashPaths(pathJsonString(), token)
           response.status should be(StatusCodes.Forbidden)
           entityString(response).parseJson.convertTo[Error].errorType should be("TNF")
         }
       }
 
-      describe("when a path with the same uri exists") {
+      describe("when an existing paths with the same uri host ids intersects with the provided host ids") {
         val token = WRITE_TOKEN
 
         it("should return the 400 Bad Request status") {
-          val path = PathsRepoHelper.samplePath(uri = pathUri)
+          val path = PathsRepoHelper.samplePath(
+            uri = pathUri,
+            hostIds = List(1L, 2L, 3L)
+          )
           PathsRepoHelper.insertPath(path)
 
-          val response = PathsSpecsHelper.postSlashPaths(pathJsonString, token)
+          val response = PathsSpecsHelper.postSlashPaths(pathJsonString(), token)
           response.status should be(StatusCodes.BadRequest)
           entityString(response).parseJson.convertTo[Error].errorType should be("DPU")
+        }
+      }
+
+      describe("when a path with no host ids exists for the provided uri") {
+        val token = WRITE_TOKEN
+
+        it("should return the 400 Bad Request status") {
+          val path = PathsRepoHelper.samplePath(
+            uri = pathUri,
+            hostIds = List.empty
+          )
+          PathsRepoHelper.insertPath(path)
+
+          val response = PathsSpecsHelper.postSlashPaths(pathJsonString(), token)
+          response.status should be(StatusCodes.BadRequest)
+          entityString(response).parseJson.convertTo[Error].errorType should be("DPU")
+        }
+      }
+
+      describe("when host ids is empty") {
+        val token = WRITE_TOKEN
+
+        it("should return the 400 Bad Request status") {
+          val response = PathsSpecsHelper.postSlashPaths(pathJsonString(hostIds = List.empty), token)
+          response.status should be(StatusCodes.BadRequest)
+          entityString(response).parseJson.convertTo[Error].errorType should be("EPH")
         }
       }
 

@@ -55,10 +55,10 @@ class DefaultPathsService @Inject() (pathsRepo: PathsRepo)(implicit val executio
       updatedAt = createdAt
     )
 
-    pathsRepo.pathWithUriExists(path.uri)
+    pathsRepo.pathWithUriHostIdExists(path.uri, path.hostIds)
       .flatMap {
         case false => pathsRepo.insert(pathRow).flatMap(rowToEventualMaybePath)
-        case true  => Future.successful(Failure(DuplicatePathUri()))
+        case true  => Future.successful(Failure(DuplicatePathUriHost()))
       }
   }
 

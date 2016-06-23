@@ -156,6 +156,52 @@ class PathsPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers wi
         paths.map(_.uri) should contain theSameElementsAs List("/hello1", "/hello2", "/hello3", "/hello4")
       }
     }
+
+    describe("#pathWithUriHostIdExists") {
+      it("should return false if no existing path with the same uri has any of the provided host ids") {
+        val uri = "test-uri"
+        insertPath(samplePath(
+          uri = uri,
+          hostIds = List(1, 2, 3)
+        ))
+        insertPath(samplePath(
+          uri = uri,
+          hostIds = List(4, 5, 6)
+        ))
+
+        pathsRepo.pathWithUriHostIdExists(uri, List(7, 8, 9))
+          .futureValue
+          .shouldBe(false)
+      }
+
+      it("should return true if an existing path already has one of the provided host ids") {
+        val uri = "test-uri"
+        insertPath(samplePath(
+          uri = uri,
+          hostIds = List(1, 2, 3)
+        ))
+        insertPath(samplePath(
+          uri = uri,
+          hostIds = List(4, 5, 6)
+        ))
+
+        pathsRepo.pathWithUriHostIdExists(uri, List(6, 7, 8))
+          .futureValue
+          .shouldBe(true)
+      }
+
+      it("should return true if an existing path has no host ids") {
+        val uri = "test-uri"
+        insertPath(samplePath(
+          uri = uri,
+          hostIds = List.empty
+        ))
+
+        pathsRepo.pathWithUriHostIdExists(uri, List(6, 7, 8))
+          .futureValue
+          .shouldBe(true)
+      }
+    }
   }
 
   private def insertSamplePaths() = {

@@ -5,13 +5,12 @@ import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import com.google.inject.Inject
 import org.slf4j.LoggerFactory
-import org.zalando.spearheads.innkeeper.Rejections.{DuplicatePathUriRejection, PathOwnedByTeamAuthorizationRejection, UnmarshallRejection}
+import org.zalando.spearheads.innkeeper.Rejections.{EmptyPathHostIdsRejection, PathOwnedByTeamAuthorizationRejection, UnmarshallRejection}
 import org.zalando.spearheads.innkeeper.api.JsonProtocols._
 import org.zalando.spearheads.innkeeper.api.PathPatch
 import org.zalando.spearheads.innkeeper.metrics.RouteMetrics
 import org.zalando.spearheads.innkeeper.oauth.OAuthDirectives._
 import org.zalando.spearheads.innkeeper.oauth.{AuthenticatedUser, Scopes}
-import org.zalando.spearheads.innkeeper.services.ServiceResult.DuplicatePathUri
 import org.zalando.spearheads.innkeeper.services.team.TeamService
 import org.zalando.spearheads.innkeeper.services.{PathsService, ServiceResult}
 
@@ -43,6 +42,8 @@ class PatchPaths @Inject() (
 
             if (pathPatch.ownedByTeam.isDefined) {
               reject(PathOwnedByTeamAuthorizationRejection(reqDesc))
+            } else if (pathPatch.hostIds.exists(_.isEmpty)) {
+              reject(EmptyPathHostIdsRejection(reqDesc))
             } else {
               patchPathRoute(id, pathPatch, authenticatedUser, reqDesc)
             }

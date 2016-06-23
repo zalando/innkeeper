@@ -109,9 +109,15 @@ object Rejections {
     def code: String = "DRN"
   }
 
-  case class DuplicatePathUriRejection(requestDescription: String) extends Rejection with InnkeeperRejection {
+  case class DuplicatePathUriHostRejection(requestDescription: String) extends Rejection with InnkeeperRejection {
     def statusCode: StatusCode = StatusCodes.BadRequest
-    def message: String = "A path with the provided uri already exists"
+    def message: String = "A path with the provided uri already has at least one of the provided host ids"
     def code: String = "DPU"
+  }
+
+  case class EmptyPathHostIdsRejection(requestDescription: String) extends Rejection with InnkeeperRejection {
+    def statusCode: StatusCode = StatusCodes.BadRequest
+    def message: String = "A path must have at least one host id"
+    def code: String = "EPH"
   }
 }

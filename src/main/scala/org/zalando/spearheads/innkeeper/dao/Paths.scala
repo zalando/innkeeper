@@ -24,7 +24,6 @@ class PathsTable(tag: Tag) extends Table[PathRow](tag, "PATHS") {
   def createdAt = column[LocalDateTime]("CREATED_AT")
   def updatedAt = column[LocalDateTime]("UPDATED_AT")
 
-  def uriIndex = index("PATH_URI_IDX", uri, unique = true)
   def ownedByTeamIndex = index("PATH_OWNED_BY_TEAM_IDX", ownedByTeam)
 
   def * = // scalastyle:ignore
