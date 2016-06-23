@@ -78,11 +78,18 @@ class PathsPostgresRepo @Inject() (
     }
   }
 
-  override def pathWithUriExists(uri: String): Future[Boolean] = {
-    logger.debug(s"path with uri $uri exists")
+  override def pathWithUriHostIdExists(uri: String, hostIds: Seq[Long]): Future[Boolean] = {
+    logger.debug(s"uri hostId pairs are duplicate check")
 
     db.run {
-      Paths.filter(_.uri === uri).exists.result
+      Paths.filter(_.uri === uri).map(_.hostIds).result
+    }.map{ existingPathHostIds =>
+      val pathWithAllHostIdsExists = existingPathHostIds.exists(_.isEmpty)
+      val hostIdsIntersectWithExistingPathHostIds = existingPathHostIds.flatten
+        .intersect(hostIds)
+        .nonEmpty
+
+      pathWithAllHostIdsExists || hostIdsIntersectWithExistingPathHostIds
     }
   }
 

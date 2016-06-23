@@ -11,7 +11,7 @@ import org.scalatest.{FunSpec, Matchers}
 import org.zalando.spearheads.innkeeper.FakeDatabasePublisher
 import org.zalando.spearheads.innkeeper.api.{PathIn, PathOut, TeamName, UserName}
 import org.zalando.spearheads.innkeeper.dao.{PathRow, PathsRepo}
-import org.zalando.spearheads.innkeeper.services.ServiceResult.DuplicatePathUri
+import org.zalando.spearheads.innkeeper.services.ServiceResult.DuplicatePathUriHost
 
 import scala.concurrent.duration.DurationInt
 import scala.collection.immutable.List
@@ -33,7 +33,7 @@ class PathsServiceSpec extends FunSpec with Matchers with MockFactory with Scala
       it("should create a new path") {
         (pathsRepo.insert _).expects(pathRowWithoutId)
           .returning(Future(pathRow))
-        (pathsRepo.pathWithUriExists _).expects(pathIn.uri)
+        (pathsRepo.pathWithUriHostIdExists _).expects(pathIn.uri, pathIn.hostIds)
           .returning(Future(false))
 
         val result = pathsService.create(pathIn, TeamName(ownedByTeam),
@@ -49,7 +49,7 @@ class PathsServiceSpec extends FunSpec with Matchers with MockFactory with Scala
       it("should fail to create a path") {
         (pathsRepo.insert _).expects(pathRowWithoutId)
           .returning(Future(pathRowWithoutId))
-        (pathsRepo.pathWithUriExists _).expects(pathIn.uri)
+        (pathsRepo.pathWithUriHostIdExists _).expects(pathIn.uri, pathIn.hostIds)
           .returning(Future(false))
 
         val result = pathsService.create(pathIn, TeamName(ownedByTeam),
@@ -60,13 +60,13 @@ class PathsServiceSpec extends FunSpec with Matchers with MockFactory with Scala
 
       it("should fail to create a route with an existing name") {
 
-        (pathsRepo.pathWithUriExists _).expects(pathIn.uri)
+        (pathsRepo.pathWithUriHostIdExists _).expects(pathIn.uri, pathIn.hostIds)
           .returning(Future(true))
 
         val result = pathsService.create(pathIn, TeamName(ownedByTeam), UserName(createdBy), createdAt)
           .futureValue
 
-        result should be(ServiceResult.Failure(DuplicatePathUri()))
+        result should be(ServiceResult.Failure(DuplicatePathUriHost()))
       }
     }
 

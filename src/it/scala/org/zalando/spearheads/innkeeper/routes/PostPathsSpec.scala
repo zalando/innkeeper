@@ -122,11 +122,30 @@ class PostPathsSpec extends FunSpec with BeforeAndAfter with Matchers {
         }
       }
 
-      describe("when a path with the same uri exists") {
+      describe("when an existing paths with the same uri host ids intersects with the provided host ids") {
         val token = WRITE_TOKEN
 
         it("should return the 400 Bad Request status") {
-          val path = PathsRepoHelper.samplePath(uri = pathUri)
+          val path = PathsRepoHelper.samplePath(
+            uri = pathUri,
+            hostIds = List(1L, 2L, 3L)
+          )
+          PathsRepoHelper.insertPath(path)
+
+          val response = PathsSpecsHelper.postSlashPaths(pathJsonString, token)
+          response.status should be(StatusCodes.BadRequest)
+          entityString(response).parseJson.convertTo[Error].errorType should be("DPU")
+        }
+      }
+
+      describe("when a path with no host ids exists for the provided uri") {
+        val token = WRITE_TOKEN
+
+        it("should return the 400 Bad Request status") {
+          val path = PathsRepoHelper.samplePath(
+            uri = pathUri,
+            hostIds = List.empty
+          )
           PathsRepoHelper.insertPath(path)
 
           val response = PathsSpecsHelper.postSlashPaths(pathJsonString, token)
