@@ -54,15 +54,13 @@ curl -i -XPOST localhost:9080/routes -d '{
   "description": "this is a route",
   "activate_at": "2015-10-10T10:10:10",
   "disable_at": "2016-11-11T11:11:11",
-  "route": {
-    "predicates": [{
-      "name": "method",
-      "args": [{
-          "value": "GET",
-          "type": "string"
-        }]
-    }]
-  },
+  "predicates": [{
+    "name": "method",
+    "args": [{
+        "value": "GET",
+        "type": "string"
+      }]
+  }],
   "path_id": 6,
   "uses_common_filters": true
 }' -H 'Content-Type: application/json' -H 'Authorization: Bearer oauth-token-with-write-scope'
