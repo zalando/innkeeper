@@ -5,7 +5,7 @@ import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import com.google.inject.Inject
 import org.slf4j.LoggerFactory
-import org.zalando.spearheads.innkeeper.Rejections.{PathOwnedByTeamAuthorizationRejection, UnmarshallRejection}
+import org.zalando.spearheads.innkeeper.Rejections.{EmptyPathHostIdsRejection, PathOwnedByTeamAuthorizationRejection, UnmarshallRejection}
 import org.zalando.spearheads.innkeeper.api.JsonProtocols._
 import org.zalando.spearheads.innkeeper.api.PathPatch
 import org.zalando.spearheads.innkeeper.metrics.RouteMetrics
@@ -42,6 +42,8 @@ class PatchPaths @Inject() (
 
             if (pathPatch.ownedByTeam.isDefined) {
               reject(PathOwnedByTeamAuthorizationRejection(reqDesc))
+            } else if (pathPatch.hostIds.exists(_.isEmpty)) {
+              reject(EmptyPathHostIdsRejection(reqDesc))
             } else {
               patchPathRoute(id, pathPatch, authenticatedUser, reqDesc)
             }

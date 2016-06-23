@@ -5,7 +5,7 @@ import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import com.google.inject.Inject
 import org.slf4j.LoggerFactory
-import org.zalando.spearheads.innkeeper.Rejections.{DuplicatePathUriHostRejection, PathOwnedByTeamAuthorizationRejection, UnmarshallRejection}
+import org.zalando.spearheads.innkeeper.Rejections.{DuplicatePathUriHostRejection, EmptyPathHostIdsRejection, PathOwnedByTeamAuthorizationRejection, UnmarshallRejection}
 import org.zalando.spearheads.innkeeper.api.JsonProtocols._
 import org.zalando.spearheads.innkeeper.api.{PathIn, TeamName, UserName}
 import org.zalando.spearheads.innkeeper.metrics.RouteMetrics
@@ -43,8 +43,9 @@ class PostPaths @Inject() (
 
             if (path.ownedByTeam.isDefined) {
               reject(PathOwnedByTeamAuthorizationRejection(reqDesc))
+            } else if (path.hostIds.isEmpty) {
+              reject(EmptyPathHostIdsRejection(reqDesc))
             } else {
-
               val ownedByTeam = TeamName(team.name)
               val createdBy = UserName(authenticatedUser.username)
 

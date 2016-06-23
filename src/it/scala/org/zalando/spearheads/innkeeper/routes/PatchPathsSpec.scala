@@ -13,7 +13,7 @@ class PatchPathsSpec extends FunSpec with BeforeAndAfter with Matchers {
 
   private val newHostIds = List(1L, 2L, 3L, 4L, 5L)
   private val newOwningTeam = "newOwningTeam"
-  private val pathPatchHostIdsJsonString =
+  private def pathPatchHostIdsJsonString(newHostIds: List[Long] = newHostIds) =
     s"""{
         |  "host_ids": [${newHostIds.mkString(", ")}]
         |}
@@ -39,7 +39,7 @@ class PatchPathsSpec extends FunSpec with BeforeAndAfter with Matchers {
 
           val insertedPath = PathsRepoHelper.insertPath()
 
-          val response = PathsSpecsHelper.patchSlashPaths(insertedPath.id.get, pathPatchHostIdsJsonString, token)
+          val response = PathsSpecsHelper.patchSlashPaths(insertedPath.id.get, pathPatchHostIdsJsonString(), token)
 
           response.status should be(StatusCodes.OK)
           val entity = entityString(response)
@@ -86,14 +86,14 @@ class PatchPathsSpec extends FunSpec with BeforeAndAfter with Matchers {
       describe("when no token is provided") {
 
         it("should return the 401 Unauthorized status") {
-          val response = PathsSpecsHelper.patchSlashPaths(1L, pathPatchHostIdsJsonString, "")
+          val response = PathsSpecsHelper.patchSlashPaths(1L, pathPatchHostIdsJsonString(), "")
           response.status should be(StatusCodes.Unauthorized)
         }
       }
 
       describe("when an invalid token is provided") {
         it("should return the 403 Forbidden status") {
-          val response = PathsSpecsHelper.patchSlashPaths(1L, pathPatchHostIdsJsonString, INVALID_TOKEN)
+          val response = PathsSpecsHelper.patchSlashPaths(1L, pathPatchHostIdsJsonString(), INVALID_TOKEN)
           response.status should be(StatusCodes.Forbidden)
           entityString(response).parseJson.convertTo[Error].errorType should be("AUTH3")
         }
@@ -101,7 +101,7 @@ class PatchPathsSpec extends FunSpec with BeforeAndAfter with Matchers {
 
       describe("when a token without the write scope is provided") {
         it("should return the 403 Forbidden status") {
-          val response = PathsSpecsHelper.patchSlashPaths(1L, pathPatchHostIdsJsonString, READ_TOKEN)
+          val response = PathsSpecsHelper.patchSlashPaths(1L, pathPatchHostIdsJsonString(), READ_TOKEN)
           response.status should be(StatusCodes.Forbidden)
           entityString(response).parseJson.convertTo[Error].errorType should be("AUTH1")
         }
@@ -111,7 +111,7 @@ class PatchPathsSpec extends FunSpec with BeforeAndAfter with Matchers {
         val token = "token--employees-route.write_strict"
 
         it("should return the 403 Forbidden status") {
-          val response = PathsSpecsHelper.patchSlashPaths(1L, pathPatchHostIdsJsonString, token)
+          val response = PathsSpecsHelper.patchSlashPaths(1L, pathPatchHostIdsJsonString(), token)
           response.status should be(StatusCodes.Forbidden)
           entityString(response).parseJson.convertTo[Error].errorType should be("TNF")
         }
@@ -125,6 +125,17 @@ class PatchPathsSpec extends FunSpec with BeforeAndAfter with Matchers {
 
           response.status should be(StatusCodes.Forbidden)
           entityString(response).parseJson.convertTo[Error].errorType should be("AUTH4")
+        }
+      }
+
+      describe("when host ids is empty") {
+        it("should return the 400 Bad Request status") {
+          val token = WRITE_TOKEN
+
+          val response = PathsSpecsHelper.patchSlashPaths(1L, pathPatchHostIdsJsonString(newHostIds = List.empty), token)
+
+          response.status should be(StatusCodes.BadRequest)
+          entityString(response).parseJson.convertTo[Error].errorType should be("EPH")
         }
       }
     }
