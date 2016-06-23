@@ -69,6 +69,7 @@ class DefaultRouteToEskipTransformer @Inject() (envConfig: EnvConfig, hostsServi
   }
 
   private[this] def transformEndpoint(endpointOption: Option[String]) = endpointOption match {
+    case Some("")       => "<shunt>"
     case Some(endpoint) => s""""$endpoint""""
     case _              => "<shunt>"
   }
