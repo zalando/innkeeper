@@ -41,7 +41,7 @@ class PostPaths @Inject() (
           hasOneOfTheScopes(authenticatedUser, reqDesc, scopes.WRITE) {
             logger.debug(s"post /paths non-admin team $team")
 
-            if (path.ownedByTeam.isDefined) {
+            if (path.ownedByTeam.isDefined && path.ownedByTeam.get.name != team.name) {
               reject(PathOwnedByTeamAuthorizationRejection(reqDesc))
             } else if (path.hostIds.isEmpty) {
               reject(EmptyPathHostIdsRejection(reqDesc))
@@ -51,15 +51,14 @@ class PostPaths @Inject() (
 
               savePathRoute(path, ownedByTeam, createdBy, reqDesc)
             }
-          } ~
-            hasAdminAuthorization(authenticatedUser, team, reqDesc, scopes)(teamService) {
-              logger.debug(s"post /paths admin team $team")
+          } ~ hasAdminAuthorization(authenticatedUser, team, reqDesc, scopes)(teamService) {
+            logger.debug(s"post /paths admin team $team")
 
-              val createdBy = UserName(authenticatedUser.username)
-              val ownedByTeam = path.ownedByTeam.getOrElse(TeamName(team.name))
+            val createdBy = UserName(authenticatedUser.username)
+            val ownedByTeam = path.ownedByTeam.getOrElse(TeamName(team.name))
 
-              savePathRoute(path, ownedByTeam, createdBy, reqDesc)
-            }
+            savePathRoute(path, ownedByTeam, createdBy, reqDesc)
+          }
         }
       } ~ {
         reject(UnmarshallRejection(reqDesc))
