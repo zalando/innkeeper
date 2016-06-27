@@ -5,7 +5,7 @@ import org.scalatest.{BeforeAndAfter, FunSpec, Matchers}
 import org.zalando.spearheads.innkeeper.api.{EskipRoute, Filter, NameWithStringArgs, NewRoute, NumericArg, Predicate, RegexArg, StringArg}
 import scala.collection.immutable.Seq
 
-class RouteToEskipRouteTransformerSpec extends FunSpec with Matchers with MockFactory with BeforeAndAfter {
+class RouteToEskipTransformerSpec extends FunSpec with Matchers with MockFactory with BeforeAndAfter {
 
   val hostsService = mock[HostsService]
   val commonFiltersService = mock[CommonFiltersService]

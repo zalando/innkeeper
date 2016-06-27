@@ -29,11 +29,7 @@ class DefaultRouteToEskipTransformer @Inject() (hostsService: HostsService, comm
     val regularPredicates = transformNameWithArgs(route.predicates)
     val eskipPredicates = Seq(pathPredicate, hostPredicate) ++ regularPredicates
 
-    val (prependedFilters, appendedFilters) = if (context.useCommonFilters) {
-      (commonFiltersService.getPrependFilters, commonFiltersService.getAppendFilters)
-    } else {
-      (Seq.empty, Seq.empty)
-    }
+    val (prependedFilters, appendedFilters) = getCommonFilters(context)
 
     val eskipFilters = transformNameWithArgs(route.filters)
     val endpoint = transformEndpoint(route.endpoint)
@@ -46,6 +42,14 @@ class DefaultRouteToEskipTransformer @Inject() (hostsService: HostsService, comm
       appendedFilters = appendedFilters,
       endpoint = endpoint
     )
+  }
+
+  private def getCommonFilters(context: RouteToEskipTransformerContext): (Seq[String], Seq[String]) = {
+    if (context.useCommonFilters) {
+      (commonFiltersService.getPrependFilters, commonFiltersService.getAppendFilters)
+    } else {
+      (Seq.empty, Seq.empty)
+    }
   }
 
   private[this] def createHostPredicate(hostIds: Seq[Long]) = {
