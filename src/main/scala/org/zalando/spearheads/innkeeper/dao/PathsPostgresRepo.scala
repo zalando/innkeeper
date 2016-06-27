@@ -55,18 +55,21 @@ class PathsPostgresRepo @Inject() (
 
     logger.debug(s"selectByTeamOrUri $ownedByTeamOption $uriOption")
 
-    val filteredByOwnedTeam = ownedByTeamOption match {
-      case Some(ownedByTeam) => Paths.filter(_.ownedByTeam === ownedByTeam)
-      case _                 => Paths
-    }
+    val query = Paths.filter { pathsTable =>
+      val filters = Seq(
+        ownedByTeamOption
+          .map(pathsTable.ownedByTeam === _),
+        uriOption
+          .map(pathsTable.uri === _)
+      ).flatten
 
-    val filteredByOwnerTeamAndUri = uriOption match {
-      case Some(uri) => filteredByOwnedTeam.filter(_.uri === uri)
-      case _         => filteredByOwnedTeam
+      filters
+        .reduceOption(_ && _)
+        .getOrElse(LiteralColumn(true))
     }
 
     db.stream {
-      filteredByOwnerTeamAndUri.result
+      query.result
     }
   }
 
@@ -112,8 +115,7 @@ class PathsPostgresRepo @Inject() (
 
     val actions = List(
       updateHostIdsActionOpt,
-      updateOwnedByTeamActionOpt,
-      Some(Paths.filter(_.id === id).result)
+      updateOwnedByTeamActionOpt
     ).flatten
 
     db.run {

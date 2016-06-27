@@ -3,14 +3,13 @@ package org.zalando.spearheads.innkeeper.services
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.{BeforeAndAfter, FunSpec, Matchers}
 import org.zalando.spearheads.innkeeper.api.{EskipRoute, Filter, NameWithStringArgs, NewRoute, NumericArg, Predicate, RegexArg, StringArg}
-import org.zalando.spearheads.innkeeper.utils.EnvConfig
 import scala.collection.immutable.Seq
 
-class RouteToEskipRouteTransformerSpec extends FunSpec with Matchers with MockFactory with BeforeAndAfter {
+class RouteToEskipTransformerSpec extends FunSpec with Matchers with MockFactory with BeforeAndAfter {
 
-  val config = mock[EnvConfig]
   val hostsService = mock[HostsService]
-  val routeToEskipTransformer = new DefaultRouteToEskipTransformer(config, hostsService)
+  val commonFiltersService = mock[CommonFiltersService]
+  val routeToEskipTransformer = new DefaultRouteToEskipTransformer(hostsService, commonFiltersService)
 
   describe("RouteToEskipTransformerSpec") {
 
@@ -39,12 +38,12 @@ class RouteToEskipRouteTransformerSpec extends FunSpec with Matchers with MockFa
   }
 
   def initMocks() = {
-    (config.getStringSeq _)
-      .expects("filters.common.prepend")
+    (commonFiltersService.getPrependFilters _)
+      .expects()
       .returning(Seq("""prependedFirst("hello")""", "prependedSecond(1.5)"))
 
-    (config.getStringSeq _)
-      .expects("filters.common.append")
+    (commonFiltersService.getAppendFilters _)
+      .expects()
       .returning(Seq("appendedFirst()", "appendedSecond(0.8)"))
 
     (hostsService.getByIds _).expects(hostIds.toSet).atLeastOnce().returning(hosts)

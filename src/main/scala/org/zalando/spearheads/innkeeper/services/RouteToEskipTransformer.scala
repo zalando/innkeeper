@@ -2,7 +2,6 @@ package org.zalando.spearheads.innkeeper.services
 
 import com.google.inject.Inject
 import org.zalando.spearheads.innkeeper.api.{Arg, EskipRoute, NameWithArgs, NameWithStringArgs, NewRoute, NumericArg, RegexArg, StringArg}
-import org.zalando.spearheads.innkeeper.utils.EnvConfig
 import scala.collection.immutable.Seq
 
 case class RouteToEskipTransformerContext(
@@ -17,7 +16,7 @@ trait RouteToEskipTransformer {
   def transform(context: RouteToEskipTransformerContext): EskipRoute
 }
 
-class DefaultRouteToEskipTransformer @Inject() (envConfig: EnvConfig, hostsService: HostsService) extends RouteToEskipTransformer {
+class DefaultRouteToEskipTransformer @Inject() (hostsService: HostsService, commonFiltersService: CommonFiltersService) extends RouteToEskipTransformer {
 
   def transform(context: RouteToEskipTransformerContext): EskipRoute = {
     val hostIds = context.hostIds
@@ -25,14 +24,12 @@ class DefaultRouteToEskipTransformer @Inject() (envConfig: EnvConfig, hostsServi
     val route = context.route
     val routeName = context.routeName
 
-    val hostPredicates = createHostPredicate(hostIds)
+    val pathPredicate = createPathPredicate(pathUri)
+    val hostPredicate = createHostPredicate(hostIds)
+    val regularPredicates = transformNameWithArgs(route.predicates)
+    val eskipPredicates = Seq(pathPredicate, hostPredicate) ++ regularPredicates
 
-    val prependedFilters = getCommonFilters("filters.common.prepend", context.useCommonFilters)
-    val appendedFilters = getCommonFilters("filters.common.append", context.useCommonFilters)
-
-    val eskipPredicates = Seq(createPathPredicate(pathUri)) ++
-      Seq(createHostPredicate(hostIds)) ++
-      transformNameWithArgs(route.predicates)
+    val (prependedFilters, appendedFilters) = getCommonFilters(context)
 
     val eskipFilters = transformNameWithArgs(route.filters)
     val endpoint = transformEndpoint(route.endpoint)
@@ -47,11 +44,11 @@ class DefaultRouteToEskipTransformer @Inject() (envConfig: EnvConfig, hostsServi
     )
   }
 
-  def getCommonFilters(key: String, useCommonFilters: Boolean): Seq[String] = {
-    if (useCommonFilters) {
-      envConfig.getStringSeq(key)
+  private def getCommonFilters(context: RouteToEskipTransformerContext): (Seq[String], Seq[String]) = {
+    if (context.useCommonFilters) {
+      (commonFiltersService.getPrependFilters, commonFiltersService.getAppendFilters)
     } else {
-      Seq.empty
+      (Seq.empty, Seq.empty)
     }
   }
 
@@ -69,9 +66,8 @@ class DefaultRouteToEskipTransformer @Inject() (envConfig: EnvConfig, hostsServi
   }
 
   private[this] def transformEndpoint(endpointOption: Option[String]) = endpointOption match {
-    case Some("")       => "<shunt>"
-    case Some(endpoint) => s""""$endpoint""""
-    case _              => "<shunt>"
+    case Some(endpoint) if !endpoint.isEmpty => s""""$endpoint""""
+    case _                                   => "<shunt>"
   }
 
   private[this] def transformNameWithArgs(nameWithArgsOption: Option[Seq[NameWithArgs]]): Seq[NameWithStringArgs] = {
