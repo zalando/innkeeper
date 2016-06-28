@@ -11,7 +11,7 @@ import org.zalando.spearheads.innkeeper.oauth.OAuthDirectives.hasOneOfTheScopes
 import org.zalando.spearheads.innkeeper.oauth.{AuthenticatedUser, Scopes}
 import org.zalando.spearheads.innkeeper.services.RoutesService
 import org.zalando.spearheads.innkeeper.api.JsonProtocols._
-import org.zalando.spearheads.innkeeper.dao.{PathUriFilter, RouteNameFilter, TeamFilter, QueryFilter}
+import org.zalando.spearheads.innkeeper.dao.{PathIdFilter, PathUriFilter, RouteNameFilter, TeamFilter, QueryFilter}
 
 /**
  * @author dpersa
@@ -42,6 +42,20 @@ class GetRoutes @Inject() (
               case ("uri", pathUris) => Some[QueryFilter](
                 PathUriFilter(pathUris)
               )
+              case ("path_id", pathIdStrings) =>
+                val pathIds = pathIdStrings.flatMap(idString => try {
+                  Some(idString.toLong)
+                } catch {
+                  case e: NumberFormatException => None
+                })
+
+                if (pathIds.nonEmpty) {
+                  Some[QueryFilter](
+                    PathIdFilter(pathIds)
+                  )
+                } else {
+                  None
+                }
               case _ => None
             }
 

@@ -19,6 +19,8 @@ object RoutesSpecsHelper {
 
   private def routeByUriUri(uris: List[String]) = s"$routesUri?${uris.map("uri=" + _).mkString("&")}"
 
+  private def routeByPathIdUri(pathIds: List[Long]) = s"$routesUri?${pathIds.map("path_id=" + _).mkString("&")}"
+
   private val currentRoutesUri = s"$baseUri/current-routes"
 
   def postSlashRoutes(route: String)(token: String): HttpResponse = {
@@ -55,6 +57,8 @@ object RoutesSpecsHelper {
   def getSlashRoutesByUri(uri: String, token: String): HttpResponse = doGet(routeByUriUri(List(uri)), token)
 
   def getSlashRoutesByUri(uris: List[String], token: String): HttpResponse = doGet(routeByUriUri(uris), token)
+
+  def getSlashRoutesByPathId(pathIds: List[Long], token: String): HttpResponse = doGet(routeByPathIdUri(pathIds), token)
 
   def getSlashRoute(id: Long, token: String = ""): HttpResponse = slashRoute(id, token)
 

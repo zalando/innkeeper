@@ -111,6 +111,21 @@ class GetRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
           routes.size should be(1)
           routes.map(_.id).toSet should be(Set(1))
         }
+
+        describe("when filtering the routes by team") {
+          it("should return the correct routes") {
+            insertRoute("R1", ownedByTeam = "team-1")
+            insertRoute("R2", ownedByTeam = "team-2")
+            insertRoute("R3", ownedByTeam = "team-3")
+
+            val response = getSlashRoutesByPathId(List(1L, 2L), token)
+            response.status should be(StatusCodes.OK)
+            val entity = entityString(response)
+            val routes = entity.parseJson.convertTo[Seq[RouteOut]]
+            routes.size should be(2)
+            routes.map(_.id).toSet should be(Set(1L, 2L))
+          }
+        }
       }
 
       describe("when filtering the routes by uri") {

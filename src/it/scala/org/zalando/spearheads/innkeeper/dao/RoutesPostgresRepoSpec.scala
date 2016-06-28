@@ -225,6 +225,17 @@ class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers w
         routes.flatMap(_.id).toSet should be (Set(route2.id, route3.id).flatten)
       }
 
+      it("should filter by path id") {
+        val route1 = insertRoute("R1")
+        val route2 = insertRoute("R2")
+        val route3 = insertRoute("R3")
+
+        val filters = List(PathIdFilter(List(2L, 3L)))
+        val routes: List[RouteRow] = routesRepo.selectFiltered(filters)
+
+        routes.flatMap(_.id).toSet should be (Set(route2.id, route3.id).flatten)
+      }
+
       it("should filter by team and route name") {
         val route1 = insertRoute("R1", ownedByTeam = "team-1")
         val route2 = insertRoute("R2", ownedByTeam = "team-2")

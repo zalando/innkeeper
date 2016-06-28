@@ -7,3 +7,5 @@ case class RouteNameFilter(names: List[String]) extends QueryFilter
 case class TeamFilter(teamNames: List[String]) extends QueryFilter
 
 case class PathUriFilter(uris: List[String]) extends QueryFilter
+
+case class PathIdFilter(ids: List[Long]) extends QueryFilter

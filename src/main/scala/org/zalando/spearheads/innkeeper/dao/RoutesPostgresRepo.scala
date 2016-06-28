@@ -157,6 +157,9 @@ class RoutesPostgresRepo @Inject() (
       case PathUriFilter(pathUris) =>
         pathUris.map(pathsTable.uri === _)
 
+      case PathIdFilter(pathIds) =>
+        pathIds.map(routesTable.pathId === _)
+
       case _ => List.empty
     }
       .flatMap(_.reduceOption(_ || _))
