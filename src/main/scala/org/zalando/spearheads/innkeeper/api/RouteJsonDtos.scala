@@ -5,9 +5,8 @@ import scala.collection.immutable.Seq
 
 case class RouteName(name: String) {
 
-  RouteName.validRouteNamePattern.r.unapplySeq(name) match {
-    case None => throw InvalidRouteNameException
-    case _    =>
+  if (!name.matches(RouteName.validRouteNamePattern)) {
+    throw InvalidRouteNameException
   }
 }
 

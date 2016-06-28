@@ -76,10 +76,10 @@ class RoutesPostgresRepo @Inject() (
   override def selectByName(name: String): DatabasePublisher[RouteRow] = {
     logger.debug(s"selectByName $name")
 
-    val q = (for {
+    val q = for {
       routeRow <- Routes
       if routeRow.name === name && routeRow.deletedAt.isEmpty
-    } yield routeRow)
+    } yield routeRow
 
     db.stream {
       q.result
@@ -89,10 +89,10 @@ class RoutesPostgresRepo @Inject() (
   override def selectActiveRoutesWithPath(currentTime: LocalDateTime): DatabasePublisher[(RouteRow, PathRow)] = {
     logger.debug(s"selectActiveRoutesWithPath for currentTime: $currentTime")
 
-    val join = (for {
+    val join = for {
       (routeRow, pathRow) <- Routes.filter(_.id in activeRouteIds(currentTime)) join
         Paths on (_.pathId === _.id)
-    } yield (routeRow, pathRow))
+    } yield (routeRow, pathRow)
 
     db.stream {
       join.result
@@ -164,15 +164,12 @@ class RoutesPostgresRepo @Inject() (
       .getOrElse(LiteralColumn(true))
   }
 
-  private def activeRouteIds(currentTime: LocalDateTime) = (for {
+  private def activeRouteIds(currentTime: LocalDateTime) = for {
     routeRow <- Routes
     if routeRow.deletedAt.isEmpty && routeRow.activateAt < currentTime &&
       (routeRow.disableAt.isEmpty ||
         (routeRow.disableAt.isDefined && routeRow.disableAt > currentTime))
-  } yield routeRow.id)
+  } yield routeRow.id
 
-  private lazy val selectAllQuery = for {
-    routeRow <- Routes
-    if routeRow.deletedAt.isEmpty
-  } yield routeRow
+  private lazy val selectAllQuery = Routes.filter(_.deletedAt.isEmpty)
 }
