@@ -177,6 +177,32 @@ The possible argument types are:
 - string
 - regexp
 
+##### Full example:
+
+```bash
+scripts/ikc.sh mkroute -n route1 -p 42 -E https://www.example.org -P '[{
+	"name": "Traffic", "args": [{
+		"value": 0.1, "type": "number"
+	}, {
+		"value": "fck1", "type": "string"
+	}]
+}, {
+	"name": "Host", "args": [{
+		"value": "www.example.org", "type": "regexp"
+	}]
+}]' -F '[{
+	"name": "status", "args": [{
+		"value": 200, "type": "number"
+	}]
+}, {
+	"name": "cookie", "args": [{
+		"value": "test", "type": "string"
+	}, {
+		"value": "true", "type": "string"
+	}]
+}]'
+```
+
 ### Delete a route, with id 42
 
 ```bash
