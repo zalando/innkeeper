@@ -80,7 +80,7 @@ To see it streaming:
 
 Here are more [examples](EXAMPLES.md)
 
-# OAuth
+## OAuth
 
 A client can have different scopes when calling Innkeeper:
 
@@ -88,7 +88,7 @@ A client can have different scopes when calling Innkeeper:
   - write -> the client is allowed to create only routes with a full path matcher
   - admin -> the client with this scope is allowed to create routes with a regex matcher
 
-# Postgres
+## Postgres
 
 For localhost
 
@@ -119,7 +119,7 @@ $ VBoxManage controlvm "default" natpf1 "tcp-port5433,tcp,,5433,,5433"
 $ VBoxManage controlvm "default" natpf1 "tcp-port9080,tcp,,9080,,9080"
 ```
 
-# Acceptance Tests
+## Acceptance Tests
 
 For `docker-machine`, on the first run, use the `-nat` option, to set up the port forwarding.
 
@@ -129,11 +129,14 @@ Copy the `sample.application.conf` file to the `application.conf` file.
 
 To run the acceptance tests, use the `acceptance-tests.sh` script.
 
-
-
 There is a '-fast' option, which will skip the building of the docker image.
 
-### License
+## Client script - ikc.sh
+
+For development time, it is possible to use scripts/ikc.sh to view/modify innkeeper data. See more details in:
+[scripts/ikc.md](scripts/ikc.md)
+
+## License
 
 Copyright 2015 Zalando SE
 
