@@ -13,7 +13,11 @@ object RoutesSpecsHelper {
 
   private def routeUri(id: Long) = s"$routesUri/$id"
 
-  private def routeByNameUri(name: String) = s"$routesUri?name=$name"
+  private def routeByNameUri(names: List[String]) = s"$routesUri?${names.map("name=" + _).mkString("&")}"
+
+  private def routeByTeamUri(teams: List[String]) = s"$routesUri?${teams.map("owned_by_team=" + _).mkString("&")}"
+
+  private def routeByUriUri(uris: List[String]) = s"$routesUri?${uris.map("uri=" + _).mkString("&")}"
 
   private val currentRoutesUri = s"$baseUri/current-routes"
 
@@ -40,7 +44,17 @@ object RoutesSpecsHelper {
 
   def getSlashCurrentRoutes(token: String = ""): HttpResponse = doGet(currentRoutesUri, token)
 
-  def getSlashRoutesByName(name: String, token: String): HttpResponse = doGet(routeByNameUri(name), token)
+  def getSlashRoutesByName(name: String, token: String): HttpResponse = doGet(routeByNameUri(List(name)), token)
+
+  def getSlashRoutesByName(names: List[String], token: String): HttpResponse = doGet(routeByNameUri(names), token)
+
+  def getSlashRoutesByTeam(team: String, token: String): HttpResponse = doGet(routeByTeamUri(List(team)), token)
+
+  def getSlashRoutesByTeam(teams: List[String], token: String): HttpResponse = doGet(routeByTeamUri(teams), token)
+
+  def getSlashRoutesByUri(uri: String, token: String): HttpResponse = doGet(routeByUriUri(List(uri)), token)
+
+  def getSlashRoutesByUri(uris: List[String], token: String): HttpResponse = doGet(routeByUriUri(uris), token)
 
   def getSlashRoute(id: Long, token: String = ""): HttpResponse = slashRoute(id, token)
 

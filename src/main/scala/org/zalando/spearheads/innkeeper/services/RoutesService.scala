@@ -6,8 +6,8 @@ import akka.NotUsed
 import akka.stream.scaladsl.Source
 import com.google.inject.Inject
 import org.zalando.spearheads.innkeeper.api.JsonProtocols._
-import org.zalando.spearheads.innkeeper.api.{NewRoute, RouteIn, RouteName, RouteOut, TeamName, UserName}
-import org.zalando.spearheads.innkeeper.dao.{RouteRow, RoutesRepo}
+import org.zalando.spearheads.innkeeper.api.{NewRoute, RouteIn, RouteName, RouteOut, UserName}
+import org.zalando.spearheads.innkeeper.dao.{QueryFilter, RouteRow, RoutesRepo}
 import org.zalando.spearheads.innkeeper.services.ServiceResult._
 import org.zalando.spearheads.innkeeper.utils.EnvConfig
 import slick.backend.DatabasePublisher
@@ -27,6 +27,8 @@ trait RoutesService {
   def findByName(name: RouteName): Source[RouteOut, NotUsed]
 
   def allRoutes: Source[RouteOut, NotUsed]
+
+  def findFiltered(filters: List[QueryFilter]): Source[RouteOut, NotUsed]
 
   def findById(id: Long): Future[Result[RouteOut]]
 
@@ -84,6 +86,10 @@ class DefaultRoutesService @Inject() (
 
   override def allRoutes: Source[RouteOut, NotUsed] = routeRowsStreamToRouteOutStream {
     routesRepo.selectAll
+  }
+
+  override def findFiltered(filters: List[QueryFilter]): Source[RouteOut, NotUsed] = routeRowsStreamToRouteOutStream {
+    routesRepo.selectFiltered(filters)
   }
 
   private def routeRowsStreamToRouteOutStream(

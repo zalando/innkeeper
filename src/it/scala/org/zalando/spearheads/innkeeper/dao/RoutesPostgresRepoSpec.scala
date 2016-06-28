@@ -191,6 +191,69 @@ class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers w
       }
     }
 
+    describe("#selectFiltered") {
+      it("should filter by route name") {
+        val route1 = insertRoute("R1")
+        val route2 = insertRoute("R2")
+        val route3 = insertRoute("R3")
+
+        val filters = List(RouteNameFilter(List("R2", "R3")))
+        val routes: List[RouteRow] = routesRepo.selectFiltered(filters)
+
+        routes.flatMap(_.id).toSet should be (Set(route2.id, route3.id).flatten)
+      }
+
+      it("should filter by team name") {
+        val route1 = insertRoute("R1", ownedByTeam = "team-1")
+        val route2 = insertRoute("R2", ownedByTeam = "team-2")
+        val route3 = insertRoute("R3", ownedByTeam = "team-3")
+
+        val filters = List(TeamFilter(List("team-2", "team-3")))
+        val routes: List[RouteRow] = routesRepo.selectFiltered(filters)
+
+        routes.flatMap(_.id).toSet should be (Set(route2.id, route3.id).flatten)
+      }
+
+      it("should filter by path uri") {
+        val route1 = insertRoute("R1")
+        val route2 = insertRoute("R2")
+        val route3 = insertRoute("R3")
+
+        val filters = List(PathUriFilter(List("/path-for-R2", "/path-for-R3")))
+        val routes: List[RouteRow] = routesRepo.selectFiltered(filters)
+
+        routes.flatMap(_.id).toSet should be (Set(route2.id, route3.id).flatten)
+      }
+
+      it("should filter by team and route name") {
+        val route1 = insertRoute("R1", ownedByTeam = "team-1")
+        val route2 = insertRoute("R2", ownedByTeam = "team-2")
+        val route3 = insertRoute("R3", ownedByTeam = "team-3")
+
+        val filters = List(RouteNameFilter(List("R2", "R3")), TeamFilter(List("team-1", "team-2")))
+        val routes: List[RouteRow] = routesRepo.selectFiltered(filters)
+
+        routes.flatMap(_.id).toSet should be (Set(route2.id).flatten)
+      }
+
+      it("should not select the deleted routes") {
+        val route1 = insertRoute("R1")
+        val route2 = insertRoute("R2")
+        deleteRoute(route1.id.get)
+
+        val routes: List[RouteRow] = routesRepo.selectFiltered()
+        routes.flatMap(_.id).toSet should be (Set(route2.id).flatten)
+      }
+
+      it("should select the disabled routes") {
+        insertRoute("R2", disableAt = Some(LocalDateTime.now().minusMinutes(3)))
+        insertRoute("R1")
+
+        val routes: List[RouteRow] = routesRepo.selectFiltered()
+        routes.size should be (2)
+      }
+    }
+
     describe("#selectDeletedBefore") {
       it("should select nothing if there are no deleted routes") {
         insertRoute("R1")

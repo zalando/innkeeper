@@ -45,6 +45,19 @@ class RoutesPostgresRepo @Inject() (
     }
   }
 
+  override def selectFiltered(filters: List[QueryFilter] = List.empty): DatabasePublisher[RouteRow] = {
+    logger.debug("selectFiltered")
+
+    val query = for {
+      (routesTable, pathsTable) <- selectAllQuery join Paths on (_.pathId === _.id)
+      if buildFilter(filters, routesTable, pathsTable)
+    } yield routesTable
+
+    db.stream {
+      query.result
+    }
+  }
+
   override def selectModifiedSince(since: LocalDateTime, currentTime: LocalDateTime): DatabasePublisher[(RouteRow, PathRow)] = {
     logger.debug(s"selectModifiedSince $since")
 
@@ -131,6 +144,24 @@ class RoutesPostgresRepo @Inject() (
     db.run {
       Routes.filter(_.name === name).exists.result
     }
+  }
+
+  private def buildFilter(filters: List[QueryFilter], routesTable: RoutesTable, pathsTable: PathsTable): Rep[Boolean] = {
+    filters.map {
+      case RouteNameFilter(routeNames) =>
+        routeNames.map(routesTable.name === _)
+
+      case TeamFilter(teams) =>
+        teams.map(pathsTable.ownedByTeam === _)
+
+      case PathUriFilter(pathUris) =>
+        pathUris.map(pathsTable.uri === _)
+
+      case _ => List.empty
+    }
+      .flatMap(_.reduceOption(_ || _))
+      .reduceOption(_ && _)
+      .getOrElse(LiteralColumn(true))
   }
 
   private def activeRouteIds(currentTime: LocalDateTime) = (for {
