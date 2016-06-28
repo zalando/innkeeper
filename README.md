@@ -80,7 +80,7 @@ To see it streaming:
 
 Here are more [examples](EXAMPLES.md)
 
-# OAuth
+## OAuth
 
 A client can have different scopes when calling Innkeeper:
 
@@ -88,7 +88,7 @@ A client can have different scopes when calling Innkeeper:
   - write -> the client is allowed to create only routes with a full path matcher
   - admin -> the client with this scope is allowed to create routes with a regex matcher
 
-# Postgres
+## Postgres
 
 For localhost
 
@@ -119,7 +119,7 @@ $ VBoxManage controlvm "default" natpf1 "tcp-port5433,tcp,,5433,,5433"
 $ VBoxManage controlvm "default" natpf1 "tcp-port9080,tcp,,9080,,9080"
 ```
 
-# Acceptance Tests
+## Acceptance Tests
 
 For `docker-machine`, on the first run, use the `-nat` option, to set up the port forwarding.
 
@@ -129,11 +129,85 @@ Copy the `sample.application.conf` file to the `application.conf` file.
 
 To run the acceptance tests, use the `acceptance-tests.sh` script.
 
-
-
 There is a '-fast' option, which will skip the building of the docker image.
 
-### License
+## Client Script
+
+For development time, it is possible to use scripts/ikc.sh to view/modify innkeeper data. It is simply a wrapper
+around listed curl commands.
+
+Common flags are:
+- innkeeper host: -h innkeeper.example.org
+- jq selector: -s '.endpoint'
+
+The script supports the following operations:
+
+### List routes
+
+```bash
+scripts/ikc.sh routes
+```
+
+### List the currently active routes
+
+```bash
+scripts/ikc.sh current-routes
+```
+
+### List the updated/deleted routes
+
+```bash
+scripts/ikc.sh updated-routes "2016-06-28T12:38:50"
+```
+
+### Create a new route, for path with id 42
+
+```bash
+scripts/ikc.sh mkroute -n route1 -p 42 -E https://www.example.org
+```
+
+##### Optional flags:
+
+- predicates: -P '[{"name": "Traffic", "args": [{"value": 0.1, "type": "number"}]}]'
+- filters: -F '[{"name": "status", "args": [{"value": 200, "type": "number"}]}]'
+
+The possible argument types are:
+
+- number
+- string
+- regexp
+
+### Delete a route, with id 42
+
+```bash
+scripts/ikc.sh delete-route 42
+```
+
+### List the installed paths
+
+```bash
+scripts/ikc.sh paths
+```
+
+### List the installed hosts
+
+```bash
+scripts/ikc.sh hosts
+```
+
+### Create a new path
+
+```bash
+scripts/ikc.sh mkpath /foo/bar
+```
+
+### Update an existing path, with id 42
+
+```bash
+scripts/ikc.sh update-path 42
+```
+
+## License
 
 Copyright 2015 Zalando SE
 
