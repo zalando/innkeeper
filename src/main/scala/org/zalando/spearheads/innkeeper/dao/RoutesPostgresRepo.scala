@@ -45,6 +45,19 @@ class RoutesPostgresRepo @Inject() (
     }
   }
 
+  override def selectFiltered(filters: List[QueryFilter] = List.empty): DatabasePublisher[RouteRow] = {
+    logger.debug("selectFiltered")
+
+    val query = for {
+      (routesTable, pathsTable) <- selectAllQuery join Paths on (_.pathId === _.id)
+      if buildFilter(filters, routesTable, pathsTable)
+    } yield routesTable
+
+    db.stream {
+      query.result
+    }
+  }
+
   override def selectModifiedSince(since: LocalDateTime, currentTime: LocalDateTime): DatabasePublisher[(RouteRow, PathRow)] = {
     logger.debug(s"selectModifiedSince $since")
 
@@ -63,10 +76,10 @@ class RoutesPostgresRepo @Inject() (
   override def selectByName(name: String): DatabasePublisher[RouteRow] = {
     logger.debug(s"selectByName $name")
 
-    val q = (for {
+    val q = for {
       routeRow <- Routes
       if routeRow.name === name && routeRow.deletedAt.isEmpty
-    } yield routeRow)
+    } yield routeRow
 
     db.stream {
       q.result
@@ -76,10 +89,10 @@ class RoutesPostgresRepo @Inject() (
   override def selectActiveRoutesWithPath(currentTime: LocalDateTime): DatabasePublisher[(RouteRow, PathRow)] = {
     logger.debug(s"selectActiveRoutesWithPath for currentTime: $currentTime")
 
-    val join = (for {
+    val join = for {
       (routeRow, pathRow) <- Routes.filter(_.id in activeRouteIds(currentTime)) join
         Paths on (_.pathId === _.id)
-    } yield (routeRow, pathRow))
+    } yield (routeRow, pathRow)
 
     db.stream {
       join.result
@@ -133,15 +146,33 @@ class RoutesPostgresRepo @Inject() (
     }
   }
 
-  private def activeRouteIds(currentTime: LocalDateTime) = (for {
+  private def buildFilter(filters: List[QueryFilter], routesTable: RoutesTable, pathsTable: PathsTable): Rep[Boolean] = {
+    filters.map {
+      case RouteNameFilter(routeNames) =>
+        routeNames.map(routesTable.name === _)
+
+      case TeamFilter(teams) =>
+        teams.map(pathsTable.ownedByTeam === _)
+
+      case PathUriFilter(pathUris) =>
+        pathUris.map(pathsTable.uri === _)
+
+      case PathIdFilter(pathIds) =>
+        pathIds.map(routesTable.pathId === _)
+
+      case _ => List.empty
+    }
+      .flatMap(_.reduceOption(_ || _))
+      .reduceOption(_ && _)
+      .getOrElse(LiteralColumn(true))
+  }
+
+  private def activeRouteIds(currentTime: LocalDateTime) = for {
     routeRow <- Routes
     if routeRow.deletedAt.isEmpty && routeRow.activateAt < currentTime &&
       (routeRow.disableAt.isEmpty ||
         (routeRow.disableAt.isDefined && routeRow.disableAt > currentTime))
-  } yield routeRow.id)
+  } yield routeRow.id
 
-  private lazy val selectAllQuery = for {
-    routeRow <- Routes
-    if routeRow.deletedAt.isEmpty
-  } yield routeRow
+  private lazy val selectAllQuery = Routes.filter(_.deletedAt.isEmpty)
 }

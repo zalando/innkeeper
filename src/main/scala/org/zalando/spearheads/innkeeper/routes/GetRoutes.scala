@@ -1,18 +1,17 @@
 package org.zalando.spearheads.innkeeper.routes
 
-import akka.http.scaladsl.server.Directives.{get, parameterMap, reject}
+import akka.http.scaladsl.server.Directives.{get, parameterMultiMap}
 import akka.http.scaladsl.server.Route
 import com.google.inject.Inject
 import org.slf4j.LoggerFactory
-import org.zalando.spearheads.innkeeper.Rejections.InvalidRouteNameRejection
 import org.zalando.spearheads.innkeeper.RouteDirectives.chunkedResponseOf
-import org.zalando.spearheads.innkeeper.api.{JsonService, RouteName, RouteOut}
+import org.zalando.spearheads.innkeeper.api.{JsonService, RouteOut}
 import org.zalando.spearheads.innkeeper.metrics.RouteMetrics
 import org.zalando.spearheads.innkeeper.oauth.OAuthDirectives.hasOneOfTheScopes
 import org.zalando.spearheads.innkeeper.oauth.{AuthenticatedUser, Scopes}
 import org.zalando.spearheads.innkeeper.services.RoutesService
 import org.zalando.spearheads.innkeeper.api.JsonProtocols._
-import scala.util.{Success, Try}
+import org.zalando.spearheads.innkeeper.dao.{PathIdFilter, PathUriFilter, RouteNameFilter, TeamFilter, QueryFilter}
 
 /**
  * @author dpersa
@@ -32,20 +31,36 @@ class GetRoutes @Inject() (
         metrics.getRoutes.time {
           logger.info(s"try to $reqDesc")
 
-          parameterMap { parameterMap =>
-            parameterMap.get("name") match {
-              case Some(name) =>
-                Try(RouteName(name)) match {
-                  case Success(routeName) =>
-                    chunkedResponseOf[RouteOut](jsonService) {
-                      routesService.findByName(routeName)
-                    }
-                  case _ => reject(InvalidRouteNameRejection(reqDesc))
+          parameterMultiMap { parameterMultiMap =>
+            val filters = parameterMultiMap.flatMap {
+              case ("name", routeNames) => Some[QueryFilter](
+                RouteNameFilter(routeNames)
+              )
+              case ("owned_by_team", teams) => Some[QueryFilter](
+                TeamFilter(teams)
+              )
+              case ("uri", pathUris) => Some[QueryFilter](
+                PathUriFilter(pathUris)
+              )
+              case ("path_id", pathIdStrings) =>
+                val pathIds = pathIdStrings.flatMap(idString => try {
+                  Some(idString.toLong)
+                } catch {
+                  case e: NumberFormatException => None
+                })
+
+                if (pathIds.nonEmpty) {
+                  Some[QueryFilter](
+                    PathIdFilter(pathIds)
+                  )
+                } else {
+                  None
                 }
-              case None =>
-                chunkedResponseOf[RouteOut](jsonService) {
-                  routesService.allRoutes
-                }
+              case _ => None
+            }
+
+            chunkedResponseOf[RouteOut](jsonService) {
+              routesService.findFiltered(filters.toList)
             }
           }
         }

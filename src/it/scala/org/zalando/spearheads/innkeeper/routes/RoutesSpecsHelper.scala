@@ -13,7 +13,21 @@ object RoutesSpecsHelper {
 
   private def routeUri(id: Long) = s"$routesUri/$id"
 
-  private def routeByNameUri(name: String) = s"$routesUri?name=$name"
+  private def routeByNameUri(names: List[String]) = routesUri + paramsToUri("name", names)
+
+  private def routeByTeamUri(teams: List[String]) = routesUri + paramsToUri("owned_by_team", teams)
+
+  private def routeByUriUri(uris: List[String]) = routesUri + paramsToUri("uri", uris)
+
+  private def routeByPathIdUri(pathIds: List[Long]) = routesUri + paramsToUri("path_id", pathIds.map(_.toString))
+
+  private def paramsToUri(key: String, params: List[String]) = {
+    if (params.nonEmpty) {
+      "?" + params.map(param => s"$key=$param").mkString("&")
+    } else {
+      ""
+    }
+  }
 
   private val currentRoutesUri = s"$baseUri/current-routes"
 
@@ -40,7 +54,19 @@ object RoutesSpecsHelper {
 
   def getSlashCurrentRoutes(token: String = ""): HttpResponse = doGet(currentRoutesUri, token)
 
-  def getSlashRoutesByName(name: String, token: String): HttpResponse = doGet(routeByNameUri(name), token)
+  def getSlashRoutesByName(name: String, token: String): HttpResponse = doGet(routeByNameUri(List(name)), token)
+
+  def getSlashRoutesByName(names: List[String], token: String): HttpResponse = doGet(routeByNameUri(names), token)
+
+  def getSlashRoutesByTeam(team: String, token: String): HttpResponse = doGet(routeByTeamUri(List(team)), token)
+
+  def getSlashRoutesByTeam(teams: List[String], token: String): HttpResponse = doGet(routeByTeamUri(teams), token)
+
+  def getSlashRoutesByUri(uri: String, token: String): HttpResponse = doGet(routeByUriUri(List(uri)), token)
+
+  def getSlashRoutesByUri(uris: List[String], token: String): HttpResponse = doGet(routeByUriUri(uris), token)
+
+  def getSlashRoutesByPathId(pathIds: List[Long], token: String): HttpResponse = doGet(routeByPathIdUri(pathIds), token)
 
   def getSlashRoute(id: Long, token: String = ""): HttpResponse = slashRoute(id, token)
 
@@ -108,7 +134,7 @@ object RoutesSpecsHelper {
 
   def routeFiltersShouldBeCorrect(route: RouteOut) = {
     route.route.filters should be ('defined)
-    route.route.filters.get should not be ('empty)
+    route.route.filters.get should not be 'empty
     route.route.filters.get.head.name should be ("someFilter")
     route.route.filters.get.head.args.head should be (StringArg("HelloFilter"))
     route.route.filters.get.head.args(1) should be (NumericArg("123"))
@@ -117,7 +143,7 @@ object RoutesSpecsHelper {
 
   def routePredicatesShouldBeCorrect(route: RouteOut) = {
     route.route.predicates should be ('defined)
-    route.route.predicates.get should not be ('empty)
+    route.route.predicates.get should not be 'empty
     route.route.predicates.get.head.name should be ("method")
     route.route.predicates.get.head.args.head should be (StringArg("GET"))
   }

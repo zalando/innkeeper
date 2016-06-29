@@ -128,6 +128,22 @@ paths:
           description: The name of the route to filter for
           required: false
           type: string
+        - name: owned_by_team
+          in: query
+          description: The team name to filter for
+          required: false
+          type: string
+        - name: uri
+          in: query
+          description: The path uri to filter for
+          required: false
+          type: string
+        - name: path_id
+          in: query
+          description: The path id to filter for
+          required: false
+          type: integer
+          format: int64
       responses:
         '200':
           description: An array of routes
