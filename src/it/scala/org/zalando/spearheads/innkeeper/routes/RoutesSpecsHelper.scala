@@ -13,13 +13,21 @@ object RoutesSpecsHelper {
 
   private def routeUri(id: Long) = s"$routesUri/$id"
 
-  private def routeByNameUri(names: List[String]) = s"$routesUri?${names.map("name=" + _).mkString("&")}"
+  private def routeByNameUri(names: List[String]) = routesUri + paramsToUri("name", names)
 
-  private def routeByTeamUri(teams: List[String]) = s"$routesUri?${teams.map("owned_by_team=" + _).mkString("&")}"
+  private def routeByTeamUri(teams: List[String]) = routesUri + paramsToUri("owned_by_team", teams)
 
-  private def routeByUriUri(uris: List[String]) = s"$routesUri?${uris.map("uri=" + _).mkString("&")}"
+  private def routeByUriUri(uris: List[String]) = routesUri + paramsToUri("uri", uris)
 
-  private def routeByPathIdUri(pathIds: List[Long]) = s"$routesUri?${pathIds.map("path_id=" + _).mkString("&")}"
+  private def routeByPathIdUri(pathIds: List[Long]) = routesUri + paramsToUri("path_id", pathIds.map(_.toString))
+
+  private def paramsToUri(key: String, params: List[String]) = {
+    if (params.nonEmpty) {
+      "?" + params.map(param => s"$key=$param").mkString("&")
+    } else {
+      ""
+    }
+  }
 
   private val currentRoutesUri = s"$baseUri/current-routes"
 
@@ -126,7 +134,7 @@ object RoutesSpecsHelper {
 
   def routeFiltersShouldBeCorrect(route: RouteOut) = {
     route.route.filters should be ('defined)
-    route.route.filters.get should not be ('empty)
+    route.route.filters.get should not be 'empty
     route.route.filters.get.head.name should be ("someFilter")
     route.route.filters.get.head.args.head should be (StringArg("HelloFilter"))
     route.route.filters.get.head.args(1) should be (NumericArg("123"))
@@ -135,7 +143,7 @@ object RoutesSpecsHelper {
 
   def routePredicatesShouldBeCorrect(route: RouteOut) = {
     route.route.predicates should be ('defined)
-    route.route.predicates.get should not be ('empty)
+    route.route.predicates.get should not be 'empty
     route.route.predicates.get.head.name should be ("method")
     route.route.predicates.get.head.args.head should be (StringArg("GET"))
   }
