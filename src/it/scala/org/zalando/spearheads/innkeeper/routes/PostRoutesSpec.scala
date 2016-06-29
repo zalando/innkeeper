@@ -66,6 +66,7 @@ class PostRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
           val routeName = "invalid-route-name"
           val response = postRoute(routeName, token, token.teamName)
           response.status should be(StatusCodes.BadRequest)
+          entityString(response).parseJson.convertTo[Error].errorType should be("IRN")
         }
       }
 

@@ -5,10 +5,11 @@ import akka.http.scaladsl.model.HttpEntity.ChunkStreamPart
 import akka.http.scaladsl.model.{HttpEntity, HttpResponse, MediaTypes}
 import akka.http.scaladsl.server.directives.RouteDirectives._
 import akka.http.scaladsl.server._
+import akka.http.scaladsl.server.Directives.pass
 import akka.http.scaladsl.util.FastFuture._
 import akka.stream.scaladsl.Source
 import org.zalando.spearheads.innkeeper.api._
-import org.zalando.spearheads.innkeeper.Rejections.{InternalServerErrorRejection, PathNotFoundRejection, RouteNotFoundRejection}
+import org.zalando.spearheads.innkeeper.Rejections.{InvalidRouteNameRejection, InternalServerErrorRejection, PathNotFoundRejection, RouteNotFoundRejection}
 import org.zalando.spearheads.innkeeper.services.{PathsService, RoutesService, ServiceResult}
 import spray.json.JsonWriter
 
@@ -57,6 +58,14 @@ trait RouteDirectives {
     val chunkedStreamSource: Source[ChunkStreamPart, NotUsed] = jsonService.sourceToJsonSource(source)
     complete {
       HttpResponse(entity = HttpEntity.Chunked(MediaTypes.`application/json`, chunkedStreamSource))
+    }
+  }
+
+  def validateRoute(routeIn: RouteIn, requestDescription: String): Directive0 = {
+    if (RouteName.isValid(routeIn.name)) {
+      pass
+    } else {
+      reject(InvalidRouteNameRejection(requestDescription))
     }
   }
 }
