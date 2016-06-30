@@ -8,8 +8,11 @@ import org.scalatest.time.{Seconds, Span}
 import org.scalatest.{BeforeAndAfter, FunSpec, Matchers}
 import org.zalando.spearheads.innkeeper.routes.RoutesRepoHelper
 import RoutesRepoHelper.{deleteRoute, insertRoute, routeJson, sampleRoute}
-import org.zalando.spearheads.innkeeper.api.PathPatch
+import akka.http.scaladsl.model.StatusCodes
+import org.zalando.spearheads.innkeeper.api.{EskipRouteWrapper, PathPatch}
+import org.zalando.spearheads.innkeeper.routes.AcceptanceSpecsHelper._
 import org.zalando.spearheads.innkeeper.routes.RoutesRepoHelper._
+import org.zalando.spearheads.innkeeper.routes.RoutesSpecsHelper._
 
 class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers with ScalaFutures {
 
@@ -133,6 +136,20 @@ class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers w
         val routes: List[(RouteRow, PathRow)] = routesRepo.selectModifiedSince(createdAt.minus(1, ChronoUnit.MICROS), LocalDateTime.now())
 
         routes.map(_._1.id.get).toSet should be (Set(route3Id))
+      }
+
+      it("shouldn't return deleted routes") {
+        val currentTime = LocalDateTime.now()
+        val activatedAt = currentTime.minusSeconds(1)
+        val since = currentTime.minusSeconds(2)
+        val deletedAt = currentTime.minusSeconds(3)
+        val createdAt = currentTime.minusSeconds(4)
+
+        val route = insertRoute("R1", createdAt = createdAt, activateAt = activatedAt)
+        deleteRoute(route.id.get, Some(deletedAt))
+
+        val result = routesRepo.selectModifiedSince(since, currentTime)
+        result.isEmpty should be(true)
       }
 
       it("should select the routes which were updated by a path update") {
