@@ -3,20 +3,13 @@ package org.zalando.spearheads.innkeeper.api
 import java.time.LocalDateTime
 import scala.collection.immutable.Seq
 
-case class RouteName(name: String) {
-
-  if (!name.matches(RouteName.validRouteNamePattern)) {
-    throw InvalidRouteNameException
-  }
-}
+case class RouteName(name: String)
 
 object RouteName {
   val validRouteNamePattern = "[a-zA-Z][a-zA-Z0-9_]*"
-}
 
-object InvalidRouteNameException
-  extends RuntimeException(
-    s"Invalid route name. The name should match ${RouteName.validRouteNamePattern}")
+  def isValid(routeName: RouteName) = routeName.name.matches(validRouteNamePattern)
+}
 
 object InvalidUsereNameException
   extends RuntimeException(
