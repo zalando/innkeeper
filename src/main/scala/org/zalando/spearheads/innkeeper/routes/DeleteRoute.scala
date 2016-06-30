@@ -1,14 +1,13 @@
 package org.zalando.spearheads.innkeeper.routes
 
-import akka.http.scaladsl.server.Directives.{complete, delete, onComplete, reject}
+import akka.http.scaladsl.server.Directives.{cancelRejections, complete, delete, onComplete, reject}
 import akka.http.scaladsl.server.Route
-import akka.http.scaladsl.server.RouteConcatenation._
 import com.google.inject.Inject
 import org.slf4j.LoggerFactory
-import org.zalando.spearheads.innkeeper.Rejections.{InternalServerErrorRejection, RouteNotFoundRejection}
+import org.zalando.spearheads.innkeeper.Rejections.{IncorrectTeamRejection, InternalServerErrorRejection, RouteNotFoundRejection}
 import org.zalando.spearheads.innkeeper.RouteDirectives.findPathByRouteId
 import org.zalando.spearheads.innkeeper.metrics.RouteMetrics
-import org.zalando.spearheads.innkeeper.oauth.OAuthDirectives.{hasOneOfTheScopes, hasAdminAuthorization, routeTeamAuthorization, team, username}
+import org.zalando.spearheads.innkeeper.oauth.OAuthDirectives.{hasAdminAuthorization, hasOneOfTheScopes, routeTeamAuthorization, team, username}
 import org.zalando.spearheads.innkeeper.oauth.{AuthenticatedUser, Scopes}
 import org.zalando.spearheads.innkeeper.services.ServiceResult.NotFound
 import org.zalando.spearheads.innkeeper.services.team.TeamService
@@ -45,10 +44,9 @@ class DeleteRoute @Inject() (
           username(authenticatedUser, reqDesc) { username =>
             logger.debug("try to delete /routes/{} username found {}", id, username)
 
-            (routeTeamAuthorization(team, path.ownedByTeam, reqDesc) & hasOneOfTheScopes(authenticatedUser, reqDesc, scopes.WRITE)) {
-              deleteRoute(id, username, s"$reqDesc other")
-            } ~
-              hasAdminAuthorization(authenticatedUser, team, reqDesc, scopes)(teamService) {
+            ((routeTeamAuthorization(team, path.ownedByTeam, reqDesc) & hasOneOfTheScopes(authenticatedUser, reqDesc, scopes.WRITE)) |
+              (hasAdminAuthorization(authenticatedUser, team, reqDesc, scopes) & cancelRejections(classOf[IncorrectTeamRejection]))
+            ) {
                 deleteRoute(id, username, s"$reqDesc other")
               }
           }
