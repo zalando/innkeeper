@@ -24,8 +24,6 @@ trait RoutesService {
 
   def remove(id: Long, deletedBy: String): Future[Result[Boolean]]
 
-  def findByName(name: RouteName): Source[RouteOut, NotUsed]
-
   def allRoutes: Source[RouteOut, NotUsed]
 
   def findFiltered(filters: List[QueryFilter]): Source[RouteOut, NotUsed]
@@ -78,11 +76,6 @@ class DefaultRoutesService @Inject() (
       case _     => Success(true)
     }
   }
-
-  override def findByName(name: RouteName): Source[RouteOut, NotUsed] =
-    routeRowsStreamToRouteOutStream {
-      routesRepo.selectByName(name.name)
-    }
 
   override def allRoutes: Source[RouteOut, NotUsed] = routeRowsStreamToRouteOutStream {
     routesRepo.selectAll

@@ -76,19 +76,6 @@ class RoutesPostgresRepo @Inject() (
     }
   }
 
-  override def selectByName(name: String): DatabasePublisher[RouteRow] = {
-    logger.debug(s"selectByName $name")
-
-    val q = for {
-      routeRow <- Routes
-      if routeRow.name === name && routeRow.deletedAt.isEmpty
-    } yield routeRow
-
-    db.stream {
-      q.result
-    }
-  }
-
   override def selectActiveRoutesWithPath(currentTime: LocalDateTime): DatabasePublisher[(RouteRow, PathRow)] = {
     logger.debug(s"selectActiveRoutesWithPath for currentTime: $currentTime")
 

@@ -176,38 +176,6 @@ class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers w
       }
     }
 
-    describe("#selectByName") {
-      it("should select the right routes") {
-        val route1Id = insertRoute("R1").id.get
-        val route2Id = insertRoute("R2").id.get
-
-        val routes: List[RouteRow] = routesRepo.selectByName("R2")
-
-        routes.size should be (1)
-        routes.flatMap(_.id).toSet should be (Set(route2Id))
-      }
-
-      it("should not select the deleted routes") {
-        insertRoute("R1")
-        insertRoute("R2")
-        deleteRoute(2)
-
-        val routes: List[RouteRow] = routesRepo.selectByName("R2")
-
-        routes should be('empty)
-      }
-
-      it("should select the disabled routes") {
-        insertRoute("R2", disableAt = Some(LocalDateTime.now().minusMinutes(3)))
-        insertRoute("R1")
-
-        val routes: List[RouteRow] = routesRepo.selectByName("R2")
-
-        routes.size should be (1)
-        routes.map(_.id.get).toSet should be (Set(1))
-      }
-    }
-
     describe("#selectFiltered") {
       it("should filter by route name") {
         val route1 = insertRoute("R1")
