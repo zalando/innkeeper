@@ -37,4 +37,8 @@ object RouteChangeType {
     override val value = "delete"
   }
 
+  case object Activate extends RouteChangeType {
+    override val value = "activate"
+  }
+
 }
