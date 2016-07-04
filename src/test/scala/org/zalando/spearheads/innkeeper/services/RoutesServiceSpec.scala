@@ -175,34 +175,6 @@ class RoutesServiceSpec extends FunSpec with Matchers with MockFactory with Scal
       }
     }
 
-    describe("#findByName") {
-      describe("when the route exists") {
-        it("should find the route") {
-          (routesRepo.selectByName _).expects(routeName.name).returning {
-            FakeDatabasePublisher[RouteRow](Seq(routeRow))
-          }
-
-          val result = routesService.findByName(routeName)
-          val firstRoute = result.runWith(Sink.head).futureValue
-
-          verifyRoute(firstRoute)
-        }
-      }
-
-      describe("when the route with the specified name does not exist") {
-        it("should return an empty collection") {
-          (routesRepo.selectByName _).expects(routeName.name).returning {
-            FakeDatabasePublisher[RouteRow](Seq())
-          }
-
-          val result = routesService.findByName(routeName)
-          val firstRoute = result.runWith(Sink.headOption).futureValue
-
-          firstRoute should not be 'defined
-        }
-      }
-    }
-
     describe("#findDeletedBefore") {
       it("should find the right routes") {
 
