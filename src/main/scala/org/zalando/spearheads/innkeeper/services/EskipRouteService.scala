@@ -77,7 +77,11 @@ class EskipRouteService @Inject() (routesRepo: RoutesRepo, routeToEskipTransform
           case None => if (pathRow.updatedAt.isAfter(routeRow.createdAt)) {
             RouteChangeType.Update -> pathRow.updatedAt
           } else {
-            RouteChangeType.Create -> routeRow.createdAt
+            if (routeRow.activateAt.isAfter(routeRow.createdAt)) {
+              RouteChangeType.Activate -> routeRow.activateAt
+            } else {
+              RouteChangeType.Create -> routeRow.createdAt
+            }
           }
         }
 
