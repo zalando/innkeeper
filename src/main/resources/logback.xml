@@ -14,7 +14,7 @@
     <logger name="org.zalando.spearheads.innkeeper.services" level="info"/>
     <logger name="org.zalando.spearheads.innkeeper.routes.Routes" level="info"/>
     <logger name="org.zalando.spearheads.innkeeper.routes" level="info"/>
-    <logger name="org.zalando.spearheads.innkeeper.utils" level="debug"/>
+    <logger name="org.zalando.spearheads.innkeeper.utils" level="info"/>
     <logger name="org.zalando.spearheads.innkeeper.dao" level="info"/>
 
 </configuration>
