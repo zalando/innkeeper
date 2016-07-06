@@ -3,7 +3,7 @@ package org.zalando.spearheads.innkeeper.utils
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.headers.{Authorization, OAuth2BearerToken}
-import akka.http.scaladsl.model.{Uri, HttpHeader, HttpMethod, HttpMethods, HttpRequest}
+import akka.http.scaladsl.model.{HttpHeader, HttpMethod, HttpMethods, HttpRequest}
 import akka.stream.ActorMaterializer
 import akka.util.ByteString
 import org.slf4j.LoggerFactory
@@ -33,17 +33,19 @@ class AkkaHttpClient(
     token: Option[String] = None,
     method: HttpMethod = HttpMethods.GET) = {
 
+    val headers = headersForToken(token)
     val futureResponse = Http().singleRequest(HttpRequest(
       uri = uri,
       method = method,
-      headers = headersForToken(token)))
+      headers = headers
+    ))
     for {
       res <- futureResponse
       strict <- res.entity.toStrict(1.second)
       byteString <- strict.dataBytes.runFold(ByteString.empty)(_ ++ _)
     } yield {
       val responseString = byteString.utf8String
-      logger.debug(s"The service with uri $uri says: $responseString")
+      logger.debug(s"HTTP request with uri=$uri method=$method and headers=$headers responds with: $responseString")
       responseString.parseJson
     }
   }

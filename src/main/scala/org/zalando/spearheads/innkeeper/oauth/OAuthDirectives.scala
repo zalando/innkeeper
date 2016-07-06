@@ -41,7 +41,7 @@ trait OAuthDirectives {
       }
 
       case Failure(ex) =>
-        logger.error(s"Error getting the authenticatedUser from the OAuthService for $requestDescription")
+        logger.error(s"Error getting the authenticatedUser from the OAuthService for $requestDescription", ex)
         reject(InternalServerErrorRejection(requestDescription))
     }
   }
@@ -66,7 +66,7 @@ trait OAuthDirectives {
           }
 
           case Failure(ex) =>
-            logger.error(s"Error getting the team from the Team Service for $requestDescription")
+            logger.error(s"Error getting the team from the Team Service for $requestDescription", ex)
             reject(InternalServerErrorRejection(requestDescription))
         }
 
