@@ -47,6 +47,7 @@ libraryDependencies ++= List(
   "com.github.tminglei"     %% "slick-pg_date2"                       % slickPgV,
   "com.zaxxer"               % "HikariCP"                             % "2.4.5",
   "nl.grons"                %% "metrics-scala"                        % "3.5.2",
+  "org.asynchttpclient"      % "async-http-client"                    % "2.0.10",
 
   "org.scalatest"           %% "scalatest"                            % scalaTestV       % "it,test",
   "org.scalamock"           %% "scalamock-scalatest-support"          % scalaMockV       % "it,test",
@@ -72,6 +73,13 @@ ScalariformKeys.preferences := ScalariformKeys.preferences.value
   .setPreference(SpacesAroundMultiImports, false)
 //.setPreference(AlignArguments, true)
 //.setPreference(AlignParameters, true)
+
+assemblyMergeStrategy in assembly := {
+  case PathList("META-INF", "io.netty.versions.properties") => MergeStrategy.last
+  case x =>
+    val oldStrategy = (assemblyMergeStrategy in assembly).value
+    oldStrategy(x)
+}
 
 parallelExecution in IntegrationTest := false
 

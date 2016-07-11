@@ -33,7 +33,7 @@ private class OAuthServiceClientProvider @Inject() (
     extends Provider[HttpClient] {
 
   override def get(): HttpClient = {
-    new AkkaHttpClient()
+    new AsyncHttpClient()
   }
 }
 
@@ -45,6 +45,6 @@ private class TeamServiceClientProvider @Inject() (
     extends Provider[HttpClient] {
 
   override def get(): HttpClient = {
-    new AkkaHttpClient()
+    new AsyncHttpClient()
   }
 }

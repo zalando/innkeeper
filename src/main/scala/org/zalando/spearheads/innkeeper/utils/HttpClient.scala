@@ -1,16 +1,14 @@
 package org.zalando.spearheads.innkeeper.utils
 
-import akka.actor.ActorSystem
-import akka.http.scaladsl.Http
-import akka.http.scaladsl.model.headers.{Authorization, OAuth2BearerToken}
-import akka.http.scaladsl.model.{HttpHeader, HttpMethod, HttpMethods, HttpRequest}
-import akka.stream.ActorMaterializer
-import akka.util.ByteString
+import akka.http.scaladsl.model.{HttpMethod, HttpMethods}
+import org.asynchttpclient.{AsyncCompletionHandler, DefaultAsyncHttpClient, DefaultAsyncHttpClientConfig, RequestBuilder, Response}
+import org.asynchttpclient.uri.Uri
 import org.slf4j.LoggerFactory
 import spray.json.{JsValue, pimpString}
-import scala.collection.immutable.Seq
-import scala.concurrent.{Future, ExecutionContext}
-import scala.concurrent.duration._
+import scala.concurrent.Promise
+import scala.concurrent.Future
+import scala.util.Try
+import java.util.concurrent.{Future => JFuture}
 
 trait HttpClient {
 
@@ -20,40 +18,46 @@ trait HttpClient {
     method: HttpMethod = HttpMethods.GET): Future[JsValue]
 }
 
-class AkkaHttpClient(
-    implicit
-    val actorSystem: ActorSystem,
-    implicit val materializer: ActorMaterializer,
-    implicit val executionContext: ExecutionContext) extends HttpClient {
+class AsyncHttpClient extends HttpClient {
 
-  val logger = LoggerFactory.getLogger(this.getClass)
+  private val logger = LoggerFactory.getLogger(this.getClass)
 
-  override def callJson(
-    uri: String,
-    token: Option[String] = None,
-    method: HttpMethod = HttpMethods.GET) = {
+  private val asyncClientConfig = new DefaultAsyncHttpClientConfig.Builder()
+    .setConnectTimeout(1000)
+    .build()
 
-    val headers = headersForToken(token)
-    val futureResponse = Http().singleRequest(HttpRequest(
-      uri = uri,
-      method = method,
-      headers = headers
-    ))
-    for {
-      res <- futureResponse
-      strict <- res.entity.toStrict(1.second)
-      byteString <- strict.dataBytes.runFold(ByteString.empty)(_ ++ _)
-    } yield {
-      val responseString = byteString.utf8String
-      logger.debug(s"HTTP request with uri=$uri method=$method and headers=$headers responds with: $responseString")
-      responseString.parseJson
+  private val asyncClient = new DefaultAsyncHttpClient(asyncClientConfig)
+
+  override def callJson(uri: String, token: Option[String], method: HttpMethod): Future[JsValue] = {
+
+    val requestBuilder = new RequestBuilder("GET")
+      .setUri(Uri.create(uri))
+
+    token match {
+      case Some(t) ⇒
+        requestBuilder.setHeader("Authorization", s"Bearer $token")
+      case _ ⇒
+    }
+
+    futureWrap {
+      asyncClient.executeRequest(
+        requestBuilder.build(),
+        new AsyncCompletionHandler[JsValue] {
+          override def onCompleted(response: Response): JsValue = {
+            logger.debug(s"HTTP request with uri=$uri method=$method and " +
+              s"headers=${response.getHeaders} responds with: ${response.getResponseBody}")
+            response.getResponseBody.parseJson
+          }
+        })
     }
   }
 
-  private[this] def headersForToken(token: Option[String]): Seq[HttpHeader] = {
-    token match {
-      case Some(t) ⇒ Seq[HttpHeader](Authorization(OAuth2BearerToken(t)))
-      case None    ⇒ Seq.empty
-    }
+  private def futureWrap[T](jfuture: JFuture[T]) = {
+    val promise = Promise[T]()
+    promise.complete {
+      Try {
+        jfuture.get()
+      }
+    }.future
   }
 }
