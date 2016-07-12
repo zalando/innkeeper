@@ -102,32 +102,6 @@ class RoutesPostgresRepo @Inject() (
     }
   }
 
-  override def selectDeletedBefore(dateTime: LocalDateTime): DatabasePublisher[RouteRow] = {
-    logger.debug(s"select deleted before $dateTime")
-
-    val q = for {
-      routeRow <- Routes
-      if routeRow.deletedAt.isDefined && routeRow.deletedAt < dateTime
-    } yield routeRow
-
-    db.stream {
-      q.result
-    }
-  }
-
-  override def deleteMarkedAsDeletedBefore(dateTime: LocalDateTime): Future[Int] = {
-    logger.debug(s"delete deleted before $dateTime")
-
-    db.run {
-      val q = for {
-        routeRow <- Routes
-        if routeRow.deletedAt.isDefined && routeRow.deletedAt < dateTime
-      } yield routeRow
-
-      q.delete
-    }
-  }
-
   override def routeWithNameExists(name: String): Future[Boolean] = {
     logger.debug(s"route with name $name exists")
 

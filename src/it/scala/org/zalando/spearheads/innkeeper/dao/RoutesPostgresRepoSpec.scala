@@ -6,13 +6,8 @@ import java.time.temporal.ChronoUnit
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.time.{Seconds, Span}
 import org.scalatest.{BeforeAndAfter, FunSpec, Matchers}
-import org.zalando.spearheads.innkeeper.routes.RoutesRepoHelper
-import RoutesRepoHelper.{deleteRoute, insertRoute, routeJson, sampleRoute}
-import akka.http.scaladsl.model.StatusCodes
-import org.zalando.spearheads.innkeeper.api.{EskipRouteWrapper, PathPatch}
-import org.zalando.spearheads.innkeeper.routes.AcceptanceSpecsHelper._
+import org.zalando.spearheads.innkeeper.api.PathPatch
 import org.zalando.spearheads.innkeeper.routes.RoutesRepoHelper._
-import org.zalando.spearheads.innkeeper.routes.RoutesSpecsHelper._
 
 class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers with ScalaFutures {
 
@@ -250,35 +245,6 @@ class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers w
       }
     }
 
-    describe("#selectDeletedBefore") {
-      it("should select nothing if there are no deleted routes") {
-        insertRoute("R1")
-        insertRoute("R2")
-
-        val dateTime: LocalDateTime = LocalDateTime.now().plusHours(1L)
-        val routes: List[RouteRow] = routesRepo.selectDeletedBefore(dateTime)
-
-        routes.size should be (0)
-      }
-
-      it("should select only routes that were deleted before the specified date") {
-        val insertedRoutes = Seq(insertRoute("R1"), insertRoute("R2"), insertRoute("R3"))
-
-        val now = LocalDateTime.now()
-        val lastDeletedAt = insertedRoutes.zipWithIndex
-          .map(routeRowWithIndex => {
-            val deletedAt = now.plusHours(routeRowWithIndex._2 + 1)
-            routeRowWithIndex._1.id.foreach(id => deleteRoute(id, Some(deletedAt)))
-            deletedAt
-          }).last
-
-        val routes: List[RouteRow] = routesRepo.selectDeletedBefore(lastDeletedAt)
-
-        routes.size should be (2)
-        routes.map(_.name) should contain theSameElementsAs Seq("R1", "R2")
-      }
-    }
-
     describe("#selectActiveRoutesWithPath") {
 
       it("should select the right routes") {
@@ -351,23 +317,6 @@ class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers w
         val deletedAt = getDeletedAtForRoute(1)
 
         deletedAt should be (expectedDeletedAt)
-      }
-
-      it("should only delete routes before specified datetime") {
-        val insertedRoute1 = insertRoute("1")
-        val insertedRoute2 = insertRoute("2")
-
-        deleteRoute(insertedRoute1.id.get, Some(LocalDateTime.now()))
-
-        val dateTime = LocalDateTime.now().plusHours(1L)
-        deleteRoute(insertedRoute2.id.get, Some(dateTime))
-
-        val affectedRows = routesRepo.deleteMarkedAsDeletedBefore(dateTime).futureValue
-
-        affectedRows should be (1)
-
-        routesRepo.selectById(insertedRoute1.id.get).futureValue should be (None)
-        routesRepo.selectById(insertedRoute2.id.get).futureValue should be (defined)
       }
     }
   }

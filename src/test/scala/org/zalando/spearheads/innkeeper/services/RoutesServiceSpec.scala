@@ -174,20 +174,6 @@ class RoutesServiceSpec extends FunSpec with Matchers with MockFactory with Scal
         }
       }
     }
-
-    describe("#findDeletedBefore") {
-      it("should find the right routes") {
-
-        (routesRepo.selectDeletedBefore _).expects(deletedBefore).returning {
-          FakeDatabasePublisher[RouteRow](Seq(routeRow))
-        }
-
-        val result = routesService.findDeletedBefore(deletedBefore)
-        val firstRoute = result.runWith(Sink.head).futureValue
-
-        verifyRoute(firstRoute)
-      }
-    }
   }
 
   def verifyRoute(route: RouteOut) = {
