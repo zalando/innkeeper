@@ -1,11 +1,15 @@
 package org.zalando.spearheads.innkeeper.dao
 
 import java.time.LocalDateTime
+
 import com.google.inject.{Inject, Singleton}
 import org.slf4j.LoggerFactory
+import org.zalando.spearheads.innkeeper.api.RouteChangeType
 import slick.backend.DatabasePublisher
 import org.zalando.spearheads.innkeeper.dao.MyPostgresDriver.api._
-import scala.concurrent.{Future, ExecutionContext}
+
+import scala.collection.immutable.Seq
+import scala.concurrent.{ExecutionContext, Future}
 
 /**
  * @author dpersa
@@ -41,7 +45,7 @@ class RoutesPostgresRepo @Inject() (
     logger.debug("selectAll")
 
     db.stream {
-      selectAllQuery.result
+      Routes.result
     }
   }
 
@@ -49,8 +53,8 @@ class RoutesPostgresRepo @Inject() (
     logger.debug("selectFiltered")
 
     val query = for {
-      (routesTable, pathsTable) <- selectAllQuery join Paths on (_.pathId === _.id)
-      if buildFilter(filters, routesTable, pathsTable)
+      (routesTable, pathsTable) <- Routes join Paths on (_.pathId === _.id)
+      if matchesFilters(filters, routesTable, pathsTable)
     } yield routesTable
 
     db.stream {
@@ -58,73 +62,141 @@ class RoutesPostgresRepo @Inject() (
     }
   }
 
-  override def selectModifiedSince(since: LocalDateTime, currentTime: LocalDateTime): DatabasePublisher[(RouteRow, PathRow)] = {
+  override def selectModifiedSince(since: LocalDateTime, currentTime: LocalDateTime): DatabasePublisher[ModifiedRoute] = {
     logger.debug(s"selectModifiedSince $since")
+
+    db.stream(modifiedRoutesQuery(since, currentTime).result).mapResult {
+      case (routeName, _, _, _, _, _, _, _, _, Some(deletedAt)) =>
+        ModifiedRoute(
+          routeChangeType = RouteChangeType.Delete,
+          name = routeName,
+          timestamp = deletedAt,
+          routeData = None
+        )
+
+      case (routeName, Some(uri), Some(hostIds), Some(routeJson), Some(usesCommonFilters), Some(createdAt), Some(updatedAt), Some(activateAt), disableAt, None) =>
+        val (routeChangeType, timestamp) = if (updatedAt.isAfter(createdAt)) {
+          RouteChangeType.Update -> updatedAt
+        } else {
+          if (activateAt.isAfter(createdAt)) {
+            RouteChangeType.Activate -> activateAt
+          } else {
+            RouteChangeType.Create -> createdAt
+          }
+        }
+
+        val routeData = RouteData(
+          name = routeName,
+          uri = uri,
+          hostIds = hostIds,
+          routeJson = routeJson,
+          usesCommonFilters = usesCommonFilters,
+          activateAt = activateAt,
+          disableAt = disableAt
+        )
+
+        ModifiedRoute(
+          routeChangeType = routeChangeType,
+          name = routeName,
+          timestamp = timestamp,
+          routeData = Some(routeData)
+        )
+
+      case _ => throw new Exception("Invalid state")
+    }
+  }
+
+  private def modifiedRoutesQuery(since: LocalDateTime, currentTime: LocalDateTime) = for {
+    (routeName, uri, hostIds, routeJson, usesCommonFilters, createdAt, updatedAt, activateAt, disableAt, deletedAt) <- routesAndDeletedRoutesQuery
+    routeWasDeleted = deletedAt.isDefined && deletedAt > since
+    routeIsActive = activateAt < currentTime
+    if routeWasDeleted ||
+      (deletedAt.isEmpty &&
+        routeIsActive &&
+        (activateAt > since || createdAt > since || updatedAt > since))
+  } yield (routeName, uri, hostIds, routeJson, usesCommonFilters, createdAt, updatedAt, activateAt, disableAt, deletedAt)
+
+  private val routesAndDeletedRoutesQuery = {
+    val routesQuery = for {
+      (routeRow, pathRow) <- Routes join Paths on (_.pathId === _.id)
+    } yield (
+      routeRow.name,
+      pathRow.uri.?,
+      pathRow.hostIds.?,
+      routeRow.routeJson.?,
+      routeRow.usesCommonFilters.?,
+      routeRow.createdAt.?,
+      pathRow.updatedAt.?,
+      routeRow.activateAt.?,
+      routeRow.disableAt,
+      SimpleLiteral[Option[LocalDateTime]]("NULL") // deletedAt
+    )
+
+    val deletedRoutesQuery = DeletedRoutes.map(deletedRouteRow =>
+      (
+        deletedRouteRow.name,
+        SimpleLiteral[Option[String]]("NULL"), // uri
+        SimpleLiteral[Option[Seq[Long]]]("NULL"), // host ids
+        SimpleLiteral[Option[String]]("NULL"), // routeJson
+        SimpleLiteral[Option[Boolean]]("NULL"), // usesCommonFilters
+        SimpleLiteral[Option[LocalDateTime]]("NULL"), // createdAt
+        SimpleLiteral[Option[LocalDateTime]]("NULL"), // activateAt
+        SimpleLiteral[Option[LocalDateTime]]("NULL"), // disableAt
+        SimpleLiteral[Option[LocalDateTime]]("NULL"), // updatedAt
+        deletedRouteRow.deletedAt.?
+      )
+    )
+
+    routesQuery.unionAll(deletedRoutesQuery)
+  }
+
+  override def selectActiveRoutesData(currentTime: LocalDateTime): DatabasePublisher[RouteData] = {
+    logger.debug(s"selectActiveRoutesWithPath for currentTime: $currentTime")
 
     val query = for {
       (routeRow, pathRow) <- Routes join Paths on (_.pathId === _.id)
-      routeWasDeleted = routeRow.deletedAt.isDefined && routeRow.deletedAt > since
-      routeIsActive = routeRow.activateAt < currentTime
-      if routeWasDeleted ||
-        (routeRow.deletedAt.isEmpty &&
-          routeIsActive &&
-          (routeRow.activateAt > since || routeRow.createdAt > since || pathRow.updatedAt > since))
+      if routeIsActive(currentTime, routeRow)
     } yield (routeRow, pathRow)
 
     db.stream {
       query.result
+    }.mapResult {
+      case (routeRow, pathRow) =>
+        RouteData(
+          name = routeRow.name,
+          uri = pathRow.uri,
+          hostIds = pathRow.hostIds,
+          routeJson = routeRow.routeJson,
+          usesCommonFilters = routeRow.usesCommonFilters,
+          activateAt = routeRow.activateAt,
+          disableAt = routeRow.disableAt
+        )
     }
   }
 
-  override def selectActiveRoutesWithPath(currentTime: LocalDateTime): DatabasePublisher[(RouteRow, PathRow)] = {
-    logger.debug(s"selectActiveRoutesWithPath for currentTime: $currentTime")
+  override def delete(id: Long, deletedByOpt: Option[String], dateTime: Option[LocalDateTime]): Future[Boolean] = {
+    val deletedBy = deletedByOpt.getOrElse("unknown")
+    logger.debug(s"delete $id by $deletedBy")
 
-    val join = for {
-      (routeRow, pathRow) <- Routes.filter(_.id in activeRouteIds(currentTime)) join
-        Paths on (_.pathId === _.id)
-    } yield (routeRow, pathRow)
+    val deletedAt = dateTime.getOrElse(LocalDateTime.now())
 
-    db.stream {
-      join.result
-    }
-  }
+    val routeByIdQuery = Routes.filter(_.id === id)
+    val deletedRouteForInsertQuery = routeByIdQuery.map(routeRow => (routeRow.name, deletedAt))
 
-  override def delete(id: Long, deletedBy: Option[String], dateTime: Option[LocalDateTime]): Future[Boolean] = {
-    logger.debug(s"delete $id by ${deletedBy.getOrElse("unknown")}")
+    val insertDeletedRouteQuery = DeletedRoutes.forceInsertQuery(deletedRouteForInsertQuery)
+    val deleteRouteQuery = routeByIdQuery.delete
 
-    db.run {
-      val q = for {
-        routeRow <- Routes
-        if routeRow.id === id && routeRow.deletedAt.isEmpty
-      } yield (routeRow.deletedAt, routeRow.deletedBy)
+    selectById(id).flatMap {
+      case Some(route) =>
+        logger.info(s"delete by $deletedBy of route: $route")
 
-      q.update(dateTime.orElse(Some(LocalDateTime.now())), deletedBy).map(_ > 0)
-    }
-  }
-
-  override def selectDeletedBefore(dateTime: LocalDateTime): DatabasePublisher[RouteRow] = {
-    logger.debug(s"select deleted before $dateTime")
-
-    val q = for {
-      routeRow <- Routes
-      if routeRow.deletedAt.isDefined && routeRow.deletedAt < dateTime
-    } yield routeRow
-
-    db.stream {
-      q.result
-    }
-  }
-
-  override def deleteMarkedAsDeletedBefore(dateTime: LocalDateTime): Future[Int] = {
-    logger.debug(s"delete deleted before $dateTime")
-
-    db.run {
-      val q = for {
-        routeRow <- Routes
-        if routeRow.deletedAt.isDefined && routeRow.deletedAt < dateTime
-      } yield routeRow
-
-      q.delete
+        db.run(insertDeletedRouteQuery).flatMap { _ =>
+          db.run(deleteRouteQuery).map {
+            case 1 => true
+            case _ => false
+          }
+        }
+      case None => Future(false)
     }
   }
 
@@ -136,7 +208,7 @@ class RoutesPostgresRepo @Inject() (
     }
   }
 
-  private def buildFilter(filters: List[QueryFilter], routesTable: RoutesTable, pathsTable: PathsTable): Rep[Boolean] = {
+  private def matchesFilters(filters: List[QueryFilter], routesTable: RoutesTable, pathsTable: PathsTable): Rep[Boolean] = {
     filters.map {
       case RouteNameFilter(routeNames) =>
         routeNames.map(routesTable.name === _)
@@ -157,12 +229,9 @@ class RoutesPostgresRepo @Inject() (
       .getOrElse(LiteralColumn(true))
   }
 
-  private def activeRouteIds(currentTime: LocalDateTime) = for {
-    routeRow <- Routes
-    if routeRow.deletedAt.isEmpty && routeRow.activateAt < currentTime &&
+  private def routeIsActive(currentTime: LocalDateTime, routeRow: RoutesTable) =
+    routeRow.activateAt < currentTime &&
       (routeRow.disableAt.isEmpty ||
         (routeRow.disableAt.isDefined && routeRow.disableAt > currentTime))
-  } yield routeRow.id
 
-  private lazy val selectAllQuery = Routes.filter(_.deletedAt.isEmpty)
 }

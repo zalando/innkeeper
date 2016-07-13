@@ -21,8 +21,9 @@ class InnkeeperPostgresSchema @Inject() (
   private val logger = LoggerFactory.getLogger(this.getClass)
 
   private val tables = Seq(
+    Paths,
     Routes,
-    Paths
+    DeletedRoutes
   )
 
   private val getTablesAction = MTable.getTables(

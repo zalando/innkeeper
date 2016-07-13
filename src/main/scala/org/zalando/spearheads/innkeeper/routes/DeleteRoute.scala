@@ -63,7 +63,9 @@ class DeleteRoute @Inject() (
         case Success(ServiceResult.Success(_))           => complete("")
         case Success(ServiceResult.Failure(NotFound(_))) => reject(RouteNotFoundRejection(reqDesc))
         case Success(_)                                  => reject(RouteNotFoundRejection(reqDesc))
-        case Failure(_)                                  => reject(InternalServerErrorRejection(reqDesc))
+        case Failure(exception) =>
+          logger.error("shit hit the fan", exception)
+          reject(InternalServerErrorRejection(reqDesc))
       }
     }
   }

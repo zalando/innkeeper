@@ -10,7 +10,7 @@ import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.{FunSpec, Matchers}
 import org.zalando.spearheads.innkeeper.FakeDatabasePublisher
 import org.zalando.spearheads.innkeeper.api.{EskipRoute, EskipRouteWrapper, Filter, NameWithStringArgs, NewRoute, NumericArg, Predicate, RegexArg, RouteChangeType, RouteName, RouteOut, StringArg, UserName}
-import org.zalando.spearheads.innkeeper.dao.{PathRow, RouteRow, RoutesRepo}
+import org.zalando.spearheads.innkeeper.dao.{PathRow, ModifiedRoute, RouteData, RouteRow, RoutesRepo}
 
 import scala.collection.immutable.Seq
 import scala.concurrent.ExecutionContext
@@ -33,9 +33,9 @@ class EskipRouteServiceSpec extends FunSpec with Matchers with MockFactory with 
 
         it ("should return the correct current routes") {
 
-          (routesRepo.selectActiveRoutesWithPath _)
+          (routesRepo.selectActiveRoutesData _)
             .expects(currentTime)
-            .returning(FakeDatabasePublisher(Seq((routeRow, pathRow))))
+            .returning(FakeDatabasePublisher(Seq(routeData)))
 
           (routeToEskipTransformer.transform _)
             .expects(transformerContext)
@@ -50,9 +50,9 @@ class EskipRouteServiceSpec extends FunSpec with Matchers with MockFactory with 
 
       describe("when the common filters are not enabled") {
         it ("should return the correct current routes") {
-          (routesRepo.selectActiveRoutesWithPath _)
+          (routesRepo.selectActiveRoutesData _)
             .expects(currentTime)
-            .returning(FakeDatabasePublisher(Seq((routeRow.copy(usesCommonFilters = false), pathRow))))
+            .returning(FakeDatabasePublisher(Seq(routeData.copy(usesCommonFilters = false))))
 
           val eskipRouteWithoutCommonFilters =
             eskipRoute.copy(
@@ -89,11 +89,14 @@ class EskipRouteServiceSpec extends FunSpec with Matchers with MockFactory with 
       endpoint = ""
     )
 
-    it("should find a created route") {
+    it("should find a route") {
       (routesRepo.selectModifiedSince _).expects(referrenceTime, currentTime).returning {
-        FakeDatabasePublisher[(RouteRow, PathRow)](Seq(
-          (routeRow, pathRow)
-        ))
+        FakeDatabasePublisher(Seq(ModifiedRoute(
+          routeChangeType = RouteChangeType.Create,
+          name = routeData.name,
+          timestamp = referrenceTime,
+          routeData = Some(routeData)
+        )))
       }
 
       (routeToEskipTransformer.transform _)
@@ -106,57 +109,18 @@ class EskipRouteServiceSpec extends FunSpec with Matchers with MockFactory with 
 
     it("should find a deleted route") {
       (routesRepo.selectModifiedSince _).expects(referrenceTime, currentTime).returning {
-        val deletedRoute = routeRow.copy(deletedAt = Some(referrenceTime))
-
-        FakeDatabasePublisher[(RouteRow, PathRow)](Seq(
-          (deletedRoute, pathRow)
-        ))
+        FakeDatabasePublisher(Seq(ModifiedRoute(
+          routeChangeType = RouteChangeType.Delete,
+          name = routeData.name,
+          timestamp = referrenceTime,
+          routeData = None
+        )))
       }
-
-      (routeToEskipTransformer.transform _)
-        .expects(transformerContext)
-        .returning(emptyEskipRoute)
 
       val result = eskipRouteService.findModifiedSince(referrenceTime, currentTime).runWith(Sink.head).futureValue
       result.routeChangeType should be (RouteChangeType.Delete)
     }
 
-    it("should find an updated route") {
-      (routesRepo.selectModifiedSince _).expects(referrenceTime, currentTime).returning {
-        val updatedRoute = routeRow.copy(
-          createdAt = referrenceTime.minusSeconds(1),
-          activateAt = referrenceTime.minusSeconds(1)
-        )
-
-        FakeDatabasePublisher[(RouteRow, PathRow)](Seq(
-          (updatedRoute, pathRow)
-        ))
-      }
-
-      (routeToEskipTransformer.transform _)
-        .expects(transformerContext)
-        .returning(emptyEskipRoute)
-
-      val result = eskipRouteService.findModifiedSince(referrenceTime, currentTime).runWith(Sink.head).futureValue
-      result.routeChangeType should be (RouteChangeType.Update)
-    }
-
-    it("should find an activated route") {
-      (routesRepo.selectModifiedSince _).expects(referrenceTime, currentTime).returning {
-        val activatedRoute = routeRow.copy(activateAt = referrenceTime.plusSeconds(1))
-
-        FakeDatabasePublisher[(RouteRow, PathRow)](Seq(
-          (activatedRoute, pathRow)
-        ))
-      }
-
-      (routeToEskipTransformer.transform _)
-        .expects(transformerContext)
-        .returning(emptyEskipRoute)
-
-      val result = eskipRouteService.findModifiedSince(referrenceTime, currentTime).runWith(Sink.head).futureValue
-      result.routeChangeType should be (RouteChangeType.Activate)
-    }
   }
 
   private def verifyRoute(result: EskipRouteWrapper) = {
@@ -213,6 +177,16 @@ class EskipRouteServiceSpec extends FunSpec with Matchers with MockFactory with 
     createdBy = "user",
     createdAt = referrenceTime,
     updatedAt = referrenceTime
+  )
+
+  val routeData = RouteData(
+    name = routeName,
+    uri = pathUri,
+    hostIds = hostIds,
+    routeJson = newRoute.toJson.compactPrint,
+    usesCommonFilters = true,
+    activateAt = referrenceTime,
+    disableAt = None
   )
 
   val routeOut = RouteOut(
