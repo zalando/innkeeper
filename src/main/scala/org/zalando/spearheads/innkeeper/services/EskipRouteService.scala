@@ -5,15 +5,11 @@ import java.time.LocalDateTime
 import akka.NotUsed
 import akka.stream.scaladsl.Source
 import com.google.inject.Inject
-import org.zalando.spearheads.innkeeper.api.JsonProtocols._
 import org.zalando.spearheads.innkeeper.api._
 import org.zalando.spearheads.innkeeper.dao.{ModifiedRoute, RouteData, RoutesRepo}
 import slick.backend.DatabasePublisher
-import spray.json.pimpString
 
 class EskipRouteService @Inject() (routesRepo: RoutesRepo, routeToEskipTransformer: RouteToEskipTransformer) {
-
-  private val arrow = "\n -> "
 
   def findModifiedSince(
     since: LocalDateTime,
@@ -38,40 +34,26 @@ class EskipRouteService @Inject() (routesRepo: RoutesRepo, routeToEskipTransform
   }
 
   def routeToEskipString(routeData: RouteData): String = {
-    val newRoute = routeData.routeJson.parseJson.convertTo[NewRoute]
-
-    val context = RouteToEskipTransformerContext(
-      routeName = routeData.name,
-      pathUri = routeData.uri,
-      hostIds = routeData.hostIds,
-      useCommonFilters = routeData.usesCommonFilters,
-      route = newRoute
-    )
-
-    val eskipRoute: EskipRoute = routeToEskipTransformer.transform(context)
+    val eskipRoute = routeToEskipTransformer.transform(routeData)
 
     val routeName = eskipRoute.name
 
-    val predicates = eskipRoute.predicates.map { predicate =>
+    val eskipPredicates = eskipRoute.predicates.map { predicate =>
       val args = predicate.args.mkString(",")
       s"${predicate.name}($args)"
     }.mkString(" && ")
 
-    val prependFilters = eskipRoute.prependedFilters.map {
-      filter => s"${arrow}${filter}"
-    }.mkString
-
     val filters = eskipRoute.filters.map { filter =>
       val args = filter.args.mkString(",")
-      s"${arrow}${filter.name}($args)"
-    }.mkString
+      s"${filter.name}($args)"
+    }
 
-    val appendFilters = eskipRoute.appendedFilters.map {
-      filter => s"${arrow}${filter}"
-    }.mkString
+    val allFilters = eskipRoute.prependedFilters ++ filters ++ eskipRoute.appendedFilters
 
-    val endpoint = s"${arrow}${eskipRoute.endpoint}"
-    s"$routeName: $predicates$prependFilters$filters$appendFilters$endpoint"
+    val eskipFilters = allFilters.map(filter => s" -> $filter").mkString("\n")
+    val eskipEndpoint = s" -> ${eskipRoute.endpoint}"
+
+    s"$routeName: $eskipPredicates\n$eskipFilters\n$eskipEndpoint"
   }
 
   private def routeAndPathRowsStreamToEskipStream(

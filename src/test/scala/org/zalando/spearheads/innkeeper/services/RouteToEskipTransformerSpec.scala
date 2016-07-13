@@ -1,8 +1,14 @@
 package org.zalando.spearheads.innkeeper.services
 
+import java.time.LocalDateTime
+
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.{BeforeAndAfter, FunSpec, Matchers}
 import org.zalando.spearheads.innkeeper.api.{EskipRoute, Filter, NameWithStringArgs, NewRoute, NumericArg, Predicate, RegexArg, StringArg}
+import org.zalando.spearheads.innkeeper.dao.RouteData
+import org.zalando.spearheads.innkeeper.api.JsonProtocols._
+import spray.json.pimpAny
+
 import scala.collection.immutable.Seq
 
 class RouteToEskipTransformerSpec extends FunSpec with Matchers with MockFactory with BeforeAndAfter {
@@ -15,13 +21,13 @@ class RouteToEskipTransformerSpec extends FunSpec with Matchers with MockFactory
 
     it("should transform a regular route to an eskip route") {
       initMocks()
-      routeToEskipTransformer.transform(transformerContext) should be(expectedResult)
+      routeToEskipTransformer.transform(routeData) should be(expectedResult)
     }
 
     it("should transform a route without an endpoint to an eskip route") {
       initMocks()
       val routeWithoutEndpoint = newRoute.copy(endpoint = None)
-      val contextWithRouteWithoutEndpoint = transformerContext.copy(route = routeWithoutEndpoint)
+      val contextWithRouteWithoutEndpoint = routeData.copy(routeJson = routeWithoutEndpoint.toJson.compactPrint)
 
       routeToEskipTransformer.transform(contextWithRouteWithoutEndpoint) should
         be(expectedResult.copy(endpoint = "<shunt>"))
@@ -30,7 +36,7 @@ class RouteToEskipTransformerSpec extends FunSpec with Matchers with MockFactory
     it("should transform a route with an empty endpoint to an eskip route") {
       initMocks()
       val routeWithEmptyEndpoint = newRoute.copy(endpoint = Some(""))
-      val contextWithRouteWithoutEndpoint = transformerContext.copy(route = routeWithEmptyEndpoint)
+      val contextWithRouteWithoutEndpoint = routeData.copy(routeJson = routeWithEmptyEndpoint.toJson.compactPrint)
 
       routeToEskipTransformer.transform(contextWithRouteWithoutEndpoint) should
         be(expectedResult.copy(endpoint = "<shunt>"))
@@ -78,11 +84,13 @@ class RouteToEskipTransformerSpec extends FunSpec with Matchers with MockFactory
     endpoint = Some("endpoint.my.com")
   )
 
-  val transformerContext = RouteToEskipTransformerContext(
-    routeName = routeName,
-    pathUri = pathUri,
+  val routeData = RouteData(
+    name = routeName,
+    uri = pathUri,
     hostIds = hostIds,
-    useCommonFilters = true,
-    route = newRoute
+    usesCommonFilters = true,
+    routeJson = newRoute.toJson.compactPrint,
+    activateAt = LocalDateTime.now(),
+    disableAt = None
   )
 }
