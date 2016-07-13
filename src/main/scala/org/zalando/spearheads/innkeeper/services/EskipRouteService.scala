@@ -7,7 +7,7 @@ import akka.stream.scaladsl.Source
 import com.google.inject.Inject
 import org.zalando.spearheads.innkeeper.api.JsonProtocols._
 import org.zalando.spearheads.innkeeper.api._
-import org.zalando.spearheads.innkeeper.dao.{PathRow, RouteRow, RoutesRepo}
+import org.zalando.spearheads.innkeeper.dao.{ModifiedRoute, RouteData, RoutesRepo}
 import slick.backend.DatabasePublisher
 import spray.json.pimpString
 
@@ -25,19 +25,26 @@ class EskipRouteService @Inject() (routesRepo: RoutesRepo, routeToEskipTransform
   }
 
   def currentEskipRoutes(currentTime: LocalDateTime = LocalDateTime.now()): Source[EskipRouteWrapper, NotUsed] = {
-    routeAndPathRowsStreamToEskipStream{
-      routesRepo.selectActiveRoutesWithPath(currentTime)
+    val publisher = routesRepo.selectActiveRoutesData(currentTime).mapResult { routeData =>
+      EskipRouteWrapper(
+        routeChangeType = RouteChangeType.Create,
+        name = RouteName(routeData.name),
+        timestamp = routeData.activateAt,
+        eskip = routeToEskipString(routeData)
+      )
     }
+
+    Source.fromPublisher(publisher)
   }
 
-  def routeToEskipString(routeRow: RouteRow, pathRow: PathRow): String = {
-    val newRoute = routeRow.routeJson.parseJson.convertTo[NewRoute]
+  def routeToEskipString(routeData: RouteData): String = {
+    val newRoute = routeData.routeJson.parseJson.convertTo[NewRoute]
 
     val context = RouteToEskipTransformerContext(
-      routeName = routeRow.name,
-      pathUri = pathRow.uri,
-      hostIds = pathRow.hostIds,
-      useCommonFilters = routeRow.usesCommonFilters,
+      routeName = routeData.name,
+      pathUri = routeData.uri,
+      hostIds = routeData.hostIds,
+      useCommonFilters = routeData.usesCommonFilters,
       route = newRoute
     )
 
@@ -68,29 +75,15 @@ class EskipRouteService @Inject() (routesRepo: RoutesRepo, routeToEskipTransform
   }
 
   private def routeAndPathRowsStreamToEskipStream(
-    streamOfRows: => DatabasePublisher[(RouteRow, PathRow)]): Source[EskipRouteWrapper, NotUsed] = {
+    streamOfRows: => DatabasePublisher[ModifiedRoute]): Source[EskipRouteWrapper, NotUsed] = {
 
-    Source.fromPublisher(streamOfRows.mapResult {
-      case (routeRow, pathRow) =>
-        val (routeChangeType, timestamp) = routeRow.deletedAt match {
-          case Some(deletedAt) => RouteChangeType.Delete -> deletedAt
-          case None => if (pathRow.updatedAt.isAfter(routeRow.createdAt)) {
-            RouteChangeType.Update -> pathRow.updatedAt
-          } else {
-            if (routeRow.activateAt.isAfter(routeRow.createdAt)) {
-              RouteChangeType.Activate -> routeRow.activateAt
-            } else {
-              RouteChangeType.Create -> routeRow.createdAt
-            }
-          }
-        }
-
-        EskipRouteWrapper(
-          routeChangeType = routeChangeType,
-          name = RouteName(routeRow.name),
-          eskip = routeToEskipString(routeRow, pathRow),
-          timestamp = timestamp
-        )
+    Source.fromPublisher(streamOfRows.mapResult { modifiedRoute =>
+      EskipRouteWrapper(
+        routeChangeType = modifiedRoute.routeChangeType,
+        name = RouteName(modifiedRoute.name),
+        timestamp = modifiedRoute.timestamp,
+        eskip = modifiedRoute.routeData.map(routeToEskipString).getOrElse("")
+      )
     })
   }
 }

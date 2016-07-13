@@ -15,10 +15,10 @@ trait RoutesRepo {
   def selectById(id: Long): Future[Option[RouteRow]]
   def selectAll: DatabasePublisher[RouteRow]
   def selectFiltered(filters: List[QueryFilter]): DatabasePublisher[RouteRow]
-  def selectModifiedSince(since: LocalDateTime, currentTime: LocalDateTime): DatabasePublisher[(RouteRow, PathRow)]
+  def selectModifiedSince(since: LocalDateTime, currentTime: LocalDateTime): DatabasePublisher[ModifiedRoute]
   def routeWithNameExists(name: String): Future[Boolean]
 
-  def selectActiveRoutesWithPath(currentTime: LocalDateTime): DatabasePublisher[(RouteRow, PathRow)]
+  def selectActiveRoutesData(currentTime: LocalDateTime): DatabasePublisher[RouteData]
 
   /**
    * Marks route as deleted.

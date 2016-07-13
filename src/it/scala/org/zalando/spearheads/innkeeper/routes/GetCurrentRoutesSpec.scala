@@ -16,6 +16,7 @@ import spray.json.pimpString
 class GetCurrentRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
 
   val routesRepo = RoutesRepoHelper.routesRepo
+  val referenceTime: LocalDateTime = LocalDateTime.now()
 
   describe("get /current-routes") {
     describe("success") {
@@ -26,7 +27,7 @@ class GetCurrentRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
       }
 
       it("should return the correct routes") {
-        val createdAt = LocalDateTime.now()
+        val createdAt = referenceTime
         val activateAt = createdAt.minusDays(1)
         insertRoute("R1", createdAt = createdAt, activateAt = activateAt)
         insertRoute("R2", createdAt = createdAt, activateAt = activateAt)
@@ -40,7 +41,7 @@ class GetCurrentRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
       }
 
       it("should return the correct routes for a more complex scenario") {
-        val createdAt = LocalDateTime.now().minusMinutes(2)
+        val createdAt = referenceTime.minusMinutes(2)
         val activateAt = createdAt.minusDays(1)
 
         insertRoute("R1", createdAt = createdAt, activateAt = activateAt)
@@ -59,11 +60,12 @@ class GetCurrentRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
       }
 
       it("should not select the disabled routes") {
-        val createdAt = LocalDateTime.now().minusMinutes(3)
+        val createdAt = referenceTime.minusMinutes(3)
         insertRoute(
-          "R1",
+          name = "R1",
           createdAt = createdAt.plusSeconds(1),
-          disableAt = Some(LocalDateTime.now().minusHours(2)))
+          disableAt = Some(referenceTime.minusHours(2))
+        )
 
         val route2CreatedAt = createdAt.plusSeconds(2)
         insertRoute("R2", createdAt = route2CreatedAt)
@@ -74,7 +76,7 @@ class GetCurrentRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
         val entity = entityString(response)
         val routes = entity.parseJson.convertTo[Seq[EskipRouteWrapper]]
 
-        routes.map(_.timestamp).toSet should be (Set(route2CreatedAt))
+        routes.map(_.name.name).toSet should be (Set("R2"))
       }
     }
 

@@ -2,7 +2,10 @@ package org.zalando.spearheads.innkeeper.dao
 
 import java.time.LocalDateTime
 
+import org.zalando.spearheads.innkeeper.api.RouteChangeType
 import org.zalando.spearheads.innkeeper.dao.MyPostgresDriver.api._
+
+import scala.collection.immutable.Seq
 
 object Routes extends TableQuery(new RoutesTable(_))
 
@@ -19,6 +22,22 @@ case class RouteRow(
   description: Option[String] = None,
   deletedAt: Option[LocalDateTime] = None,
   deletedBy: Option[String] = None)
+
+case class RouteData(
+  name: String,
+  uri: String,
+  hostIds: Seq[Long],
+  routeJson: String,
+  usesCommonFilters: Boolean,
+  activateAt: LocalDateTime,
+  disableAt: Option[LocalDateTime]
+)
+
+case class ModifiedRoute(
+  routeChangeType: RouteChangeType,
+  name: String,
+  timestamp: LocalDateTime,
+  routeData: Option[RouteData])
 
 class RoutesTable(tag: Tag)
     extends Table[RouteRow](tag, "ROUTES") {
