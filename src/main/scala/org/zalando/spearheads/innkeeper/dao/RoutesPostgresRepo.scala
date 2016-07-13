@@ -175,7 +175,8 @@ class RoutesPostgresRepo @Inject() (
   }
 
   override def delete(id: Long, deletedByOpt: Option[String], dateTime: Option[LocalDateTime]): Future[Boolean] = {
-    logger.debug(s"delete $id by ${deletedByOpt.getOrElse("unknown")}")
+    val deletedBy = deletedByOpt.getOrElse("unknown")
+    logger.debug(s"delete $id by $deletedBy")
 
     val deletedAt = dateTime.getOrElse(LocalDateTime.now())
 
@@ -185,11 +186,17 @@ class RoutesPostgresRepo @Inject() (
     val insertDeletedRouteQuery = DeletedRoutes.forceInsertQuery(deletedRouteForInsertQuery)
     val deleteRouteQuery = routeByIdQuery.delete
 
-    db.run(insertDeletedRouteQuery).flatMap { _ =>
-      db.run(deleteRouteQuery).map {
-        case 1 => true
-        case _ => false
-      }
+    selectById(id).flatMap {
+      case Some(route) =>
+        logger.info(s"delete by $deletedBy of route: $route")
+
+        db.run(insertDeletedRouteQuery).flatMap { _ =>
+          db.run(deleteRouteQuery).map {
+            case 1 => true
+            case _ => false
+          }
+        }
+      case None => Future(false)
     }
   }
 
