@@ -82,7 +82,7 @@ class PathsPostgresRepo @Inject() (
   }
 
   override def pathWithUriHostIdExists(uri: String, hostIds: Seq[Long]): Future[Boolean] = {
-    logger.debug(s"uri hostId pairs are duplicate check")
+    logger.debug("uri hostId pairs are duplicate check")
 
     db.run {
       Paths.filter(_.uri === uri).map(_.hostIds).result
