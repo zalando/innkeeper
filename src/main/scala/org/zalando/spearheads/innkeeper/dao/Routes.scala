@@ -19,9 +19,7 @@ case class RouteRow(
   createdBy: String,
   createdAt: LocalDateTime = LocalDateTime.now(),
   disableAt: Option[LocalDateTime] = None,
-  description: Option[String] = None,
-  deletedAt: Option[LocalDateTime] = None,
-  deletedBy: Option[String] = None)
+  description: Option[String] = None)
 
 case class RouteData(
   name: String,
@@ -49,20 +47,17 @@ class RoutesTable(tag: Tag)
   def createdAt = column[LocalDateTime]("CREATED_AT")
   def activateAt = column[LocalDateTime]("ACTIVATE_AT")
   def disableAt = column[Option[LocalDateTime]]("DISABLE_AT")
-  def deletedAt = column[Option[LocalDateTime]]("DELETED_AT")
   def createdBy = column[String]("CREATED_BY")
-  def deletedBy = column[Option[String]]("DELETED_BY")
   def routeJson = column[String]("ROUTE_JSON")
   def usesCommonFilters = column[Boolean]("USES_COMMON_FILTERS")
 
   def nameIndex = index("ROUTES_NAME_IDX", name, unique = true)
   def createdAtIndex = index("ROUTES_CREATED_AT_IDX", createdAt)
   def disabledAtIndex = index("ROUTES_DISABLED_AT_IDX", disableAt)
-  def deletedAtIndex = index("ROUTES_DELETED_AT_IDX", deletedAt)
 
   lazy val pathFk = foreignKey("route_path_fk", pathId, Paths)(_.id)
 
   // Every table needs a * projection with the same type as the table's type parameter
   def * = // scalastyle:ignore
-    (id.?, pathId, name, routeJson, activateAt, usesCommonFilters, createdBy, createdAt, disableAt, description, deletedAt, deletedBy) <> (RouteRow.tupled, RouteRow.unapply)
+    (id.?, pathId, name, routeJson, activateAt, usesCommonFilters, createdBy, createdAt, disableAt, description) <> (RouteRow.tupled, RouteRow.unapply)
 }

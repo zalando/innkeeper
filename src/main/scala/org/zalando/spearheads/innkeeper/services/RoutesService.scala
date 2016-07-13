@@ -94,8 +94,8 @@ class DefaultRoutesService @Inject() (
 
   override def findById(id: Long): Future[Result[RouteOut]] = {
     routesRepo.selectById(id).flatMap {
-      case Some(routeRow) if routeRow.deletedAt.isEmpty => rowToEventualMaybeRoute(routeRow)
-      case _                                            => Future(Failure(NotFound()))
+      case Some(routeRow) => rowToEventualMaybeRoute(routeRow)
+      case _              => Future(Failure(NotFound()))
     }
   }
 
@@ -115,8 +115,6 @@ class DefaultRoutesService @Inject() (
       createdBy = UserName(routeRow.createdBy),
       description = routeRow.description,
       disableAt = routeRow.disableAt,
-      deletedAt = routeRow.deletedAt,
-      deletedBy = routeRow.deletedBy,
       usesCommonFilters = routeRow.usesCommonFilters)
   }
 }

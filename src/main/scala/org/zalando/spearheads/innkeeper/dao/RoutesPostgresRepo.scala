@@ -45,7 +45,7 @@ class RoutesPostgresRepo @Inject() (
     logger.debug("selectAll")
 
     db.stream {
-      selectAllQuery.result
+      Routes.result
     }
   }
 
@@ -53,8 +53,8 @@ class RoutesPostgresRepo @Inject() (
     logger.debug("selectFiltered")
 
     val query = for {
-      (routesTable, pathsTable) <- selectAllQuery join Paths on (_.pathId === _.id)
-      if buildFilter(filters, routesTable, pathsTable)
+      (routesTable, pathsTable) <- Routes join Paths on (_.pathId === _.id)
+      if matchesFilters(filters, routesTable, pathsTable)
     } yield routesTable
 
     db.stream {
@@ -118,7 +118,7 @@ class RoutesPostgresRepo @Inject() (
 
   private val routesAndDeletedRoutesQuery = {
     val routesQuery = for {
-      (routeRow, pathRow) <- selectAllQuery join Paths on (_.pathId === _.id)
+      (routeRow, pathRow) <- Routes join Paths on (_.pathId === _.id)
     } yield (
       routeRow.name,
       pathRow.uri.?,
@@ -154,8 +154,8 @@ class RoutesPostgresRepo @Inject() (
     logger.debug(s"selectActiveRoutesWithPath for currentTime: $currentTime")
 
     val query = for {
-      (routeRow, pathRow) <- Routes.filter(_.id in activeRouteIds(currentTime)) join
-        Paths on (_.pathId === _.id)
+      (routeRow, pathRow) <- Routes join Paths on (_.pathId === _.id)
+      if routeIsActive(currentTime, routeRow)
     } yield (routeRow, pathRow)
 
     db.stream {
@@ -201,7 +201,7 @@ class RoutesPostgresRepo @Inject() (
     }
   }
 
-  private def buildFilter(filters: List[QueryFilter], routesTable: RoutesTable, pathsTable: PathsTable): Rep[Boolean] = {
+  private def matchesFilters(filters: List[QueryFilter], routesTable: RoutesTable, pathsTable: PathsTable): Rep[Boolean] = {
     filters.map {
       case RouteNameFilter(routeNames) =>
         routeNames.map(routesTable.name === _)
@@ -222,12 +222,9 @@ class RoutesPostgresRepo @Inject() (
       .getOrElse(LiteralColumn(true))
   }
 
-  private def activeRouteIds(currentTime: LocalDateTime) = for {
-    routeRow <- Routes
-    if routeRow.deletedAt.isEmpty && routeRow.activateAt < currentTime &&
+  private def routeIsActive(currentTime: LocalDateTime, routeRow: RoutesTable) =
+    routeRow.activateAt < currentTime &&
       (routeRow.disableAt.isEmpty ||
         (routeRow.disableAt.isDefined && routeRow.disableAt > currentTime))
-  } yield routeRow.id
 
-  private lazy val selectAllQuery = Routes.filter(_.deletedAt.isEmpty)
 }
