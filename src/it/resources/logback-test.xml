@@ -10,5 +10,6 @@
     </root>
 
     <logger name="org.zalando.spearheads.innkeeper" level="info"/>
+    <logger name="org.zalando.spearheads.innkeeper.dao.RoutesPostgresRepo" level="off"/>
 
 </configuration>
