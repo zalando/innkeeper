@@ -38,7 +38,7 @@ class EskipRouteServiceSpec extends FunSpec with Matchers with MockFactory with 
             .returning(FakeDatabasePublisher(Seq(routeData)))
 
           (routeToEskipTransformer.transform _)
-            .expects(transformerContext)
+            .expects(routeData)
             .returning(eskipRoute)
 
           val result = eskipRouteService.currentEskipRoutes(currentTime)
@@ -60,7 +60,7 @@ class EskipRouteServiceSpec extends FunSpec with Matchers with MockFactory with 
               appendedFilters = Seq())
 
           (routeToEskipTransformer.transform _)
-            .expects(transformerContext.copy(useCommonFilters = false))
+            .expects(routeData.copy(usesCommonFilters = false))
             .returning(eskipRouteWithoutCommonFilters)
 
           val result = eskipRouteService.currentEskipRoutes(currentTime)
@@ -100,7 +100,7 @@ class EskipRouteServiceSpec extends FunSpec with Matchers with MockFactory with 
       }
 
       (routeToEskipTransformer.transform _)
-        .expects(transformerContext)
+        .expects(routeData)
         .returning(emptyEskipRoute)
 
       val result = eskipRouteService.findModifiedSince(referrenceTime, currentTime).runWith(Sink.head).futureValue
@@ -213,13 +213,5 @@ class EskipRouteServiceSpec extends FunSpec with Matchers with MockFactory with 
     prependedFilters = Seq("""prependedFirst("hello")""", "prependedSecond(1.5)"),
     appendedFilters = Seq("appendedFirst()", "appendedSecond(0.8)"),
     endpoint = "\"endpoint.my.com\"")
-
-  val transformerContext = RouteToEskipTransformerContext(
-    routeName = routeName,
-    pathUri = pathUri,
-    hostIds = hostIds,
-    useCommonFilters = true,
-    route = newRoute
-  )
 }
 

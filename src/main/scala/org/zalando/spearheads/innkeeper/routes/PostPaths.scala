@@ -41,7 +41,7 @@ class PostPaths @Inject() (
           hasOneOfTheScopes(authenticatedUser, reqDesc, scopes.WRITE) {
             logger.debug(s"post /paths non-admin team $team")
 
-            if (path.ownedByTeam.isDefined && path.ownedByTeam.get.name != team.name) {
+            if (path.ownedByTeam.exists(_.name != team.name)) {
               reject(PathOwnedByTeamAuthorizationRejection(reqDesc))
             } else if (path.hostIds.isEmpty) {
               reject(EmptyPathHostIdsRejection(reqDesc))
