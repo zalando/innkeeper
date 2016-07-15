@@ -48,6 +48,8 @@ libraryDependencies ++= List(
   "com.zaxxer"               % "HikariCP"                             % "2.4.5",
   "nl.grons"                %% "metrics-scala"                        % "3.5.2",
   "org.asynchttpclient"      % "async-http-client"                    % "2.0.10",
+  "net.jodah"                % "failsafe"                             % "0.8.3",
+
 
   "org.scalatest"           %% "scalatest"                            % scalaTestV       % "it,test",
   "org.scalamock"           %% "scalamock-scalatest-support"          % scalaMockV       % "it,test",

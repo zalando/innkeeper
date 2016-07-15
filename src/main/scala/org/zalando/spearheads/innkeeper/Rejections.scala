@@ -73,6 +73,12 @@ object Rejections {
     def code: String = "ISE"
   }
 
+  case class DownstreamServiceProblemRejection(requestDescription: String) extends Rejection with InnkeeperRejection {
+    def statusCode: StatusCode = StatusCodes.InternalServerError
+    def message: String = "Downstream Service Problem"
+    def code: String = "DSP"
+  }
+
   case class UnmarshallRejection(requestDescription: String) extends Rejection with InnkeeperRejection {
     def statusCode: StatusCode = StatusCodes.BadRequest
     def message: String = "Failed to unmarshall"
