@@ -23,7 +23,8 @@ class InnkeeperPostgresSchema @Inject() (
   private val tables = Seq(
     Paths,
     Routes,
-    DeletedRoutes
+    DeletedRoutes,
+    Audits
   )
 
   private val getTablesAction = MTable.getTables(

@@ -5,8 +5,9 @@ import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Source
 import org.scalatest.concurrent.ScalaFutures
 import org.zalando.spearheads.innkeeper.dao.MyPostgresDriver.api._
-import org.zalando.spearheads.innkeeper.dao.{InnkeeperPostgresSchema, PathsPostgresRepo, RoutesPostgresRepo}
+import org.zalando.spearheads.innkeeper.dao.{AuditsPostgresRepo, InnkeeperPostgresSchema, PathsPostgresRepo, RoutesPostgresRepo}
 import slick.backend.DatabasePublisher
+
 import scala.language.implicitConversions
 import scala.concurrent.ExecutionContext
 
@@ -17,6 +18,7 @@ trait DaoHelper extends ScalaFutures {
   val schema = new InnkeeperPostgresSchema(db, executionContext)
   val routesRepo = new RoutesPostgresRepo(db, executionContext)
   val pathsRepo = new PathsPostgresRepo(db, executionContext)
+  val auditsRepo = new AuditsPostgresRepo(db, executionContext)
   implicit val actorSystem = ActorSystem()
   implicit val materializer = ActorMaterializer()
 
