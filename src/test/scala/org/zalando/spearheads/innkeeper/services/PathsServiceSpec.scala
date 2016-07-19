@@ -10,7 +10,7 @@ import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.{FunSpec, Matchers}
 import org.zalando.spearheads.innkeeper.FakeDatabasePublisher
 import org.zalando.spearheads.innkeeper.api.{PathIn, PathOut, TeamName, UserName}
-import org.zalando.spearheads.innkeeper.dao.{PathRow, PathsRepo}
+import org.zalando.spearheads.innkeeper.dao.{AuditType, AuditsRepo, PathRow, PathsRepo}
 import org.zalando.spearheads.innkeeper.services.ServiceResult.DuplicatePathUriHost
 
 import scala.concurrent.duration.DurationInt
@@ -24,8 +24,9 @@ class PathsServiceSpec extends FunSpec with Matchers with MockFactory with Scala
   implicit val actorSystem = ActorSystem()
   implicit val materializer = ActorMaterializer()
   val pathsRepo = mock[PathsRepo]
+  val auditsRepo = mock[AuditsRepo]
 
-  val pathsService = new DefaultPathsService(pathsRepo)
+  val pathsService = new DefaultPathsService(pathsRepo, auditsRepo)
 
   describe("PathsServiceSpec") {
 
@@ -35,6 +36,7 @@ class PathsServiceSpec extends FunSpec with Matchers with MockFactory with Scala
           .returning(Future(pathRow))
         (pathsRepo.pathWithUriHostIdExists _).expects(pathIn.uri, pathIn.hostIds)
           .returning(Future(false))
+        (auditsRepo.persistPathLog _).expects(*, "user", AuditType.Create)
 
         val result = pathsService.create(pathIn, TeamName(ownedByTeam),
           UserName(createdBy), createdAt).futureValue
