@@ -7,7 +7,7 @@ import akka.stream.scaladsl.Source
 import com.google.inject.Inject
 import org.zalando.spearheads.innkeeper.api.JsonProtocols._
 import org.zalando.spearheads.innkeeper.api.{NewRoute, RouteIn, RouteName, RouteOut, UserName}
-import org.zalando.spearheads.innkeeper.dao.{QueryFilter, RouteRow, RoutesRepo}
+import org.zalando.spearheads.innkeeper.dao.{AuditsRepo, AuditType, QueryFilter, RouteRow, RoutesRepo}
 import org.zalando.spearheads.innkeeper.services.ServiceResult._
 import org.zalando.spearheads.innkeeper.utils.EnvConfig
 import slick.backend.DatabasePublisher
@@ -34,6 +34,7 @@ trait RoutesService {
 
 class DefaultRoutesService @Inject() (
     routesRepo: RoutesRepo,
+    auditsRepo: AuditsRepo,
     config: EnvConfig)(implicit val executionContext: ExecutionContext) extends RoutesService {
 
   override def create(
@@ -58,8 +59,18 @@ class DefaultRoutesService @Inject() (
 
     routesRepo.routeWithNameExists(routeRow.name)
       .flatMap {
-        case false => routesRepo.insert(routeRow).flatMap(rowToEventualMaybeRoute)
-        case true  => Future.successful(Failure(DuplicateRouteName()))
+        case false =>
+          val insertResult = routesRepo.insert(routeRow)
+          insertResult.onSuccess {
+            case insertedRoute =>
+              insertedRoute.id.foreach { id =>
+                auditsRepo.persistRouteLog(id, createdBy.name, AuditType.Create)
+              }
+          }
+
+          insertResult.flatMap(rowToEventualMaybeRoute)
+        case true =>
+          Future.successful(Failure(DuplicateRouteName()))
       }
   }
 
@@ -68,7 +79,14 @@ class DefaultRoutesService @Inject() (
   }
 
   override def remove(id: Long, deletedBy: String): Future[Result[Boolean]] = {
-    routesRepo.delete(id, Some(deletedBy)).map {
+    val deleteResult = routesRepo.delete(id, Some(deletedBy))
+
+    deleteResult.onSuccess {
+      case true  => auditsRepo.persistRouteLog(id, deletedBy, AuditType.Delete)
+      case false =>
+    }
+
+    deleteResult.map {
       case false => Failure(NotFound())
       case _     => Success(true)
     }
