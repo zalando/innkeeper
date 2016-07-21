@@ -39,7 +39,7 @@ class AsyncHttpClient @Inject() (
 
     token match {
       case Some(t) =>
-        requestBuilder.setHeader("Authorization", s"Bearer $token")
+        requestBuilder.setHeader("Authorization", s"Bearer $t")
       case _ =>
     }
 
