@@ -53,6 +53,7 @@ class DefaultRoutesService @Inject() (
       }),
       createdBy = createdBy.name,
       createdAt = createdAt,
+      updatedAt = createdAt,
       description = route.description,
       disableAt = route.disableAt
     )

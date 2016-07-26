@@ -189,10 +189,12 @@ class RoutesServiceSpec extends FunSpec with Matchers with MockFactory with Scal
 
   val createdBy = "user"
   val ownedByTeam = "team"
-  val createdAt = LocalDateTime.now()
-  val deletedBefore = LocalDateTime.now()
-  val activateAt = LocalDateTime.now()
-  val disableAt = LocalDateTime.now()
+  val referenceTime = LocalDateTime.now()
+  val createdAt = referenceTime
+  val updatedAt = referenceTime
+  val deletedBefore = referenceTime
+  val activateAt = referenceTime
+  val disableAt = referenceTime
   val routeName = RouteName("THE_ROUTE")
   val pathId = 1L
   val savedRoute = RouteOut(
@@ -226,16 +228,18 @@ class RoutesServiceSpec extends FunSpec with Matchers with MockFactory with Scal
     Some(description))
 
   val routeRowWithoutId = RouteRow(
-    None,
-    pathId,
-    routeName.name,
-    newRouteJson,
-    activateAt,
+    id = None,
+    pathId = pathId,
+    name = routeName.name,
+    routeJson = newRouteJson,
+    activateAt = activateAt,
     usesCommonFilters = false,
-    createdBy,
-    createdAt,
-    Some(disableAt),
-    description = Some(description))
+    createdBy = createdBy,
+    createdAt = createdAt,
+    updatedAt = updatedAt,
+    disableAt = Some(disableAt),
+    description = Some(description)
+  )
 
   val routeRow = routeRowWithoutId.copy(id = Some(routeId))
   val routeRow1 = routeRowWithoutId.copy(
