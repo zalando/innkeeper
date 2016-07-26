@@ -59,19 +59,23 @@ class DefaultPathsService @Inject() (pathsRepo: PathsRepo, auditsRepo: AuditsRep
     pathsRepo.pathWithUriHostIdExists(path.uri, path.hostIds)
       .flatMap {
         case false =>
-          val insertResult = pathsRepo.insert(pathRow)
+          val insertPathResult = pathsRepo.insert(pathRow)
 
-          insertResult.onSuccess {
-            case insertedPath => insertedPath.id.foreach { id =>
-              auditsRepo.persistPathLog(id, createdBy.name, AuditType.Create)
-            }
-          }
+          auditPathCreate(insertPathResult, createdBy.name)
 
-          insertResult.flatMap(rowToEventualMaybePath)
+          insertPathResult.flatMap(rowToEventualMaybePath)
 
         case true =>
           Future.successful(Failure(DuplicatePathUriHost()))
       }
+  }
+
+  private def auditPathCreate(insertPathResult: Future[PathRow], userName: String): Unit = {
+    insertPathResult.onSuccess {
+      case insertedPath => insertedPath.id.foreach { id =>
+        auditsRepo.persistPathLog(id, userName, AuditType.Create)
+      }
+    }
   }
 
   override def patch(
@@ -82,6 +86,15 @@ class DefaultPathsService @Inject() (pathsRepo: PathsRepo, auditsRepo: AuditsRep
 
     val updateResult = pathsRepo.update(id, path, updatedAt)
 
+    auditPathUpdate(updateResult, userName)
+
+    updateResult.flatMap {
+      case Some(pathRow) => rowToEventualMaybePath(pathRow)
+      case _             => Future(Failure(NotFound()))
+    }
+  }
+
+  private def auditPathUpdate(updateResult: Future[Option[PathRow]], userName: String): Unit = {
     updateResult.onSuccess {
       case Some(pathRow) =>
         pathRow.id.foreach { id =>
@@ -89,11 +102,6 @@ class DefaultPathsService @Inject() (pathsRepo: PathsRepo, auditsRepo: AuditsRep
         }
 
       case None =>
-    }
-
-    updateResult.flatMap {
-      case Some(pathRow) => rowToEventualMaybePath(pathRow)
-      case _             => Future(Failure(NotFound()))
     }
   }
 

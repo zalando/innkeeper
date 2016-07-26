@@ -60,18 +60,22 @@ class DefaultRoutesService @Inject() (
     routesRepo.routeWithNameExists(routeRow.name)
       .flatMap {
         case false =>
-          val insertResult = routesRepo.insert(routeRow)
-          insertResult.onSuccess {
-            case insertedRoute =>
-              insertedRoute.id.foreach { id =>
-                auditsRepo.persistRouteLog(id, createdBy.name, AuditType.Create)
-              }
-          }
+          val insertRouteResult = routesRepo.insert(routeRow)
+          auditRouteCreate(insertRouteResult, createdBy.name)
 
-          insertResult.flatMap(rowToEventualMaybeRoute)
+          insertRouteResult.flatMap(rowToEventualMaybeRoute)
         case true =>
           Future.successful(Failure(DuplicateRouteName()))
       }
+  }
+
+  private def auditRouteCreate(insertRouteResult: Future[RouteRow], userName: String): Unit = {
+    insertRouteResult.onSuccess {
+      case insertedRoute =>
+        insertedRoute.id.foreach { id =>
+          auditsRepo.persistRouteLog(id, userName, AuditType.Create)
+        }
+    }
   }
 
   private[services] def defaultNumberOfMinutesToActivateRoute() = {
@@ -81,14 +85,18 @@ class DefaultRoutesService @Inject() (
   override def remove(id: Long, deletedBy: String): Future[Result[Boolean]] = {
     val deleteResult = routesRepo.delete(id, Some(deletedBy))
 
-    deleteResult.onSuccess {
-      case true  => auditsRepo.persistRouteLog(id, deletedBy, AuditType.Delete)
-      case false =>
-    }
+    auditRouteDelete(deleteResult, id, deletedBy)
 
     deleteResult.map {
       case false => Failure(NotFound())
       case _     => Success(true)
+    }
+  }
+
+  private def auditRouteDelete(deleteResult: Future[Boolean], id: Long, userName: String): Unit = {
+    deleteResult.onSuccess {
+      case true  => auditsRepo.persistRouteLog(id, userName, AuditType.Delete)
+      case false =>
     }
   }
 
