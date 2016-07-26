@@ -28,5 +28,6 @@ class DbModule extends AbstractModule with ScalaModule {
     bind[InnkeeperSchema].to[InnkeeperPostgresSchema].asEagerSingleton()
     bind[RoutesRepo].to[RoutesPostgresRepo].asEagerSingleton()
     bind[PathsRepo].to[PathsPostgresRepo].asEagerSingleton()
+    bind[AuditsRepo].to[AuditsPostgresRepo].asEagerSingleton()
   }
 }

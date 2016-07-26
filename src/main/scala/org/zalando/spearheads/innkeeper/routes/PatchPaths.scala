@@ -61,8 +61,10 @@ class PatchPaths @Inject() (
 
   private def patchPathRoute(id: Long, pathPatch: PathPatch, authenticatedUser: AuthenticatedUser, reqDesc: String): Route = {
     metrics.postPaths.time {
-      logger.info(s"$reqDesc by ${authenticatedUser.username.getOrElse("")}: $pathPatch")
-      onComplete(pathsService.patch(id, pathPatch)) {
+      val userName = authenticatedUser.username.getOrElse("")
+      logger.info(s"$reqDesc: $pathPatch")
+
+      onComplete(pathsService.patch(id, pathPatch, userName)) {
         case Success(ServiceResult.Success(pathOut)) => complete(pathOut)
         case _                                       => reject
       }

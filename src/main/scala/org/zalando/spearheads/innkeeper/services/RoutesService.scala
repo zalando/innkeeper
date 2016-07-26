@@ -7,7 +7,7 @@ import akka.stream.scaladsl.Source
 import com.google.inject.Inject
 import org.zalando.spearheads.innkeeper.api.JsonProtocols._
 import org.zalando.spearheads.innkeeper.api.{NewRoute, RouteIn, RouteName, RouteOut, UserName}
-import org.zalando.spearheads.innkeeper.dao.{QueryFilter, RouteRow, RoutesRepo}
+import org.zalando.spearheads.innkeeper.dao.{AuditsRepo, AuditType, QueryFilter, RouteRow, RoutesRepo}
 import org.zalando.spearheads.innkeeper.services.ServiceResult._
 import org.zalando.spearheads.innkeeper.utils.EnvConfig
 import slick.backend.DatabasePublisher
@@ -34,6 +34,7 @@ trait RoutesService {
 
 class DefaultRoutesService @Inject() (
     routesRepo: RoutesRepo,
+    auditsRepo: AuditsRepo,
     config: EnvConfig)(implicit val executionContext: ExecutionContext) extends RoutesService {
 
   override def create(
@@ -58,9 +59,23 @@ class DefaultRoutesService @Inject() (
 
     routesRepo.routeWithNameExists(routeRow.name)
       .flatMap {
-        case false => routesRepo.insert(routeRow).flatMap(rowToEventualMaybeRoute)
-        case true  => Future.successful(Failure(DuplicateRouteName()))
+        case false =>
+          val insertRouteResult = routesRepo.insert(routeRow)
+          auditRouteCreate(insertRouteResult, createdBy.name)
+
+          insertRouteResult.flatMap(rowToEventualMaybeRoute)
+        case true =>
+          Future.successful(Failure(DuplicateRouteName()))
       }
+  }
+
+  private def auditRouteCreate(insertRouteResult: Future[RouteRow], userName: String): Unit = {
+    insertRouteResult.onSuccess {
+      case insertedRoute =>
+        insertedRoute.id.foreach { id =>
+          auditsRepo.persistRouteLog(id, userName, AuditType.Create)
+        }
+    }
   }
 
   private[services] def defaultNumberOfMinutesToActivateRoute() = {
@@ -68,9 +83,20 @@ class DefaultRoutesService @Inject() (
   }
 
   override def remove(id: Long, deletedBy: String): Future[Result[Boolean]] = {
-    routesRepo.delete(id, Some(deletedBy)).map {
+    val deleteResult = routesRepo.delete(id, Some(deletedBy))
+
+    auditRouteDelete(deleteResult, id, deletedBy)
+
+    deleteResult.map {
       case false => Failure(NotFound())
       case _     => Success(true)
+    }
+  }
+
+  private def auditRouteDelete(deleteResult: Future[Boolean], id: Long, userName: String): Unit = {
+    deleteResult.onSuccess {
+      case true  => auditsRepo.persistRouteLog(id, userName, AuditType.Delete)
+      case false =>
     }
   }
 

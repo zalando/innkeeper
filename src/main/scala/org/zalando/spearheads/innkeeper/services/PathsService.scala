@@ -6,7 +6,7 @@ import akka.NotUsed
 import akka.stream.scaladsl.Source
 import com.google.inject.Inject
 import org.zalando.spearheads.innkeeper.api.{PathIn, PathOut, PathPatch, TeamName, UserName}
-import org.zalando.spearheads.innkeeper.dao.{PathRow, PathsRepo}
+import org.zalando.spearheads.innkeeper.dao.{AuditType, AuditsRepo, PathRow, PathsRepo}
 import org.zalando.spearheads.innkeeper.services.ServiceResult._
 import slick.backend.DatabasePublisher
 
@@ -23,6 +23,7 @@ trait PathsService {
   def patch(
     id: Long,
     path: PathPatch,
+    userName: String,
     updatedAt: LocalDateTime = LocalDateTime.now()): Future[Result[PathOut]]
 
   def findById(id: Long): Future[Result[PathOut]]
@@ -36,7 +37,7 @@ trait PathsService {
   def allPaths: Source[PathOut, NotUsed]
 }
 
-class DefaultPathsService @Inject() (pathsRepo: PathsRepo)(implicit val executionContext: ExecutionContext)
+class DefaultPathsService @Inject() (pathsRepo: PathsRepo, auditsRepo: AuditsRepo)(implicit val executionContext: ExecutionContext)
     extends PathsService {
 
   override def create(
@@ -57,19 +58,50 @@ class DefaultPathsService @Inject() (pathsRepo: PathsRepo)(implicit val executio
 
     pathsRepo.pathWithUriHostIdExists(path.uri, path.hostIds)
       .flatMap {
-        case false => pathsRepo.insert(pathRow).flatMap(rowToEventualMaybePath)
-        case true  => Future.successful(Failure(DuplicatePathUriHost()))
+        case false =>
+          val insertPathResult = pathsRepo.insert(pathRow)
+
+          auditPathCreate(insertPathResult, createdBy.name)
+
+          insertPathResult.flatMap(rowToEventualMaybePath)
+
+        case true =>
+          Future.successful(Failure(DuplicatePathUriHost()))
       }
+  }
+
+  private def auditPathCreate(insertPathResult: Future[PathRow], userName: String): Unit = {
+    insertPathResult.onSuccess {
+      case insertedPath => insertedPath.id.foreach { id =>
+        auditsRepo.persistPathLog(id, userName, AuditType.Create)
+      }
+    }
   }
 
   override def patch(
     id: Long,
     path: PathPatch,
+    userName: String,
     updatedAt: LocalDateTime): Future[ServiceResult.Result[PathOut]] = {
 
-    pathsRepo.update(id, path, updatedAt).flatMap {
+    val updateResult = pathsRepo.update(id, path, updatedAt)
+
+    auditPathUpdate(updateResult, userName)
+
+    updateResult.flatMap {
       case Some(pathRow) => rowToEventualMaybePath(pathRow)
       case _             => Future(Failure(NotFound()))
+    }
+  }
+
+  private def auditPathUpdate(updateResult: Future[Option[PathRow]], userName: String): Unit = {
+    updateResult.onSuccess {
+      case Some(pathRow) =>
+        pathRow.id.foreach { id =>
+          auditsRepo.persistPathLog(id, userName, AuditType.Update)
+        }
+
+      case None =>
     }
   }
 

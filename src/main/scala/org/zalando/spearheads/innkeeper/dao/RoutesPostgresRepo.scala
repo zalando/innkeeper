@@ -186,17 +186,11 @@ class RoutesPostgresRepo @Inject() (
     val insertDeletedRouteQuery = DeletedRoutes.forceInsertQuery(deletedRouteForInsertQuery)
     val deleteRouteQuery = routeByIdQuery.delete
 
-    selectById(id).flatMap {
-      case Some(route) =>
-        logger.info(s"delete by $deletedBy of route: $route")
-
-        db.run(insertDeletedRouteQuery).flatMap { _ =>
-          db.run(deleteRouteQuery).map {
-            case 1 => true
-            case _ => false
-          }
-        }
-      case None => Future(false)
+    db.run(insertDeletedRouteQuery).flatMap { _ =>
+      db.run(deleteRouteQuery).map {
+        case 1 => true
+        case _ => false
+      }
     }
   }
 

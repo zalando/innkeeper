@@ -11,8 +11,8 @@ import org.scalatest.{FunSpec, Matchers}
 import org.zalando.spearheads.innkeeper.FakeDatabasePublisher
 import org.zalando.spearheads.innkeeper.api.JsonProtocols._
 import org.zalando.spearheads.innkeeper.api.{NewRoute, NumericArg, Predicate, RouteIn, RouteName, RouteOut, StringArg, UserName}
-import org.zalando.spearheads.innkeeper.dao.{RouteRow, RoutesRepo}
-import org.zalando.spearheads.innkeeper.services.ServiceResult.{NotFound, DuplicateRouteName}
+import org.zalando.spearheads.innkeeper.dao.{AuditType, AuditsRepo, RouteRow, RoutesRepo}
+import org.zalando.spearheads.innkeeper.services.ServiceResult.{DuplicateRouteName, NotFound}
 import org.zalando.spearheads.innkeeper.utils.EnvConfig
 import spray.json.pimpAny
 
@@ -27,9 +27,10 @@ class RoutesServiceSpec extends FunSpec with Matchers with MockFactory with Scal
   implicit val actorSystem = ActorSystem()
   implicit val materializer = ActorMaterializer()
   val routesRepo = mock[RoutesRepo]
+  val auditsRepo = mock[AuditsRepo]
   val config = mock[EnvConfig]
 
-  val routesService = new DefaultRoutesService(routesRepo, config)
+  val routesService = new DefaultRoutesService(routesRepo, auditsRepo, config)
 
   describe("RoutesServiceSpec") {
     describe("#create") {
@@ -40,6 +41,7 @@ class RoutesServiceSpec extends FunSpec with Matchers with MockFactory with Scal
           .returning(Future(routeRow))
         (routesRepo.routeWithNameExists _).expects(routeIn.name.name)
           .returning(Future(false))
+        (auditsRepo.persistRouteLog _).expects(*, "user", AuditType.Create)
 
         val result = routesService.create(routeIn, UserName(createdBy), createdAt).futureValue
 
@@ -55,6 +57,8 @@ class RoutesServiceSpec extends FunSpec with Matchers with MockFactory with Scal
           .returning(Future(routeRow.copy(activateAt = createdAt.plusMinutes(5))))
         (routesRepo.routeWithNameExists _).expects(routeIn.name.name)
           .returning(Future(false))
+
+        (auditsRepo.persistRouteLog _).expects(*, "user", AuditType.Create)
 
         val result = routesService.create(routeInNoActivationOrDisableDate, UserName(createdBy), createdAt).futureValue
 
@@ -77,6 +81,8 @@ class RoutesServiceSpec extends FunSpec with Matchers with MockFactory with Scal
 
       it("should remove a route") {
         (routesRepo.delete _).expects(routeId, username, None).returning(Future(true))
+        (auditsRepo.persistRouteLog _).expects(*, username.get, AuditType.Delete)
+
         val result = routesService.remove(routeId, username.get).futureValue
         result should be(ServiceResult.Success(true))
       }
