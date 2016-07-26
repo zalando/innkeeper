@@ -38,6 +38,11 @@ case class RouteOut(
   deletedAt: Option[LocalDateTime] = None,
   deletedBy: Option[String] = None)
 
+case class RoutePatch(
+  route: Option[NewRoute],
+  usesCommonFilters: Option[Boolean],
+  description: Option[String])
+
 case class NewRoute(
   predicates: Option[Seq[Predicate]] = Some(Seq.empty),
   filters: Option[Seq[Filter]] = Some(Seq.empty),

@@ -6,8 +6,10 @@ import java.time.temporal.ChronoUnit
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.time.{Seconds, Span}
 import org.scalatest.{BeforeAndAfter, FunSpec, Matchers}
-import org.zalando.spearheads.innkeeper.api.PathPatch
+import org.zalando.spearheads.innkeeper.api._
 import org.zalando.spearheads.innkeeper.routes.RoutesRepoHelper._
+
+import scala.collection.immutable.Seq
 
 class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers with ScalaFutures {
 
@@ -36,6 +38,60 @@ class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers w
         routeRow.isDefined should be (true)
         routeRow.get.id should be ('defined)
         routeRow.get.routeJson should be (routeJson("GET"))
+      }
+    }
+
+    describe("#patch") {
+      it("should update the description") {
+        val insertedRoute = insertRoute()
+
+        val updatedAt = LocalDateTime.now()
+        val updatedDescription = "updated description: " + insertedRoute.description.getOrElse("")
+        val routePatch = RoutePatch(
+          route = None,
+          usesCommonFilters = None,
+          description = Some(updatedDescription)
+        )
+
+        val routeRow = routesRepo.update(insertedRoute.id.get, routePatch, updatedAt).futureValue.get
+
+        routeRow.description.contains(updatedDescription) should be(true)
+      }
+
+      it("should update usesCommonFilters") {
+        val insertedRoute = insertRoute()
+
+        val updatedAt = LocalDateTime.now()
+        val updatedUsesCommonFilters = !insertedRoute.usesCommonFilters
+        val routePatch = RoutePatch(
+          route = None,
+          usesCommonFilters = Some(updatedUsesCommonFilters),
+          description = None
+        )
+
+        val routeRow = routesRepo.update(insertedRoute.id.get, routePatch, updatedAt).futureValue.get
+
+        routeRow.usesCommonFilters should be(updatedUsesCommonFilters)
+      }
+
+      it("should update routeJson") {
+        val insertedRoute = insertRoute()
+
+        val updatedAt = LocalDateTime.now()
+        val newRoute = NewRoute(
+          predicates = Some(Seq(Predicate("newPredicate", Seq.empty[Arg]))),
+          filters = Some(Seq(Filter("newFilter", Seq.empty[Arg]))),
+          endpoint = Some("new-endpoint.com")
+        )
+        val routePatch = RoutePatch(
+          route = Some(newRoute),
+          usesCommonFilters = None,
+          description = None
+        )
+
+        val routeRow = routesRepo.update(insertedRoute.id.get, routePatch, updatedAt).futureValue.get
+
+        routeRow.routeJson should not be insertedRoute.routeJson
       }
     }
 

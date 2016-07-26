@@ -4,11 +4,13 @@ import java.time.LocalDateTime
 
 import com.google.inject.{Inject, Singleton}
 import org.slf4j.LoggerFactory
-import org.zalando.spearheads.innkeeper.api.RouteChangeType
-import slick.backend.DatabasePublisher
+import org.zalando.spearheads.innkeeper.api.{RouteChangeType, RoutePatch}
+import org.zalando.spearheads.innkeeper.api.JsonProtocols._
 import org.zalando.spearheads.innkeeper.dao.MyPostgresDriver.api._
+import slick.backend.DatabasePublisher
+import spray.json.pimpAny
 
-import scala.collection.immutable.Seq
+import scala.collection.immutable.{List, Seq}
 import scala.concurrent.{ExecutionContext, Future}
 
 /**
@@ -227,5 +229,41 @@ class RoutesPostgresRepo @Inject() (
     routeRow.activateAt < currentTime &&
       (routeRow.disableAt.isEmpty ||
         (routeRow.disableAt.isDefined && routeRow.disableAt > currentTime))
+
+  override def update(id: Long, routePatch: RoutePatch, updatedAt: LocalDateTime): Future[Option[RouteRow]] = {
+    logger.debug(s"update route $id")
+
+    val updateDescriptionActionOpt = routePatch.description.map { description =>
+      Routes
+        .filter(_.id === id)
+        .map(route => (route.updatedAt, route.description))
+        .update((updatedAt, Some(description)))
+    }
+    val updateUsesCommonFiltersActionOpt = routePatch.usesCommonFilters.map { usesCommonFilters =>
+      Routes
+        .filter(_.id === id)
+        .map(route => (route.updatedAt, route.usesCommonFilters))
+        .update((updatedAt, usesCommonFilters))
+    }
+    val updateRouteJsonActionOpt = routePatch.route.map { route =>
+      val routeJson = route.toJson.compactPrint
+      Routes
+        .filter(_.id === id)
+        .map(route => (route.updatedAt, route.routeJson))
+        .update((updatedAt, routeJson))
+    }
+
+    val actions = List(
+      updateDescriptionActionOpt,
+      updateUsesCommonFiltersActionOpt,
+      updateRouteJsonActionOpt
+    ).flatten
+
+    db.run {
+      DBIO.sequence(actions).transactionally
+    }.flatMap { _ =>
+      selectById(id)
+    }
+  }
 
 }

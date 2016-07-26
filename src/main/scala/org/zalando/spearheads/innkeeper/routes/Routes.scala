@@ -23,6 +23,7 @@ class Routes @Inject() (
     getRoutes: GetRoutes,
     getCurrentRoutes: GetCurrentRoutes,
     deleteRoute: DeleteRoute,
+    patchRoutes: PatchRoutes,
     postRoutes: PostRoutes,
     getUpdatedRoutes: GetUpdatedRoutes,
     getHosts: GetHosts,
@@ -53,7 +54,7 @@ class Routes @Inject() (
             } ~ path("routes") {
               getRoutes(authenticatedUser) ~ postRoutes(authenticatedUser, token)
             } ~ path("routes" / LongNumber) { id =>
-              getRoute(authenticatedUser, id) ~ deleteRoute(authenticatedUser, id, token)
+              getRoute(authenticatedUser, id) ~ deleteRoute(authenticatedUser, id, token) ~ patchRoutes(authenticatedUser, token, id)
             } ~ pathsRoutes(authenticatedUser, token)
           }
         } ~ path("status") {

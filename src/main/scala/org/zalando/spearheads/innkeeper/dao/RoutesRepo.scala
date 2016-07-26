@@ -2,6 +2,7 @@ package org.zalando.spearheads.innkeeper.dao
 
 import java.time.LocalDateTime
 
+import org.zalando.spearheads.innkeeper.api.RoutePatch
 import slick.backend.DatabasePublisher
 
 import scala.concurrent.Future
@@ -30,4 +31,5 @@ trait RoutesRepo {
    */
   def delete(id: Long, deletedBy: Option[String] = None, dateTime: Option[LocalDateTime] = None): Future[Boolean]
 
+  def update(id: Long, pathPatch: RoutePatch, updatedAt: LocalDateTime): Future[Option[RouteRow]]
 }
