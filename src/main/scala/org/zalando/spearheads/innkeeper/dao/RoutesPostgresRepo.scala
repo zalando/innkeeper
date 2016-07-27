@@ -68,7 +68,7 @@ class RoutesPostgresRepo @Inject() (
     logger.debug(s"selectModifiedSince $since")
 
     db.stream(modifiedRoutesQuery(since, currentTime).result).mapResult {
-      case (routeName, _, _, _, _, _, _, _, _, Some(deletedAt)) =>
+      case (routeName, _, _, _, _, _, _, _, _, _, Some(deletedAt)) =>
         ModifiedRoute(
           routeChangeType = RouteChangeType.Delete,
           name = routeName,
@@ -76,8 +76,14 @@ class RoutesPostgresRepo @Inject() (
           routeData = None
         )
 
-      case (routeName, Some(uri), Some(hostIds), Some(routeJson), Some(usesCommonFilters), Some(createdAt), Some(updatedAt), Some(activateAt), disableAt, None) =>
-        val (routeChangeType, timestamp) = if (updatedAt.isAfter(createdAt)) {
+      case (routeName, Some(uri), Some(hostIds), Some(routeJson), Some(usesCommonFilters), Some(createdAt), Some(routeUpdatedAt), Some(pathUpdatedAt), Some(activateAt), disableAt, None) =>
+        val (routeChangeType, timestamp) = if (pathUpdatedAt.isAfter(createdAt) || routeUpdatedAt.isAfter(createdAt)) {
+          val updatedAt = if (pathUpdatedAt.isAfter(routeUpdatedAt)) {
+            pathUpdatedAt
+          } else {
+            routeUpdatedAt
+          }
+
           RouteChangeType.Update -> updatedAt
         } else {
           if (activateAt.isAfter(createdAt)) {
@@ -109,14 +115,14 @@ class RoutesPostgresRepo @Inject() (
   }
 
   private def modifiedRoutesQuery(since: LocalDateTime, currentTime: LocalDateTime) = for {
-    (routeName, uri, hostIds, routeJson, usesCommonFilters, createdAt, updatedAt, activateAt, disableAt, deletedAt) <- routesAndDeletedRoutesQuery
+    (routeName, uri, hostIds, routeJson, usesCommonFilters, createdAt, routeUpdatedAt, pathUpdatedAt, activateAt, disableAt, deletedAt) <- routesAndDeletedRoutesQuery
     routeWasDeleted = deletedAt.isDefined && deletedAt > since
     routeIsActive = activateAt < currentTime
     if routeWasDeleted ||
       (deletedAt.isEmpty &&
         routeIsActive &&
-        (activateAt > since || createdAt > since || updatedAt > since))
-  } yield (routeName, uri, hostIds, routeJson, usesCommonFilters, createdAt, updatedAt, activateAt, disableAt, deletedAt)
+        (activateAt > since || routeUpdatedAt > since || pathUpdatedAt > since))
+  } yield (routeName, uri, hostIds, routeJson, usesCommonFilters, createdAt, routeUpdatedAt, pathUpdatedAt, activateAt, disableAt, deletedAt)
 
   private val routesAndDeletedRoutesQuery = {
     val routesQuery = for {
@@ -128,6 +134,7 @@ class RoutesPostgresRepo @Inject() (
       routeRow.routeJson.?,
       routeRow.usesCommonFilters.?,
       routeRow.createdAt.?,
+      routeRow.updatedAt.?,
       pathRow.updatedAt.?,
       routeRow.activateAt.?,
       routeRow.disableAt,
@@ -142,9 +149,10 @@ class RoutesPostgresRepo @Inject() (
         SimpleLiteral[Option[String]]("NULL"), // routeJson
         SimpleLiteral[Option[Boolean]]("NULL"), // usesCommonFilters
         SimpleLiteral[Option[LocalDateTime]]("NULL"), // createdAt
+        SimpleLiteral[Option[LocalDateTime]]("NULL"), // routeUpdatedAt
+        SimpleLiteral[Option[LocalDateTime]]("NULL"), // pathUpdatedAt
         SimpleLiteral[Option[LocalDateTime]]("NULL"), // activateAt
         SimpleLiteral[Option[LocalDateTime]]("NULL"), // disableAt
-        SimpleLiteral[Option[LocalDateTime]]("NULL"), // updatedAt
         deletedRouteRow.deletedAt.?
       )
     )

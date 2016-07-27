@@ -227,6 +227,30 @@ class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers w
         result.size should be (3)
         result.map(_.name).toSet should be (Set("R1", "R3", "R4"))
       }
+
+      it("should select the routes which were updated by a route update") {
+        val createdAt = LocalDateTime.of(2015, 10, 10, 10, 10, 10)
+        val createdAt1 = createdAt.minusDays(3)
+        val createdAt2 = createdAt.minusDays(2)
+        val currentTime: LocalDateTime = createdAt.plusDays(5)
+
+        val r1 = insertRoute("R1", createdAt = createdAt1, activateAt = createdAt1)
+        insertRoute("R2", createdAt = createdAt2, activateAt = createdAt2)
+        insertRoute("R3", createdAt = createdAt, activateAt = createdAt)
+        insertRoute("R4", createdAt = createdAt, activateAt = createdAt)
+
+        routesRepo.update(r1.id.get, RoutePatch(None, None, Some("new description")), createdAt.plusDays(1))
+          .futureValue
+
+        val result = routesRepo.selectModifiedSince(
+          since = createdAt.minusDays(1),
+          currentTime = currentTime
+        )
+
+        result.size should be (3)
+        result.map(_.name).toSet should be (Set("R1", "R3", "R4"))
+        result.filter(_.name === "R1").forall(_.routeChangeType == RouteChangeType.Update) should be(true)
+      }
     }
 
     describe("#selectFiltered") {
