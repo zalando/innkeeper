@@ -39,8 +39,8 @@ class PatchRoutes @Inject() (
         team(authenticatedUser, token, reqDesc) { team =>
           logger.debug(s"patch /routes team $team")
 
-          findPathByRouteId(id, pathsService, "delete /routes/{}")(executionContext) { path =>
-            logger.debug(s"try to delete /routes/$id path found $path")
+          findPathByRouteId(id, pathsService, reqDesc)(executionContext) { path =>
+            logger.debug(s"try to patch /routes/$id path found $path")
 
             ((routeTeamAuthorization(team, path.ownedByTeam, reqDesc) & hasOneOfTheScopes(authenticatedUser, reqDesc, scopes.WRITE)) |
               (hasAdminAuthorization(authenticatedUser, team, reqDesc, scopes) & cancelRejections(classOf[IncorrectTeamRejection]))

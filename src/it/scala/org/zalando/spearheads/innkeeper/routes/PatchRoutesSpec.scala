@@ -10,13 +10,6 @@ import spray.json._
 
 class PatchRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
 
-  private val newDescription = "new-description"
-  private val patchRouteDescriptionJsonString =
-    s"""{
-        |  "description": "$newDescription"
-        |}
-  """.stripMargin
-
   describe("patch /routes") {
 
     before {
@@ -82,4 +75,11 @@ class PatchRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
       }
     }
   }
+
+  private val newDescription = "new-description"
+  private val patchRouteDescriptionJsonString =
+    s"""{
+        |  "description": "$newDescription"
+        |}
+  """.stripMargin
 }
