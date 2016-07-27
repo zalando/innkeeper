@@ -15,16 +15,6 @@ object InvalidUsereNameException
   extends RuntimeException(
     "Invalid uid for your token")
 
-sealed trait Route {
-
-  def name: RouteName
-
-  def route: NewRoute
-
-  def description: Option[String]
-
-}
-
 case class RouteIn(
   pathId: Long,
   name: RouteName,
@@ -32,7 +22,7 @@ case class RouteIn(
   usesCommonFilters: Boolean,
   activateAt: Option[LocalDateTime],
   disableAt: Option[LocalDateTime] = None,
-  description: Option[String] = None) extends Route
+  description: Option[String] = None)
 
 case class RouteOut(
   id: Long,
@@ -46,7 +36,12 @@ case class RouteOut(
   disableAt: Option[LocalDateTime] = None,
   description: Option[String] = None,
   deletedAt: Option[LocalDateTime] = None,
-  deletedBy: Option[String] = None) extends Route
+  deletedBy: Option[String] = None)
+
+case class RoutePatch(
+  route: Option[NewRoute],
+  usesCommonFilters: Option[Boolean],
+  description: Option[String])
 
 case class NewRoute(
   predicates: Option[Seq[Predicate]] = Some(Seq.empty),

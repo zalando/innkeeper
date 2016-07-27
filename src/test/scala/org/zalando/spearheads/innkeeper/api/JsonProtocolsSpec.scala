@@ -353,6 +353,52 @@ class JsonProtocolsSpec extends FunSpec with Matchers {
     }
   }
 
+  describe("RoutePatch") {
+    it("should unmarshall the RoutePatch") {
+      val predicate = Predicate("somePredicate", List(StringArg("Hello"), NumericArg("123")))
+      val filter = Filter("someFilter", List(StringArg("World"), NumericArg("321")))
+      val expectedRouteData = NewRoute(
+        predicates = Some(List(predicate)),
+        filters = Some(List(filter)),
+        endpoint = Some("some-endpoint.com")
+      )
+      val expected = RoutePatch(Some(expectedRouteData), Some(false), Some("route description"))
+
+      val routePatchString =
+        """{
+          |  "description": "route description",
+          |  "uses_common_filters": false,
+          |  "route": {
+          |    "endpoint": "some-endpoint.com",
+          |    "predicates": [{
+          |       "name": "somePredicate",
+          |       "args": [{
+          |        "value": "Hello",
+          |        "type": "string"
+          |      }, {
+          |        "value": "123",
+          |        "type": "number"
+          |      }]
+          |    }],
+          |    "filters": [{
+          |       "name": "someFilter",
+          |       "args": [{
+          |        "value": "World",
+          |        "type": "string"
+          |      }, {
+          |        "value": "321",
+          |        "type": "number"
+          |      }]
+          |    }]
+          |  }
+          |}""".stripMargin
+
+      val routePatch = routePatchString.parseJson.convertTo[RoutePatch]
+
+      routePatch should be(expected)
+    }
+  }
+
   describe("Host") {
 
     val host = Host(1, "name")

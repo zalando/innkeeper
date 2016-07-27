@@ -209,6 +209,8 @@ object JsonProtocols {
 
   implicit val pathPatchFormat = jsonFormat(PathPatch, "host_ids", "owned_by_team")
 
+  implicit val routePatchFormat = jsonFormat(RoutePatch, "route", "uses_common_filters", "description")
+
   implicit val pathOutFormat = jsonFormat(
     PathOut,
     "id",
@@ -229,7 +231,7 @@ object JsonProtocols {
         case JsString(RouteChangeType.Create.value) => RouteChangeType.Create
         case JsString(RouteChangeType.Update.value) => RouteChangeType.Update
         case JsString(RouteChangeType.Delete.value) => RouteChangeType.Delete
-        case _                                      => throw new DeserializationException("Error deserializing the team name")
+        case _                                      => throw new DeserializationException("Error deserializing the route change type")
       }
     }
   }

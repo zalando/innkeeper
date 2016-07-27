@@ -4,11 +4,13 @@ import java.time.LocalDateTime
 
 import com.google.inject.{Inject, Singleton}
 import org.slf4j.LoggerFactory
-import org.zalando.spearheads.innkeeper.api.RouteChangeType
-import slick.backend.DatabasePublisher
+import org.zalando.spearheads.innkeeper.api.{RouteChangeType, RoutePatch}
+import org.zalando.spearheads.innkeeper.api.JsonProtocols._
 import org.zalando.spearheads.innkeeper.dao.MyPostgresDriver.api._
+import slick.backend.DatabasePublisher
+import spray.json.pimpAny
 
-import scala.collection.immutable.Seq
+import scala.collection.immutable.{List, Seq}
 import scala.concurrent.{ExecutionContext, Future}
 
 /**
@@ -66,7 +68,7 @@ class RoutesPostgresRepo @Inject() (
     logger.debug(s"selectModifiedSince $since")
 
     db.stream(modifiedRoutesQuery(since, currentTime).result).mapResult {
-      case (routeName, _, _, _, _, _, _, _, _, Some(deletedAt)) =>
+      case (routeName, _, _, _, _, _, _, _, _, _, Some(deletedAt)) =>
         ModifiedRoute(
           routeChangeType = RouteChangeType.Delete,
           name = routeName,
@@ -74,8 +76,14 @@ class RoutesPostgresRepo @Inject() (
           routeData = None
         )
 
-      case (routeName, Some(uri), Some(hostIds), Some(routeJson), Some(usesCommonFilters), Some(createdAt), Some(updatedAt), Some(activateAt), disableAt, None) =>
-        val (routeChangeType, timestamp) = if (updatedAt.isAfter(createdAt)) {
+      case (routeName, Some(uri), Some(hostIds), Some(routeJson), Some(usesCommonFilters), Some(createdAt), Some(routeUpdatedAt), Some(pathUpdatedAt), Some(activateAt), disableAt, None) =>
+        val (routeChangeType, timestamp) = if (pathUpdatedAt.isAfter(createdAt) || routeUpdatedAt.isAfter(createdAt)) {
+          val updatedAt = if (pathUpdatedAt.isAfter(routeUpdatedAt)) {
+            pathUpdatedAt
+          } else {
+            routeUpdatedAt
+          }
+
           RouteChangeType.Update -> updatedAt
         } else {
           if (activateAt.isAfter(createdAt)) {
@@ -107,14 +115,14 @@ class RoutesPostgresRepo @Inject() (
   }
 
   private def modifiedRoutesQuery(since: LocalDateTime, currentTime: LocalDateTime) = for {
-    (routeName, uri, hostIds, routeJson, usesCommonFilters, createdAt, updatedAt, activateAt, disableAt, deletedAt) <- routesAndDeletedRoutesQuery
+    (routeName, uri, hostIds, routeJson, usesCommonFilters, createdAt, routeUpdatedAt, pathUpdatedAt, activateAt, disableAt, deletedAt) <- routesAndDeletedRoutesQuery
     routeWasDeleted = deletedAt.isDefined && deletedAt > since
     routeIsActive = activateAt < currentTime
     if routeWasDeleted ||
       (deletedAt.isEmpty &&
         routeIsActive &&
-        (activateAt > since || createdAt > since || updatedAt > since))
-  } yield (routeName, uri, hostIds, routeJson, usesCommonFilters, createdAt, updatedAt, activateAt, disableAt, deletedAt)
+        (activateAt > since || routeUpdatedAt > since || pathUpdatedAt > since))
+  } yield (routeName, uri, hostIds, routeJson, usesCommonFilters, createdAt, routeUpdatedAt, pathUpdatedAt, activateAt, disableAt, deletedAt)
 
   private val routesAndDeletedRoutesQuery = {
     val routesQuery = for {
@@ -126,6 +134,7 @@ class RoutesPostgresRepo @Inject() (
       routeRow.routeJson.?,
       routeRow.usesCommonFilters.?,
       routeRow.createdAt.?,
+      routeRow.updatedAt.?,
       pathRow.updatedAt.?,
       routeRow.activateAt.?,
       routeRow.disableAt,
@@ -140,9 +149,10 @@ class RoutesPostgresRepo @Inject() (
         SimpleLiteral[Option[String]]("NULL"), // routeJson
         SimpleLiteral[Option[Boolean]]("NULL"), // usesCommonFilters
         SimpleLiteral[Option[LocalDateTime]]("NULL"), // createdAt
+        SimpleLiteral[Option[LocalDateTime]]("NULL"), // routeUpdatedAt
+        SimpleLiteral[Option[LocalDateTime]]("NULL"), // pathUpdatedAt
         SimpleLiteral[Option[LocalDateTime]]("NULL"), // activateAt
         SimpleLiteral[Option[LocalDateTime]]("NULL"), // disableAt
-        SimpleLiteral[Option[LocalDateTime]]("NULL"), // updatedAt
         deletedRouteRow.deletedAt.?
       )
     )
@@ -227,5 +237,41 @@ class RoutesPostgresRepo @Inject() (
     routeRow.activateAt < currentTime &&
       (routeRow.disableAt.isEmpty ||
         (routeRow.disableAt.isDefined && routeRow.disableAt > currentTime))
+
+  override def update(id: Long, routePatch: RoutePatch, updatedAt: LocalDateTime): Future[Option[RouteRow]] = {
+    logger.debug(s"update route $id")
+
+    val updateDescriptionActionOpt = routePatch.description.map { description =>
+      Routes
+        .filter(_.id === id)
+        .map(route => (route.updatedAt, route.description))
+        .update((updatedAt, Some(description)))
+    }
+    val updateUsesCommonFiltersActionOpt = routePatch.usesCommonFilters.map { usesCommonFilters =>
+      Routes
+        .filter(_.id === id)
+        .map(route => (route.updatedAt, route.usesCommonFilters))
+        .update((updatedAt, usesCommonFilters))
+    }
+    val updateRouteJsonActionOpt = routePatch.route.map { route =>
+      val routeJson = route.toJson.compactPrint
+      Routes
+        .filter(_.id === id)
+        .map(route => (route.updatedAt, route.routeJson))
+        .update((updatedAt, routeJson))
+    }
+
+    val actions = List(
+      updateDescriptionActionOpt,
+      updateUsesCommonFiltersActionOpt,
+      updateRouteJsonActionOpt
+    ).flatten
+
+    db.run {
+      DBIO.sequence(actions).transactionally
+    }.flatMap { _ =>
+      selectById(id)
+    }
+  }
 
 }

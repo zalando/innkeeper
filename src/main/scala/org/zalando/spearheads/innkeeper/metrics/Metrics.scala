@@ -25,6 +25,7 @@ class RouteMetrics @Inject() (val metrics: Metrics) {
   val getRoute = metrics.metrics.timer("200.GET.route")
   val getDeletedRoutes = metrics.metrics.timer("200.GET.deleted-routes")
   val deleteDeletedRoutes = metrics.metrics.timer("200.DELETE.deleted-routes")
+  val patchRoutes = metrics.metrics.timer("200.PATCH.routes")
 
   // paths
   val getPaths = metrics.metrics.timer("200.GET.paths")

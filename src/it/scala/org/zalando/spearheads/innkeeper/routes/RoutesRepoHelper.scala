@@ -30,6 +30,7 @@ object RoutesRepoHelper extends DaoHelper {
       routeJson = routeJson(method),
       createdBy = createdBy,
       createdAt = createdAt,
+      updatedAt = createdAt,
       activateAt = activateAt,
       disableAt = disableAt,
       usesCommonFilters = usesCommonFilters,
@@ -56,6 +57,7 @@ object RoutesRepoHelper extends DaoHelper {
       routeJson = routeJson(method),
       createdBy = createdBy,
       createdAt = createdAt,
+      updatedAt = createdAt,
       activateAt = activateAt,
       usesCommonFilters = usesCommonFilters,
       description = description

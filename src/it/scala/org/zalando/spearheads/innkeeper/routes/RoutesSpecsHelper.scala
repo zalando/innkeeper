@@ -3,9 +3,12 @@ package org.zalando.spearheads.innkeeper.routes
 import java.time.LocalDateTime
 
 import akka.http.scaladsl.Http
-import akka.http.scaladsl.model.{ContentType, HttpEntity, HttpMethod, HttpMethods, HttpRequest, HttpResponse, MediaTypes}
+import akka.http.scaladsl.model.headers.{Authorization, OAuth2BearerToken}
+import akka.http.scaladsl.model._
 import org.zalando.spearheads.innkeeper.api.{NumericArg, RouteOut, StringArg}
 import org.zalando.spearheads.innkeeper.routes.AcceptanceSpecsHelper._
+
+import scala.collection.immutable.Seq
 
 object RoutesSpecsHelper {
 
@@ -42,6 +45,23 @@ object RoutesSpecsHelper {
       uri = routesUri,
       entity = entity,
       headers = headers)
+
+    val futureResponse = Http().singleRequest(request)
+    futureResponse.futureValue
+  }
+
+  def patchSlashRoutes(id: Long, pathJsonString: String, token: String): HttpResponse = {
+
+    val entity = HttpEntity(ContentType(MediaTypes.`application/json`), pathJsonString)
+
+    val headers = Seq[HttpHeader](Authorization(OAuth2BearerToken(token)))
+
+    val request = HttpRequest(
+      method = HttpMethods.PATCH,
+      uri = routeUri(id),
+      entity = entity,
+      headers = headers
+    )
 
     val futureResponse = Http().singleRequest(request)
     futureResponse.futureValue

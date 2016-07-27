@@ -6,7 +6,7 @@ import akka.NotUsed
 import akka.stream.scaladsl.Source
 import com.google.inject.Inject
 import org.zalando.spearheads.innkeeper.api.JsonProtocols._
-import org.zalando.spearheads.innkeeper.api.{NewRoute, RouteIn, RouteName, RouteOut, UserName}
+import org.zalando.spearheads.innkeeper.api.{NewRoute, RouteIn, RouteName, RouteOut, RoutePatch, UserName}
 import org.zalando.spearheads.innkeeper.dao.{AuditsRepo, AuditType, QueryFilter, RouteRow, RoutesRepo}
 import org.zalando.spearheads.innkeeper.services.ServiceResult._
 import org.zalando.spearheads.innkeeper.utils.EnvConfig
@@ -21,6 +21,12 @@ trait RoutesService {
     route: RouteIn,
     createdBy: UserName,
     createdAt: LocalDateTime = LocalDateTime.now()): Future[Result[RouteOut]]
+
+  def patch(
+    id: Long,
+    routePatch: RoutePatch,
+    userName: String,
+    updatedAt: LocalDateTime = LocalDateTime.now()): Future[Result[RouteOut]]
 
   def remove(id: Long, deletedBy: String): Future[Result[Boolean]]
 
@@ -53,6 +59,7 @@ class DefaultRoutesService @Inject() (
       }),
       createdBy = createdBy.name,
       createdAt = createdAt,
+      updatedAt = createdAt,
       description = route.description,
       disableAt = route.disableAt
     )
@@ -75,6 +82,33 @@ class DefaultRoutesService @Inject() (
         insertedRoute.id.foreach { id =>
           auditsRepo.persistRouteLog(id, userName, AuditType.Create)
         }
+    }
+  }
+
+  override def patch(
+    id: Long,
+    routePatch: RoutePatch,
+    userName: String,
+    updatedAt: LocalDateTime): Future[ServiceResult.Result[RouteOut]] = {
+
+    val updateRouteResult = routesRepo.update(id, routePatch, updatedAt)
+
+    auditRouteUpdate(updateRouteResult, userName)
+
+    updateRouteResult.flatMap {
+      case Some(routeRow) => rowToEventualMaybeRoute(routeRow)
+      case _              => Future(Failure(NotFound()))
+    }
+  }
+
+  private def auditRouteUpdate(updateResult: Future[Option[RouteRow]], userName: String): Unit = {
+    updateResult.onSuccess {
+      case Some(routeRow) =>
+        routeRow.id.foreach { id =>
+          auditsRepo.persistRouteLog(id, userName, AuditType.Update)
+        }
+
+      case None =>
     }
   }
 
