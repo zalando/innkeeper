@@ -1,20 +1,26 @@
 package org.zalando.spearheads.innkeeper.dao
 
 import com.google.inject.{Inject, Singleton}
+import org.flywaydb.core.Flyway
+import org.flywaydb.core.api.FlywayException
+import org.postgresql.ds.PGSimpleDataSource
 import org.slf4j.LoggerFactory
 import slick.jdbc.meta.MTable
 
 import scala.concurrent.{ExecutionContext, Future}
 import org.zalando.spearheads.innkeeper.dao.MyPostgresDriver.api._
+import org.zalando.spearheads.innkeeper.utils.EnvConfig
 
 trait InnkeeperSchema {
   def createSchema: Future[Unit]
   def dropSchema: Future[Unit]
+  def migrate(): Unit
 }
 
 @Singleton
 class InnkeeperPostgresSchema @Inject() (
     db: Database,
+    config: EnvConfig,
     implicit val executionContext: ExecutionContext
 ) extends InnkeeperSchema {
 
@@ -66,5 +72,36 @@ class InnkeeperPostgresSchema @Inject() (
 
       db.run(dropSchemaAction)
     }
+  }
+
+  override def migrate(): Unit = {
+    val MAX_TRIES = 100
+    val url = config.getString("innkeeperdb.url")
+    val user = config.getString("innkeeperdb.user")
+    val password = config.getString("innkeeperdb.password")
+
+    val dataSource = new PGSimpleDataSource()
+    dataSource.setUrl(url)
+    dataSource.setUser(user)
+    dataSource.setPassword(password)
+
+    val flyway = new Flyway()
+    flyway.setDataSource(dataSource)
+
+    def migrateWithRetry(tries: Int): Unit = {
+      if (tries >= MAX_TRIES) {
+        throw new Exception("could not connect to the database for migration")
+      }
+
+      try {
+        flyway.migrate()
+      } catch {
+        case e: FlywayException =>
+          Thread.sleep(100L)
+          migrateWithRetry(tries + 1)
+      }
+    }
+
+    migrateWithRetry(0)
   }
 }

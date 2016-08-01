@@ -1,0 +1,35 @@
+create table "PATHS"
+(
+  "PATH_ID" BIGSERIAL NOT NULL PRIMARY KEY,
+  "URI" VARCHAR NOT NULL,
+  "HOST_IDS" int8 ARRAY NOT NULL,
+  "OWNED_BY_TEAM" VARCHAR NOT NULL,
+  "CREATED_BY" VARCHAR NOT NULL,
+  "CREATED_AT" timestamp NOT NULL
+);
+create index "PATH_OWNED_BY_TEAM_IDX" on "PATHS" ("OWNED_BY_TEAM");
+
+create table "ROUTES"
+(
+  "ROUTE_ID" BIGSERIAL NOT NULL PRIMARY KEY,
+  "PATH_ID" BIGINT NOT NULL,
+  "NAME" VARCHAR NOT NULL,
+  "ROUTE_JSON" VARCHAR NOT NULL,
+  "ACTIVATE_AT" timestamp NOT NULL,
+  "USES_COMMON_FILTERS" BOOLEAN NOT NULL,
+  "CREATED_BY" VARCHAR NOT NULL,
+  "CREATED_AT" timestamp NOT NULL,
+  "DISABLE_AT" timestamp,
+  "DESCRIPTION" VARCHAR
+);
+create index "ROUTES_CREATED_AT_IDX" on "ROUTES" ("CREATED_AT");
+create index "ROUTES_DISABLED_AT_IDX" on "ROUTES" ("DISABLE_AT");
+create unique index "ROUTES_NAME_IDX" on "ROUTES" ("NAME");
+
+create table "DELETED_ROUTES"
+(
+  "NAME" VARCHAR NOT NULL,
+  "DELETED_AT" timestamp NOT NULL
+);
+
+alter table "ROUTES" add constraint "route_path_fk" foreign key("PATH_ID") references "PATHS"("PATH_ID") on update NO ACTION on delete NO ACTION;
