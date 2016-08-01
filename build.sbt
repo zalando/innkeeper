@@ -20,6 +20,7 @@ scapegoatVersion := "1.2.1"
 resolvers += "Whisk"           at "https://dl.bintray.com/whisk/maven"
 resolvers += "softprops-maven" at "http://dl.bintray.com/content/softprops/maven"
 resolvers += "zalando-maven"   at "https://dl.bintray.com/zalando/maven"
+resolvers += "Flyway"          at "https://flywaydb.org/repo"
 
 val akkaV            = "2.4.4"
 val scalaTestV       = "3.0.0-M15"
@@ -49,6 +50,8 @@ libraryDependencies ++= List(
   "nl.grons"                %% "metrics-scala"                        % "3.5.2",
   "org.asynchttpclient"      % "async-http-client"                    % "2.0.10",
   "net.jodah"                % "failsafe"                             % "0.8.3",
+
+  "org.flywaydb"             % "flyway-core"                          % "4.0.3",
 
 
   "org.scalatest"           %% "scalatest"                            % scalaTestV       % "it,test",
