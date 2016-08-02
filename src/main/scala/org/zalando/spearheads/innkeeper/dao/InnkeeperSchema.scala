@@ -75,7 +75,7 @@ class InnkeeperPostgresSchema @Inject() (
   }
 
   override def migrate(): Unit = {
-    val MAX_TRIES = 100
+    val maxTries = config.getInt("migrationDbConnectionMaxRetries")
     val url = config.getString("innkeeperdb.url")
     val user = config.getString("innkeeperdb.user")
     val password = config.getString("innkeeperdb.password")
@@ -89,14 +89,14 @@ class InnkeeperPostgresSchema @Inject() (
     flyway.setDataSource(dataSource)
 
     def migrateWithRetry(tries: Int): Unit = {
-      if (tries >= MAX_TRIES) {
-        throw new Exception("could not connect to the database for migration")
-      }
-
       try {
         flyway.migrate()
       } catch {
         case e: FlywayException =>
+          if (tries >= maxTries) {
+            throw new Exception("could not connect to the database for migration", e)
+          }
+
           Thread.sleep(100L)
           migrateWithRetry(tries + 1)
       }
