@@ -29,7 +29,7 @@ docker-compose up -d
 docker-compose ps
 
 echo "waiting for innkeeper to start"
-until $(curl --output /dev/null --silent --head --fail http://localhost:9080/status); do
+until $(curl --output /dev/null --silent --head --fail http://0.0.0.0:9080/status); do
     printf '.'
     sleep 5
 done
