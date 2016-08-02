@@ -9,7 +9,7 @@ docker-push:
 
 docker-run:
 	docker run -p 9080:9080 \
-	 -e INNKEEPER_ENV=dev -e SCHEMA_RECREATE=true \
+	 -e INNKEEPER_ENV=dev \
 	 -t pierone.stups.zalan.do/pathfinder/innkeeper:$(version)
 
 docker-snapshot:
@@ -21,7 +21,7 @@ docker-push-snapshot:
 
 docker-run-snapshot:
 	docker run -p 9080:9080 \
-	-e INNKEEPER_ENV=test -e SCHEMA_RECREATE=true \
+	-e INNKEEPER_ENV=test \
 	-t pierone.stups.zalan.do/pathfinder/innkeeper:latest-SNAPSHOT
 
 test-db:

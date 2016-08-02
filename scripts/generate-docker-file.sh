@@ -12,5 +12,5 @@ echo "" >> Dockerfile
 echo "WORKDIR /opt/innkeeper" >> Dockerfile
 echo "" >> Dockerfile
 echo "ENTRYPOINT java \$(java-dynamic-memory-opts) \\" >> Dockerfile
-echo "    -Dinnkeeper.env=\$INNKEEPER_ENV -D\$INNKEEPER_ENV.schema.recreate=\$SCHEMA_RECREATE \\" >> Dockerfile
+echo "    -Dinnkeeper.env=\$INNKEEPER_ENV \\" >> Dockerfile
 echo "    -server -jar innkeeper-assembly-$1.jar" >> Dockerfile

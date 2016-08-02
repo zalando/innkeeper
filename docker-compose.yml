@@ -21,7 +21,6 @@ innkeeper:
     - "9080:9080"
   environment:
     - INNKEEPER_ENV=acceptance-test
-    - SCHEMA_RECREATE=true
   links:
     - db
     - oauth
