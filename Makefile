@@ -37,6 +37,7 @@ kill-all-docker:
 	./scripts/kill-all.sh
 
 acceptance-tests:
+	./scripts/kill-all.sh
 	./scripts/generate-docker-file.sh $(version)
 	./scripts/acceptance-tests.sh
 
