@@ -168,7 +168,9 @@ class EskipRouteServiceSpec extends FunSpec with Matchers with MockFactory with 
     usesCommonFilters = true,
     createdBy = "user",
     createdAt = referrenceTime,
-    updatedAt = referrenceTime
+    updatedAt = referrenceTime,
+    disableAt = None,
+    description = None
   )
 
   val pathRow = PathRow(
@@ -200,7 +202,8 @@ class EskipRouteServiceSpec extends FunSpec with Matchers with MockFactory with 
     activateAt = LocalDateTime.of(2015, 10, 10, 10, 10, 11),
     UserName("user"),
     usesCommonFilters = false,
-    disableAt = Some(LocalDateTime.of(2015, 11, 11, 11, 11, 11))
+    disableAt = Some(LocalDateTime.of(2015, 11, 11, 11, 11, 11)),
+    description = None
   )
 
   val eskipRoute = EskipRoute(

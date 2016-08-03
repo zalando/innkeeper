@@ -60,7 +60,8 @@ object RoutesRepoHelper extends DaoHelper {
       updatedAt = createdAt,
       activateAt = activateAt,
       usesCommonFilters = usesCommonFilters,
-      description = description
+      description = description,
+      disableAt = None
     )
   }
 

@@ -19,8 +19,8 @@ case class RouteRow(
   createdBy: String,
   createdAt: LocalDateTime,
   updatedAt: LocalDateTime,
-  disableAt: Option[LocalDateTime] = None,
-  description: Option[String] = None)
+  disableAt: Option[LocalDateTime],
+  description: Option[String])
 
 case class RouteData(
   name: String,

@@ -21,8 +21,8 @@ case class RouteIn(
   route: NewRoute,
   usesCommonFilters: Boolean,
   activateAt: Option[LocalDateTime],
-  disableAt: Option[LocalDateTime] = None,
-  description: Option[String] = None)
+  disableAt: Option[LocalDateTime],
+  description: Option[String])
 
 case class RouteOut(
   id: Long,
@@ -33,8 +33,8 @@ case class RouteOut(
   activateAt: LocalDateTime,
   createdBy: UserName,
   usesCommonFilters: Boolean,
-  disableAt: Option[LocalDateTime] = None,
-  description: Option[String] = None)
+  disableAt: Option[LocalDateTime],
+  description: Option[String])
 
 case class RoutePatch(
   route: Option[NewRoute],
