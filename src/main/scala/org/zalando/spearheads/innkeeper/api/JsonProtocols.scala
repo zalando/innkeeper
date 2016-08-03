@@ -110,8 +110,6 @@ object JsonProtocols {
         "created_by" -> routeOut.createdBy.toJson,
         "disable_at" -> routeOut.disableAt.toJson,
         "description" -> routeOut.description.toJson,
-        "deleted_at" -> routeOut.deletedAt.toJson,
-        "deleted_by" -> routeOut.deletedBy.toJson,
         "predicates" -> routeOut.route.predicates.toJson,
         "filters" -> routeOut.route.filters.toJson,
         "endpoint" -> routeOut.route.endpoint.toJson
@@ -130,8 +128,6 @@ object JsonProtocols {
         activateAt <- fields.get("activate_at").map(_.convertTo[LocalDateTime])
         createdAt <- fields.get("created_at").map(_.convertTo[LocalDateTime])
         createdBy <- fields.get("created_by").map(_.convertTo[String])
-        deletedAt = fields.get("deleted_at").flatMap(_.convertTo[Option[LocalDateTime]])
-        deletedBy = fields.get("deleted_by").flatMap(_.convertTo[Option[String]])
         description = fields.get("description").flatMap(_.convertTo[Option[String]])
         disableAt = fields.get("disable_at").flatMap(_.convertTo[Option[LocalDateTime]])
         predicates = fields.get("predicates").flatMap(_.convertTo[Option[Seq[Predicate]]])
@@ -147,8 +143,6 @@ object JsonProtocols {
         name = RouteName(name),
         createdAt = createdAt,
         createdBy = UserName(createdBy),
-        deletedAt = deletedAt,
-        deletedBy = deletedBy,
         route = NewRoute(predicates, filters, endpoint)
       )
 

@@ -34,9 +34,7 @@ case class RouteOut(
   createdBy: UserName,
   usesCommonFilters: Boolean,
   disableAt: Option[LocalDateTime] = None,
-  description: Option[String] = None,
-  deletedAt: Option[LocalDateTime] = None,
-  deletedBy: Option[String] = None)
+  description: Option[String] = None)
 
 case class RoutePatch(
   route: Option[NewRoute],

@@ -293,8 +293,7 @@ class JsonProtocolsSpec extends FunSpec with Matchers {
       UserName("user"),
       usesCommonFilters = false,
       Some(LocalDateTime.of(2015, 11, 11, 11, 11, 11)),
-      Some("this is a route"),
-      Some(LocalDateTime.of(2015, 10, 10, 10, 10, 10))
+      Some("this is a route")
     )
 
     it("should unmarshall the RouteOut") {
@@ -346,7 +345,6 @@ class JsonProtocolsSpec extends FunSpec with Matchers {
           |  "disable_at": "2015-11-11T11:11:11",
           |  "filters": [],
           |  "created_at": "2015-10-10T10:10:10",
-          |  "deleted_at": "2015-10-10T10:10:10",
           |  "path_id": 1
           |}""".stripMargin
       }
