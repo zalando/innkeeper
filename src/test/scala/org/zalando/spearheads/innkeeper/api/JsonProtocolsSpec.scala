@@ -225,7 +225,8 @@ class JsonProtocolsSpec extends FunSpec with Matchers {
       usesCommonFilters = false,
       Some(LocalDateTime.of(2015, 10, 10, 10, 10, 10)),
       Some(LocalDateTime.of(2015, 11, 11, 11, 11, 11)),
-      Some("this is a route")
+      Some("this is a route"),
+      Some(Seq(1L))
     )
 
     it("should unmarshall the RouteIn") {
@@ -246,7 +247,8 @@ class JsonProtocolsSpec extends FunSpec with Matchers {
                     |  }],
                     |  "filters": [],
                     |  "path_id": 1,
-                    |  "uses_common_filters": false
+                    |  "uses_common_filters": false,
+                    |  "host_ids": [1]
                     |}""".stripMargin.parseJson.convertTo[RouteIn]
       route should be(routeIn)
     }
@@ -265,6 +267,7 @@ class JsonProtocolsSpec extends FunSpec with Matchers {
           |      "type": "number"
           |    }]
           |  }],
+          |  "host_ids": [1],
           |  "description": "this is a route",
           |  "uses_common_filters": false,
           |  "activate_at": "2015-10-10T10:10:10",
@@ -293,7 +296,8 @@ class JsonProtocolsSpec extends FunSpec with Matchers {
       UserName("user"),
       usesCommonFilters = false,
       Some(LocalDateTime.of(2015, 11, 11, 11, 11, 11)),
-      Some("this is a route")
+      Some("this is a route"),
+      Some(Seq(1L))
     )
 
     it("should unmarshall the RouteOut") {
@@ -318,7 +322,8 @@ class JsonProtocolsSpec extends FunSpec with Matchers {
                     |      "type": "number"
                     |    }]
                     |  }],
-                    |  "filters": []
+                    |  "filters": [],
+                    |  "host_ids": [1]
                     |}""".stripMargin.parseJson.convertTo[RouteOut]
       route should be(routeOut)
     }
@@ -338,6 +343,7 @@ class JsonProtocolsSpec extends FunSpec with Matchers {
           |      "type": "number"
           |    }]
           |  }],
+          |  "host_ids": [1],
           |  "description": "this is a route",
           |  "uses_common_filters": false,
           |  "activate_at": "2015-10-10T10:10:10",

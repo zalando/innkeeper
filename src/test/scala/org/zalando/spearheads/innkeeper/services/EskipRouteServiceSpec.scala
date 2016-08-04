@@ -170,7 +170,8 @@ class EskipRouteServiceSpec extends FunSpec with Matchers with MockFactory with 
     createdAt = referrenceTime,
     updatedAt = referrenceTime,
     disableAt = None,
-    description = None
+    description = None,
+    hostIds = None
   )
 
   val pathRow = PathRow(
@@ -203,7 +204,8 @@ class EskipRouteServiceSpec extends FunSpec with Matchers with MockFactory with 
     UserName("user"),
     usesCommonFilters = false,
     disableAt = Some(LocalDateTime.of(2015, 11, 11, 11, 11, 11)),
-    description = None
+    description = None,
+    hostIds = None
   )
 
   val eskipRoute = EskipRoute(

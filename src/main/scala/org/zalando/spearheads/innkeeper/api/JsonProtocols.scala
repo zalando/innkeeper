@@ -112,7 +112,8 @@ object JsonProtocols {
         "description" -> routeOut.description.toJson,
         "predicates" -> routeOut.route.predicates.toJson,
         "filters" -> routeOut.route.filters.toJson,
-        "endpoint" -> routeOut.route.endpoint.toJson
+        "endpoint" -> routeOut.route.endpoint.toJson,
+        "host_ids" -> routeOut.hostIds.toJson
       ).filter(_._2 != JsNull)
 
       JsObject(fieldsMap)
@@ -133,6 +134,7 @@ object JsonProtocols {
         predicates = fields.get("predicates").flatMap(_.convertTo[Option[Seq[Predicate]]])
         filters = fields.get("filters").flatMap(_.convertTo[Option[Seq[Filter]]])
         endpoint = fields.get("endpoint").flatMap(_.convertTo[Option[String]])
+        hostIds = fields.get("host_ids").map(_.convertTo[Seq[Long]])
       } yield RouteOut(
         id = id,
         pathId = pathId,
@@ -143,7 +145,8 @@ object JsonProtocols {
         name = RouteName(name),
         createdAt = createdAt,
         createdBy = UserName(createdBy),
-        route = NewRoute(predicates, filters, endpoint)
+        route = NewRoute(predicates, filters, endpoint),
+        hostIds = hostIds
       )
 
       parsedValueOpt.getOrElse {
@@ -163,7 +166,8 @@ object JsonProtocols {
         "description" -> routeIn.description.toJson,
         "predicates" -> routeIn.route.predicates.toJson,
         "filters" -> routeIn.route.filters.toJson,
-        "endpoint" -> routeIn.route.endpoint.toJson
+        "endpoint" -> routeIn.route.endpoint.toJson,
+        "host_ids" -> routeIn.hostIds.toJson
       ).filter(_._2 != JsNull)
 
       JsObject(fieldsMap)
@@ -181,6 +185,7 @@ object JsonProtocols {
         predicates = fields.get("predicates").flatMap(_.convertTo[Option[Seq[Predicate]]])
         filters = fields.get("filters").flatMap(_.convertTo[Option[Seq[Filter]]])
         endpoint = fields.get("endpoint").flatMap(_.convertTo[Option[String]])
+        hostIds = fields.get("host_ids").map(_.convertTo[Seq[Long]])
       } yield RouteIn(
         pathId = pathId,
         usesCommonFilters = usesCommonFilters,
@@ -188,7 +193,8 @@ object JsonProtocols {
         disableAt = disableAt,
         description = description,
         name = RouteName(name),
-        route = NewRoute(predicates, filters, endpoint)
+        route = NewRoute(predicates, filters, endpoint),
+        hostIds = hostIds
       )
 
       parsedValueOpt.getOrElse {

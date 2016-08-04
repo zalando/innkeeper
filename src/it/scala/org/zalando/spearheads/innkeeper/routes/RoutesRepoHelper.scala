@@ -34,7 +34,8 @@ object RoutesRepoHelper extends DaoHelper {
       activateAt = activateAt,
       disableAt = disableAt,
       usesCommonFilters = usesCommonFilters,
-      description = Some(description)
+      description = Some(description),
+      hostIds = None
     )).futureValue
   }
 
@@ -61,7 +62,8 @@ object RoutesRepoHelper extends DaoHelper {
       activateAt = activateAt,
       usesCommonFilters = usesCommonFilters,
       description = description,
-      disableAt = None
+      disableAt = None,
+      hostIds = None
     )
   }
 
