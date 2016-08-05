@@ -50,7 +50,8 @@ class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers w
         val routePatch = RoutePatch(
           route = None,
           usesCommonFilters = None,
-          description = Some(updatedDescription)
+          description = Some(updatedDescription),
+          hostIds = None
         )
 
         val routeRow = routesRepo.update(insertedRoute.id.get, routePatch, updatedAt).futureValue.get
@@ -66,7 +67,8 @@ class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers w
         val routePatch = RoutePatch(
           route = None,
           usesCommonFilters = Some(updatedUsesCommonFilters),
-          description = None
+          description = None,
+          hostIds = None
         )
 
         val routeRow = routesRepo.update(insertedRoute.id.get, routePatch, updatedAt).futureValue.get
@@ -86,12 +88,29 @@ class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers w
         val routePatch = RoutePatch(
           route = Some(newRoute),
           usesCommonFilters = None,
-          description = None
+          description = None,
+          hostIds = None
         )
 
         val routeRow = routesRepo.update(insertedRoute.id.get, routePatch, updatedAt).futureValue.get
 
         routeRow.routeJson should not be insertedRoute.routeJson
+      }
+
+      it("should update hostIds") {
+        val insertedRoute = insertRoute(pathHostIds = Seq(1L, 2L, 3L))
+
+        val updatedAt = LocalDateTime.now()
+        val updatedHostIds = Some(Seq(1L, 2L))
+        val routePatch = RoutePatch(
+          route = None,
+          usesCommonFilters = None,
+          description = None,
+          hostIds = updatedHostIds
+        )
+
+        val routeRow = routesRepo.update(insertedRoute.id.get, routePatch, updatedAt).futureValue.get
+        routeRow.hostIds should be(updatedHostIds)
       }
     }
 
@@ -239,7 +258,7 @@ class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers w
         insertRoute("R3", createdAt = createdAt, activateAt = createdAt)
         insertRoute("R4", createdAt = createdAt, activateAt = createdAt)
 
-        routesRepo.update(r1.id.get, RoutePatch(None, None, Some("new description")), createdAt.plusDays(1))
+        routesRepo.update(r1.id.get, RoutePatch(None, None, Some("new description"), None), createdAt.plusDays(1))
           .futureValue
 
         val result = routesRepo.selectModifiedSince(

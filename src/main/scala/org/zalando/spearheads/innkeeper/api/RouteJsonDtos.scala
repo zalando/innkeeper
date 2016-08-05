@@ -41,7 +41,8 @@ case class RouteOut(
 case class RoutePatch(
   route: Option[NewRoute],
   usesCommonFilters: Option[Boolean],
-  description: Option[String])
+  description: Option[String],
+  hostIds: Option[Seq[Long]])
 
 case class NewRoute(
   predicates: Option[Seq[Predicate]] = Some(Seq.empty),

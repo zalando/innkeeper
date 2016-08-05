@@ -366,12 +366,13 @@ class JsonProtocolsSpec extends FunSpec with Matchers {
         filters = Some(List(filter)),
         endpoint = Some("some-endpoint.com")
       )
-      val expected = RoutePatch(Some(expectedRouteData), Some(false), Some("route description"))
+      val expected = RoutePatch(Some(expectedRouteData), Some(false), Some("route description"), Some(Seq(1L, 2L)))
 
       val routePatchString =
         """{
           |  "description": "route description",
           |  "uses_common_filters": false,
+          |  "host_ids": [1, 2],
           |  "route": {
           |    "endpoint": "some-endpoint.com",
           |    "predicates": [{

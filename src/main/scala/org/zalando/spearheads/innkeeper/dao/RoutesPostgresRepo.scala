@@ -266,11 +266,19 @@ class RoutesPostgresRepo @Inject() (
         .map(route => (route.updatedAt, route.routeJson))
         .update((updatedAt, routeJson))
     }
+    val updateHostIdsActionOpt = routePatch.hostIds.map { hostIds =>
+      val newHostIds = Some(hostIds).filter(_.nonEmpty)
+      Routes
+        .filter(_.id === id)
+        .map(route => (route.updatedAt, route.hostIds))
+        .update((updatedAt, newHostIds))
+    }
 
     val actions = List(
       updateDescriptionActionOpt,
       updateUsesCommonFiltersActionOpt,
-      updateRouteJsonActionOpt
+      updateRouteJsonActionOpt,
+      updateHostIdsActionOpt
     ).flatten
 
     db.run {

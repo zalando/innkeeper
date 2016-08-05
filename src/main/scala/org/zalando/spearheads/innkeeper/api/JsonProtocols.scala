@@ -209,7 +209,7 @@ object JsonProtocols {
 
   implicit val pathPatchFormat = jsonFormat(PathPatch, "host_ids", "owned_by_team")
 
-  implicit val routePatchFormat = jsonFormat(RoutePatch, "route", "uses_common_filters", "description")
+  implicit val routePatchFormat = jsonFormat(RoutePatch, "route", "uses_common_filters", "description", "host_ids")
 
   implicit val pathOutFormat = jsonFormat(
     PathOut,
