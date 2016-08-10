@@ -8,6 +8,8 @@ import org.zalando.spearheads.innkeeper.routes.AcceptanceSpecToken._
 import org.zalando.spearheads.innkeeper.routes.AcceptanceSpecsHelper._
 import spray.json._
 
+import scala.collection.immutable.Seq
+
 class PatchRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
 
   describe("patch /routes") {
@@ -73,6 +75,21 @@ class PatchRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
           entityString(response).parseJson.convertTo[Error].errorType should be("TNF")
         }
       }
+
+      describe("when host ids are not a subset of path host ids") {
+        val token = WRITE_TOKEN
+
+        it("should return the 400 Bad Request status") {
+          val pathHostIds = Seq(1L, 2L, 3L)
+          val routePatchHostIds = Seq(1L, 2L, 4L)
+
+          val insertedRoute = RoutesRepoHelper.insertRoute(ownedByTeam = WRITE_TOKEN.teamName, pathHostIds = pathHostIds)
+
+          val response = RoutesSpecsHelper.patchSlashRoutes(insertedRoute.id.get, patchRouteHostIdsJsonString(routePatchHostIds), token)
+          response.status should be(StatusCodes.BadRequest)
+          entityString(response).parseJson.convertTo[Error].errorType should be("IRP")
+        }
+      }
     }
   }
 
@@ -80,6 +97,12 @@ class PatchRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
   private val patchRouteDescriptionJsonString =
     s"""{
         |  "description": "$newDescription"
+        |}
+  """.stripMargin
+
+  private def patchRouteHostIdsJsonString(hostIds: Seq[Long]) =
+    s"""{
+        |  "host_ids": [${hostIds.mkString(", ")}]
         |}
   """.stripMargin
 }

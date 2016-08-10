@@ -114,6 +114,13 @@ trait OAuthDirectives {
     }
   }
 
+  def isValidRoutePatch(routePatch: RoutePatch, path: PathOut, requestDescription: String)(routeValidationService: RouteValidationService): Directive0 = {
+    routeValidationService.validateRoutePatch(routePatch, path) match {
+      case Valid        => pass
+      case Invalid(msg) => reject(InvalidRoutePatchRejection(requestDescription, msg))
+    }
+  }
+
   def hasOneOfTheScopes(authorizedUser: AuthenticatedUser, requestDescription: String, scope: Scope*): Directive0 = {
     val configuredScopeNames = scope.flatMap(_.scopeNames).toSet
     val result: Directive0 = authorizedUser.scope.scopeNames.intersect(configuredScopeNames).isEmpty match {

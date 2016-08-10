@@ -61,6 +61,12 @@ object Rejections {
     def code: String = "IRF"
   }
 
+  case class InvalidRoutePatchRejection(requestDescription: String, msg: String) extends Rejection with InnkeeperRejection {
+    def statusCode: StatusCode = StatusCodes.BadRequest
+    def message: String = s"Invalid route patch. $msg"
+    def code: String = "IRP"
+  }
+
   case class InvalidDateTimeRejection(requestDescription: String) extends Rejection with InnkeeperRejection {
     def statusCode: StatusCode = StatusCodes.BadRequest
     def message: String = """Invalid date with time. The format should follow the ISO format. Example: "2015-08-21T15:23:05.731""""
