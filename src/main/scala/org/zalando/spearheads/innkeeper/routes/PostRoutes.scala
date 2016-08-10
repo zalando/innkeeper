@@ -48,7 +48,7 @@ class PostRoutes @Inject() (
               ((routeTeamAuthorization(team, path.ownedByTeam, reqDesc) & hasOneOfTheScopes(authenticatedUser, reqDesc, scopes.WRITE)) |
                 (hasAdminAuthorization(authenticatedUser, team, reqDesc, scopes) & cancelRejections(classOf[IncorrectTeamRejection]))
               ) {
-                  isValidRoute(route.route, reqDesc)(routeValidationService) {
+                  isValidRoute(route, path, reqDesc)(routeValidationService) {
                     metrics.postRoutes.time {
                       logger.debug(s"$reqDesc saveRoute")
                       onComplete(routesService.create(route, UserName(authenticatedUser.username))) {
