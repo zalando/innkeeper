@@ -36,10 +36,14 @@ class RouteValidationService @Inject() (predicateValidationService: PredicateVal
   }
 
   private def validateHostIds(pathHostIds: Seq[Long], routeHostIds: Option[Seq[Long]]): ValidationResult = {
-    routeHostIds
-      .filter(hostIds => hostIds.nonEmpty && !hostIds.toSet.subsetOf(pathHostIds.toSet))
-      .map(_ => Invalid("The route host ids should be a subset of the path host ids."))
-      .getOrElse(Valid)
+    if (pathHostIds.isEmpty) {
+      Valid
+    } else {
+      routeHostIds
+        .filter(hostIds => hostIds.nonEmpty && !hostIds.toSet.subsetOf(pathHostIds.toSet))
+        .map(_ => Invalid("The route host ids should be a subset of the path host ids."))
+        .getOrElse(Valid)
+    }
   }
 
   private def flattenValidationResults(validationResults: Seq[ValidationResult]): ValidationResult = {

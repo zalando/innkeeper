@@ -65,6 +65,16 @@ class RouteValidationServiceSpec extends FunSpec with Matchers with MockFactory 
       }
     }
 
+    describe("when the pathIds is an empty list") {
+      it("should return Valid") {
+        val route = buildRoute(NewRoute(), Option(Seq(1L, 4L)))
+        val path = samplePath.copy(hostIds = Seq.empty[Long])
+
+        val result = validationService.validateRouteForCreation(route, path)
+        result should be(Valid)
+      }
+    }
+
     describe("when the hostIds is not a subset of the path hostIds") {
       it("should return Invalid") {
         val route = buildRoute(NewRoute(), Option(Seq(1L, 4L)))
