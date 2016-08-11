@@ -6,10 +6,10 @@ import akka.http.scaladsl.server.Route
 import com.google.inject.Inject
 import org.slf4j.LoggerFactory
 import org.zalando.spearheads.innkeeper.Rejections.{DuplicateRouteNameRejection, IncorrectTeamRejection, UnmarshallRejection}
-import org.zalando.spearheads.innkeeper.RouteDirectives.validateRoute
+import org.zalando.spearheads.innkeeper.RouteDirectives.{isValidRoute, validateRoute}
 import org.zalando.spearheads.innkeeper.api.{RouteIn, UserName}
 import org.zalando.spearheads.innkeeper.metrics.RouteMetrics
-import org.zalando.spearheads.innkeeper.oauth.OAuthDirectives.{hasAdminAuthorization, hasOneOfTheScopes, isValidRoute, routeTeamAuthorization, team}
+import org.zalando.spearheads.innkeeper.oauth.OAuthDirectives.{hasAdminAuthorization, hasOneOfTheScopes, routeTeamAuthorization, team}
 import org.zalando.spearheads.innkeeper.oauth.{AuthenticatedUser, Scopes}
 import org.zalando.spearheads.innkeeper.services.{PathsService, RoutesService, ServiceResult}
 import org.zalando.spearheads.innkeeper.services.team.TeamService
