@@ -6,7 +6,7 @@ import akka.http.scaladsl.server.Route
 import com.google.inject.Inject
 import org.slf4j.LoggerFactory
 import org.zalando.spearheads.innkeeper.Rejections.{DuplicateRouteNameRejection, IncorrectTeamRejection, UnmarshallRejection}
-import org.zalando.spearheads.innkeeper.RouteDirectives.{isValidRoute, validateRoute}
+import org.zalando.spearheads.innkeeper.RouteDirectives.isValidRoute
 import org.zalando.spearheads.innkeeper.api.{RouteIn, UserName}
 import org.zalando.spearheads.innkeeper.metrics.RouteMetrics
 import org.zalando.spearheads.innkeeper.oauth.OAuthDirectives.{hasAdminAuthorization, hasOneOfTheScopes, routeTeamAuthorization, team}
@@ -38,30 +38,28 @@ class PostRoutes @Inject() (
       logger.info(s"try to $reqDesc")
       entity(as[RouteIn]) { route =>
         logger.info(s"We Try to $reqDesc unmarshalled route $route")
-        validateRoute(route, reqDesc) {
-          team(authenticatedUser, token, "path") { team =>
-            logger.debug(s"post /routes team $team")
+        team(authenticatedUser, token, "path") { team =>
+          logger.debug(s"post /routes team $team")
 
-            findPath(route.pathId, pathsService, reqDesc)(executionContext) { path =>
-              logger.debug(s"post /routes path $path")
+          findPath(route.pathId, pathsService, reqDesc)(executionContext) { path =>
+            logger.debug(s"post /routes path $path")
 
-              ((routeTeamAuthorization(team, path.ownedByTeam, reqDesc) & hasOneOfTheScopes(authenticatedUser, reqDesc, scopes.WRITE)) |
-                (hasAdminAuthorization(authenticatedUser, team, reqDesc, scopes) & cancelRejections(classOf[IncorrectTeamRejection]))
-              ) {
-                  isValidRoute(route, path, reqDesc)(routeValidationService) {
-                    metrics.postRoutes.time {
-                      logger.debug(s"$reqDesc saveRoute")
-                      onComplete(routesService.create(route, UserName(authenticatedUser.username))) {
-                        case Success(ServiceResult.Success(route))                 => complete(route)
-                        case Success(ServiceResult.Failure(DuplicateRouteName(_))) => reject(DuplicateRouteNameRejection(reqDesc))
-                        case _                                                     => reject
-                      }
+            ((routeTeamAuthorization(team, path.ownedByTeam, reqDesc) & hasOneOfTheScopes(authenticatedUser, reqDesc, scopes.WRITE)) |
+              (hasAdminAuthorization(authenticatedUser, team, reqDesc, scopes) & cancelRejections(classOf[IncorrectTeamRejection]))
+            ) {
+                isValidRoute(route, path, reqDesc)(routeValidationService) {
+                  metrics.postRoutes.time {
+                    logger.debug(s"$reqDesc saveRoute")
+                    onComplete(routesService.create(route, UserName(authenticatedUser.username))) {
+                      case Success(ServiceResult.Success(route))                 => complete(route)
+                      case Success(ServiceResult.Failure(DuplicateRouteName(_))) => reject(DuplicateRouteNameRejection(reqDesc))
+                      case _                                                     => reject
                     }
-
                   }
-                }
 
-            }
+                }
+              }
+
           }
         }
       } ~ {

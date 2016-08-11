@@ -62,18 +62,14 @@ trait RouteDirectives {
     }
   }
 
-  def validateRoute(routeIn: RouteIn, requestDescription: String): Directive0 = {
-    if (RouteName.isValid(routeIn.name)) {
-      pass
-    } else {
-      reject(InvalidRouteNameRejection(requestDescription))
-    }
-  }
-
   def isValidRoute(routeIn: RouteIn, path: PathOut, requestDescription: String)(routeValidationService: RouteValidationService): Directive0 = {
-    routeValidationService.validateRouteForCreation(routeIn, path) match {
-      case Valid        => pass
-      case Invalid(msg) => reject(InvalidRouteFormatRejection(requestDescription, msg))
+    if (!RouteName.isValid(routeIn.name)) {
+      reject(InvalidRouteNameRejection(requestDescription))
+    } else {
+      routeValidationService.validateRouteForCreation(routeIn, path) match {
+        case Valid        => pass
+        case Invalid(msg) => reject(InvalidRouteFormatRejection(requestDescription, msg))
+      }
     }
   }
 
