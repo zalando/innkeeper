@@ -207,7 +207,9 @@ class RoutesServiceSpec extends FunSpec with Matchers with MockFactory with Scal
     createdBy = UserName(createdBy),
     usesCommonFilters = false,
     disableAt = Some(disableAt),
-    description = Some(description))
+    description = Some(description),
+    hostIds = Some(Seq(1L))
+  )
 
   val routeIn = RouteIn(
     pathId,
@@ -216,7 +218,9 @@ class RoutesServiceSpec extends FunSpec with Matchers with MockFactory with Scal
     usesCommonFilters = false,
     Some(activateAt),
     Some(disableAt),
-    Some(description))
+    Some(description),
+    hostIds = Some(Seq(1L))
+  )
 
   val routeInNoActivationOrDisableDate = RouteIn(
     pathId,
@@ -225,7 +229,9 @@ class RoutesServiceSpec extends FunSpec with Matchers with MockFactory with Scal
     usesCommonFilters = false,
     None,
     None,
-    Some(description))
+    Some(description),
+    Some(Seq(1L))
+  )
 
   val routeRowWithoutId = RouteRow(
     id = None,
@@ -238,7 +244,8 @@ class RoutesServiceSpec extends FunSpec with Matchers with MockFactory with Scal
     createdAt = createdAt,
     updatedAt = updatedAt,
     disableAt = Some(disableAt),
-    description = Some(description)
+    description = Some(description),
+    hostIds = Some(Seq(1L))
   )
 
   val routeRow = routeRowWithoutId.copy(id = Some(routeId))

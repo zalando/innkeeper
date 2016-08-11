@@ -61,7 +61,8 @@ class DefaultRoutesService @Inject() (
       createdAt = createdAt,
       updatedAt = createdAt,
       description = route.description,
-      disableAt = route.disableAt
+      disableAt = route.disableAt,
+      hostIds = route.hostIds
     )
 
     routesRepo.routeWithNameExists(routeRow.name)
@@ -175,6 +176,8 @@ class DefaultRoutesService @Inject() (
       createdBy = UserName(routeRow.createdBy),
       description = routeRow.description,
       disableAt = routeRow.disableAt,
-      usesCommonFilters = routeRow.usesCommonFilters)
+      usesCommonFilters = routeRow.usesCommonFilters,
+      hostIds = routeRow.hostIds
+    )
   }
 }

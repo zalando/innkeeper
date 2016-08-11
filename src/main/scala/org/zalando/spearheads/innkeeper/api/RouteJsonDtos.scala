@@ -21,8 +21,9 @@ case class RouteIn(
   route: NewRoute,
   usesCommonFilters: Boolean,
   activateAt: Option[LocalDateTime],
-  disableAt: Option[LocalDateTime] = None,
-  description: Option[String] = None)
+  disableAt: Option[LocalDateTime],
+  description: Option[String],
+  hostIds: Option[Seq[Long]])
 
 case class RouteOut(
   id: Long,
@@ -33,15 +34,15 @@ case class RouteOut(
   activateAt: LocalDateTime,
   createdBy: UserName,
   usesCommonFilters: Boolean,
-  disableAt: Option[LocalDateTime] = None,
-  description: Option[String] = None,
-  deletedAt: Option[LocalDateTime] = None,
-  deletedBy: Option[String] = None)
+  disableAt: Option[LocalDateTime],
+  description: Option[String],
+  hostIds: Option[Seq[Long]])
 
 case class RoutePatch(
   route: Option[NewRoute],
   usesCommonFilters: Option[Boolean],
-  description: Option[String])
+  description: Option[String],
+  hostIds: Option[Seq[Long]])
 
 case class NewRoute(
   predicates: Option[Seq[Predicate]] = Some(Seq.empty),

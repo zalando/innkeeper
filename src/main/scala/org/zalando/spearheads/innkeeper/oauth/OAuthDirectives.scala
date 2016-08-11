@@ -7,7 +7,7 @@ import akka.http.scaladsl.server.Directives._
 import org.slf4j.LoggerFactory
 import org.zalando.spearheads.innkeeper.Rejections._
 import org.zalando.spearheads.innkeeper.api.validation.{Invalid, RouteValidationService, Valid}
-import org.zalando.spearheads.innkeeper.api.{NewRoute, TeamName}
+import org.zalando.spearheads.innkeeper.api.{PathOut, RouteIn, RoutePatch, TeamName}
 import org.zalando.spearheads.innkeeper.services.ServiceResult
 import org.zalando.spearheads.innkeeper.services.ServiceResult.{Ex, NotFound}
 
@@ -107,10 +107,17 @@ trait OAuthDirectives {
     }
   }
 
-  def isValidRoute(route: NewRoute, requestDescription: String)(implicit routeValidationService: RouteValidationService): Directive0 = {
-    routeValidationService.validate(route) match {
+  def isValidRoute(routeIn: RouteIn, path: PathOut, requestDescription: String)(routeValidationService: RouteValidationService): Directive0 = {
+    routeValidationService.validateRouteForCreation(routeIn, path) match {
       case Valid        => pass
       case Invalid(msg) => reject(InvalidRouteFormatRejection(requestDescription, msg))
+    }
+  }
+
+  def isValidRoutePatch(routePatch: RoutePatch, path: PathOut, requestDescription: String)(routeValidationService: RouteValidationService): Directive0 = {
+    routeValidationService.validateRoutePatch(routePatch, path) match {
+      case Valid        => pass
+      case Invalid(msg) => reject(InvalidRoutePatchRejection(requestDescription, msg))
     }
   }
 

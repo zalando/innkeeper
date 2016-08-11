@@ -4,6 +4,8 @@ import java.time.LocalDateTime
 import org.scalatest.time.{Seconds, Span}
 import org.zalando.spearheads.innkeeper.dao.{PathRow, RouteRow}
 
+import scala.collection.immutable.Seq
+
 object RoutesRepoHelper extends DaoHelper {
 
   implicit override val patienceConfig = PatienceConfig(timeout = Span(5, Seconds))
@@ -18,10 +20,12 @@ object RoutesRepoHelper extends DaoHelper {
     disableAt: Option[LocalDateTime] = None,
     activateAt: LocalDateTime = LocalDateTime.now().minusHours(2),
     usesCommonFilters: Boolean = false,
-    pathId: Option[Long] = None): RouteRow = {
+    pathId: Option[Long] = None,
+    pathHostIds: Seq[Long] = Seq.empty[Long],
+    routeHostIds: Option[Seq[Long]] = None): RouteRow = {
 
     val resolvedPathId = pathId.getOrElse {
-      insertTestPath(ownedByTeam, createdBy, createdAt, s"/path-for-$name")
+      insertTestPath(ownedByTeam, createdBy, createdAt, s"/path-for-$name", pathHostIds)
     }
 
     routesRepo.insert(RouteRow(
@@ -34,7 +38,8 @@ object RoutesRepoHelper extends DaoHelper {
       activateAt = activateAt,
       disableAt = disableAt,
       usesCommonFilters = usesCommonFilters,
-      description = Some(description)
+      description = Some(description),
+      hostIds = routeHostIds
     )).futureValue
   }
 
@@ -60,7 +65,9 @@ object RoutesRepoHelper extends DaoHelper {
       updatedAt = createdAt,
       activateAt = activateAt,
       usesCommonFilters = usesCommonFilters,
-      description = description
+      description = description,
+      disableAt = None,
+      hostIds = None
     )
   }
 
@@ -100,12 +107,13 @@ object RoutesRepoHelper extends DaoHelper {
     ownedByTeam: String,
     createdBy: String,
     createdAt: LocalDateTime,
-    uri: String = "testuri"): Long = {
+    uri: String,
+    hostIds: Seq[Long]): Long = {
 
     val path = pathsRepo.insert(PathRow(
       id = None,
       uri = uri,
-      hostIds = List.empty,
+      hostIds = hostIds,
       ownedByTeam = ownedByTeam,
       createdAt = createdAt,
       updatedAt = createdAt,

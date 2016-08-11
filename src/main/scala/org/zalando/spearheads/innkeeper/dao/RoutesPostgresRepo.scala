@@ -68,7 +68,7 @@ class RoutesPostgresRepo @Inject() (
     logger.debug(s"selectModifiedSince $since")
 
     db.stream(modifiedRoutesQuery(since, currentTime).result).mapResult {
-      case (routeName, _, _, _, _, _, _, _, _, _, Some(deletedAt)) =>
+      case (routeName, _, _, _, _, _, _, _, _, _, _, Some(deletedAt)) =>
         ModifiedRoute(
           routeChangeType = RouteChangeType.Delete,
           name = routeName,
@@ -76,7 +76,7 @@ class RoutesPostgresRepo @Inject() (
           routeData = None
         )
 
-      case (routeName, Some(uri), Some(hostIds), Some(routeJson), Some(usesCommonFilters), Some(createdAt), Some(routeUpdatedAt), Some(pathUpdatedAt), Some(activateAt), disableAt, None) =>
+      case (routeName, Some(uri), Some(pathHostIds), routeHostIds, Some(routeJson), Some(usesCommonFilters), Some(createdAt), Some(routeUpdatedAt), Some(pathUpdatedAt), Some(activateAt), disableAt, None) =>
         val (routeChangeType, timestamp) = if (pathUpdatedAt.isAfter(createdAt) || routeUpdatedAt.isAfter(createdAt)) {
           val updatedAt = if (pathUpdatedAt.isAfter(routeUpdatedAt)) {
             pathUpdatedAt
@@ -96,7 +96,7 @@ class RoutesPostgresRepo @Inject() (
         val routeData = RouteData(
           name = routeName,
           uri = uri,
-          hostIds = hostIds,
+          hostIds = getHostIds(pathHostIds, routeHostIds),
           routeJson = routeJson,
           usesCommonFilters = usesCommonFilters,
           activateAt = activateAt,
@@ -115,14 +115,14 @@ class RoutesPostgresRepo @Inject() (
   }
 
   private def modifiedRoutesQuery(since: LocalDateTime, currentTime: LocalDateTime) = for {
-    (routeName, uri, hostIds, routeJson, usesCommonFilters, createdAt, routeUpdatedAt, pathUpdatedAt, activateAt, disableAt, deletedAt) <- routesAndDeletedRoutesQuery
+    (routeName, uri, pathHostIds, routeHostIds, routeJson, usesCommonFilters, createdAt, routeUpdatedAt, pathUpdatedAt, activateAt, disableAt, deletedAt) <- routesAndDeletedRoutesQuery
     routeWasDeleted = deletedAt.isDefined && deletedAt > since
     routeIsActive = activateAt < currentTime
     if routeWasDeleted ||
       (deletedAt.isEmpty &&
         routeIsActive &&
         (activateAt > since || routeUpdatedAt > since || pathUpdatedAt > since))
-  } yield (routeName, uri, hostIds, routeJson, usesCommonFilters, createdAt, routeUpdatedAt, pathUpdatedAt, activateAt, disableAt, deletedAt)
+  } yield (routeName, uri, pathHostIds, routeHostIds, routeJson, usesCommonFilters, createdAt, routeUpdatedAt, pathUpdatedAt, activateAt, disableAt, deletedAt)
 
   private val routesAndDeletedRoutesQuery = {
     val routesQuery = for {
@@ -131,6 +131,7 @@ class RoutesPostgresRepo @Inject() (
       routeRow.name,
       pathRow.uri.?,
       pathRow.hostIds.?,
+      routeRow.hostIds,
       routeRow.routeJson.?,
       routeRow.usesCommonFilters.?,
       routeRow.createdAt.?,
@@ -145,7 +146,8 @@ class RoutesPostgresRepo @Inject() (
       (
         deletedRouteRow.name,
         SimpleLiteral[Option[String]]("NULL"), // uri
-        SimpleLiteral[Option[Seq[Long]]]("NULL"), // host ids
+        SimpleLiteral[Option[Seq[Long]]]("NULL"), // path host ids
+        SimpleLiteral[Option[Seq[Long]]]("NULL"), // route host ids
         SimpleLiteral[Option[String]]("NULL"), // routeJson
         SimpleLiteral[Option[Boolean]]("NULL"), // usesCommonFilters
         SimpleLiteral[Option[LocalDateTime]]("NULL"), // createdAt
@@ -175,13 +177,17 @@ class RoutesPostgresRepo @Inject() (
         RouteData(
           name = routeRow.name,
           uri = pathRow.uri,
-          hostIds = pathRow.hostIds,
+          hostIds = getHostIds(pathRow.hostIds, routeRow.hostIds),
           routeJson = routeRow.routeJson,
           usesCommonFilters = routeRow.usesCommonFilters,
           activateAt = routeRow.activateAt,
           disableAt = routeRow.disableAt
         )
     }
+  }
+
+  private def getHostIds(pathHostIds: Seq[Long], routeHostIds: Option[Seq[Long]]): Seq[Long] = {
+    routeHostIds.filter(_.nonEmpty).getOrElse(pathHostIds)
   }
 
   override def delete(id: Long, deletedByOpt: Option[String], dateTime: Option[LocalDateTime]): Future[Boolean] = {
@@ -260,11 +266,19 @@ class RoutesPostgresRepo @Inject() (
         .map(route => (route.updatedAt, route.routeJson))
         .update((updatedAt, routeJson))
     }
+    val updateHostIdsActionOpt = routePatch.hostIds.map { hostIds =>
+      val newHostIds = Some(hostIds).filter(_.nonEmpty)
+      Routes
+        .filter(_.id === id)
+        .map(route => (route.updatedAt, route.hostIds))
+        .update((updatedAt, newHostIds))
+    }
 
     val actions = List(
       updateDescriptionActionOpt,
       updateUsesCommonFiltersActionOpt,
-      updateRouteJsonActionOpt
+      updateRouteJsonActionOpt,
+      updateHostIdsActionOpt
     ).flatten
 
     db.run {

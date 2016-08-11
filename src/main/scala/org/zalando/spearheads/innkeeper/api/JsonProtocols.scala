@@ -110,11 +110,10 @@ object JsonProtocols {
         "created_by" -> routeOut.createdBy.toJson,
         "disable_at" -> routeOut.disableAt.toJson,
         "description" -> routeOut.description.toJson,
-        "deleted_at" -> routeOut.deletedAt.toJson,
-        "deleted_by" -> routeOut.deletedBy.toJson,
         "predicates" -> routeOut.route.predicates.toJson,
         "filters" -> routeOut.route.filters.toJson,
-        "endpoint" -> routeOut.route.endpoint.toJson
+        "endpoint" -> routeOut.route.endpoint.toJson,
+        "host_ids" -> routeOut.hostIds.toJson
       ).filter(_._2 != JsNull)
 
       JsObject(fieldsMap)
@@ -130,13 +129,12 @@ object JsonProtocols {
         activateAt <- fields.get("activate_at").map(_.convertTo[LocalDateTime])
         createdAt <- fields.get("created_at").map(_.convertTo[LocalDateTime])
         createdBy <- fields.get("created_by").map(_.convertTo[String])
-        deletedAt = fields.get("deleted_at").flatMap(_.convertTo[Option[LocalDateTime]])
-        deletedBy = fields.get("deleted_by").flatMap(_.convertTo[Option[String]])
         description = fields.get("description").flatMap(_.convertTo[Option[String]])
         disableAt = fields.get("disable_at").flatMap(_.convertTo[Option[LocalDateTime]])
         predicates = fields.get("predicates").flatMap(_.convertTo[Option[Seq[Predicate]]])
         filters = fields.get("filters").flatMap(_.convertTo[Option[Seq[Filter]]])
         endpoint = fields.get("endpoint").flatMap(_.convertTo[Option[String]])
+        hostIds = fields.get("host_ids").map(_.convertTo[Seq[Long]])
       } yield RouteOut(
         id = id,
         pathId = pathId,
@@ -147,9 +145,8 @@ object JsonProtocols {
         name = RouteName(name),
         createdAt = createdAt,
         createdBy = UserName(createdBy),
-        deletedAt = deletedAt,
-        deletedBy = deletedBy,
-        route = NewRoute(predicates, filters, endpoint)
+        route = NewRoute(predicates, filters, endpoint),
+        hostIds = hostIds
       )
 
       parsedValueOpt.getOrElse {
@@ -169,7 +166,8 @@ object JsonProtocols {
         "description" -> routeIn.description.toJson,
         "predicates" -> routeIn.route.predicates.toJson,
         "filters" -> routeIn.route.filters.toJson,
-        "endpoint" -> routeIn.route.endpoint.toJson
+        "endpoint" -> routeIn.route.endpoint.toJson,
+        "host_ids" -> routeIn.hostIds.toJson
       ).filter(_._2 != JsNull)
 
       JsObject(fieldsMap)
@@ -187,6 +185,7 @@ object JsonProtocols {
         predicates = fields.get("predicates").flatMap(_.convertTo[Option[Seq[Predicate]]])
         filters = fields.get("filters").flatMap(_.convertTo[Option[Seq[Filter]]])
         endpoint = fields.get("endpoint").flatMap(_.convertTo[Option[String]])
+        hostIds = fields.get("host_ids").map(_.convertTo[Seq[Long]])
       } yield RouteIn(
         pathId = pathId,
         usesCommonFilters = usesCommonFilters,
@@ -194,7 +193,8 @@ object JsonProtocols {
         disableAt = disableAt,
         description = description,
         name = RouteName(name),
-        route = NewRoute(predicates, filters, endpoint)
+        route = NewRoute(predicates, filters, endpoint),
+        hostIds = hostIds
       )
 
       parsedValueOpt.getOrElse {
@@ -209,7 +209,7 @@ object JsonProtocols {
 
   implicit val pathPatchFormat = jsonFormat(PathPatch, "host_ids", "owned_by_team")
 
-  implicit val routePatchFormat = jsonFormat(RoutePatch, "route", "uses_common_filters", "description")
+  implicit val routePatchFormat = jsonFormat(RoutePatch, "route", "uses_common_filters", "description", "host_ids")
 
   implicit val pathOutFormat = jsonFormat(
     PathOut,

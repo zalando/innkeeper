@@ -9,6 +9,7 @@ import org.zalando.spearheads.innkeeper.Rejections.{IncorrectTeamRejection, Unma
 import org.zalando.spearheads.innkeeper.RouteDirectives.findPathByRouteId
 import org.zalando.spearheads.innkeeper.api.JsonProtocols._
 import org.zalando.spearheads.innkeeper.api.RoutePatch
+import org.zalando.spearheads.innkeeper.api.validation.RouteValidationService
 import org.zalando.spearheads.innkeeper.metrics.RouteMetrics
 import org.zalando.spearheads.innkeeper.oauth.OAuthDirectives._
 import org.zalando.spearheads.innkeeper.oauth.{AuthenticatedUser, Scopes}
@@ -23,6 +24,7 @@ class PatchRoutes @Inject() (
     pathsService: PathsService,
     metrics: RouteMetrics,
     scopes: Scopes,
+    implicit val routeValidationService: RouteValidationService,
     implicit val teamService: TeamService,
     implicit val executionContext: ExecutionContext) {
 
@@ -45,9 +47,11 @@ class PatchRoutes @Inject() (
             ((routeTeamAuthorization(team, path.ownedByTeam, reqDesc) & hasOneOfTheScopes(authenticatedUser, reqDesc, scopes.WRITE)) |
               (hasAdminAuthorization(authenticatedUser, team, reqDesc, scopes) & cancelRejections(classOf[IncorrectTeamRejection]))
             ) {
-                logger.debug("patch /routes")
+                isValidRoutePatch(routePatch, path, reqDesc)(routeValidationService) {
+                  logger.debug("patch /routes")
 
-                patchRouteRoute(id, routePatch, authenticatedUser, reqDesc)
+                  patchRouteRoute(id, routePatch, authenticatedUser, reqDesc)
+                }
               }
           }
         }

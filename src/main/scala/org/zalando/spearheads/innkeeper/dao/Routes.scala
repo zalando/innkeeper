@@ -19,8 +19,9 @@ case class RouteRow(
   createdBy: String,
   createdAt: LocalDateTime,
   updatedAt: LocalDateTime,
-  disableAt: Option[LocalDateTime] = None,
-  description: Option[String] = None)
+  disableAt: Option[LocalDateTime],
+  description: Option[String],
+  hostIds: Option[Seq[Long]])
 
 case class RouteData(
   name: String,
@@ -52,6 +53,7 @@ class RoutesTable(tag: Tag)
   def createdBy = column[String]("CREATED_BY")
   def routeJson = column[String]("ROUTE_JSON")
   def usesCommonFilters = column[Boolean]("USES_COMMON_FILTERS")
+  def hostIds = column[Option[Seq[Long]]]("HOST_IDS")
 
   def nameIndex = index("ROUTES_NAME_IDX", name, unique = true)
   def createdAtIndex = index("ROUTES_CREATED_AT_IDX", createdAt)
@@ -61,5 +63,5 @@ class RoutesTable(tag: Tag)
 
   // Every table needs a * projection with the same type as the table's type parameter
   def * = // scalastyle:ignore
-    (id.?, pathId, name, routeJson, activateAt, usesCommonFilters, createdBy, createdAt, updatedAt, disableAt, description) <> (RouteRow.tupled, RouteRow.unapply)
+    (id.?, pathId, name, routeJson, activateAt, usesCommonFilters, createdBy, createdAt, updatedAt, disableAt, description, hostIds) <> (RouteRow.tupled, RouteRow.unapply)
 }

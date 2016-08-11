@@ -50,7 +50,8 @@ class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers w
         val routePatch = RoutePatch(
           route = None,
           usesCommonFilters = None,
-          description = Some(updatedDescription)
+          description = Some(updatedDescription),
+          hostIds = None
         )
 
         val routeRow = routesRepo.update(insertedRoute.id.get, routePatch, updatedAt).futureValue.get
@@ -66,7 +67,8 @@ class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers w
         val routePatch = RoutePatch(
           route = None,
           usesCommonFilters = Some(updatedUsesCommonFilters),
-          description = None
+          description = None,
+          hostIds = None
         )
 
         val routeRow = routesRepo.update(insertedRoute.id.get, routePatch, updatedAt).futureValue.get
@@ -86,12 +88,29 @@ class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers w
         val routePatch = RoutePatch(
           route = Some(newRoute),
           usesCommonFilters = None,
-          description = None
+          description = None,
+          hostIds = None
         )
 
         val routeRow = routesRepo.update(insertedRoute.id.get, routePatch, updatedAt).futureValue.get
 
         routeRow.routeJson should not be insertedRoute.routeJson
+      }
+
+      it("should update hostIds") {
+        val insertedRoute = insertRoute(pathHostIds = Seq(1L, 2L, 3L))
+
+        val updatedAt = LocalDateTime.now()
+        val updatedHostIds = Some(Seq(1L, 2L))
+        val routePatch = RoutePatch(
+          route = None,
+          usesCommonFilters = None,
+          description = None,
+          hostIds = updatedHostIds
+        )
+
+        val routeRow = routesRepo.update(insertedRoute.id.get, routePatch, updatedAt).futureValue.get
+        routeRow.hostIds should be(updatedHostIds)
       }
     }
 
@@ -239,7 +258,7 @@ class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers w
         insertRoute("R3", createdAt = createdAt, activateAt = createdAt)
         insertRoute("R4", createdAt = createdAt, activateAt = createdAt)
 
-        routesRepo.update(r1.id.get, RoutePatch(None, None, Some("new description")), createdAt.plusDays(1))
+        routesRepo.update(r1.id.get, RoutePatch(None, None, Some("new description"), None), createdAt.plusDays(1))
           .futureValue
 
         val result = routesRepo.selectModifiedSince(
@@ -249,7 +268,28 @@ class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers w
 
         result.size should be (3)
         result.map(_.name).toSet should be (Set("R1", "R3", "R4"))
-        result.filter(_.name === "R1").forall(_.routeChangeType == RouteChangeType.Update) should be(true)
+        result.filter(_.name == "R1").forall(_.routeChangeType == RouteChangeType.Update) should be(true)
+      }
+
+      it("should contain the route host ids if it's a restricted set") {
+        val createdAt = LocalDateTime.of(2015, 10, 10, 10, 10, 10)
+
+        insertRoute(
+          name = "R1",
+          createdAt = createdAt,
+          activateAt = createdAt,
+          pathHostIds = Seq(1L, 2L, 3L),
+          routeHostIds = Some(Seq(1L))
+        )
+
+        val result = routesRepo.selectModifiedSince(
+          since = createdAt.minusDays(1L),
+          currentTime = createdAt.plusDays(1L)
+        )
+
+        result.size should be (1)
+
+        result.filter(_.name == "R1").flatMap(_.routeData).flatMap(_.hostIds).toSet should be (Set(1L))
       }
     }
 
@@ -327,7 +367,7 @@ class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers w
       }
     }
 
-    describe("#selectActiveRoutesWithPath") {
+    describe("#selectActiveRoutesData") {
 
       it("should select the right routes") {
         insertRoute("R1")
@@ -345,6 +385,26 @@ class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers w
         routesWithPaths.size should be (2)
 
         routesWithPaths.map(_.name).toSet should be (Set("R1", "R5"))
+      }
+
+      it("should contain the route host ids if it's a restricted set") {
+        val createdAt = LocalDateTime.of(2015, 10, 10, 10, 10, 10)
+
+        insertRoute(
+          name = "R1",
+          createdAt = createdAt,
+          activateAt = createdAt,
+          pathHostIds = Seq(1L, 2L, 3L),
+          routeHostIds = Some(Seq(1L))
+        )
+
+        val result = routesRepo.selectActiveRoutesData(
+          currentTime = createdAt.plusDays(1L)
+        )
+
+        result.size should be (1)
+
+        result.filter(_.name == "R1").flatMap(_.hostIds).toSet should be (Set(1L))
       }
     }
 
