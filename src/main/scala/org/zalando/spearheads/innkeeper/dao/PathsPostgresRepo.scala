@@ -77,7 +77,7 @@ class PathsPostgresRepo @Inject() (
     logger.debug("selectAll")
 
     db.stream {
-      selectAllQuery.result
+      Paths.result
     }
   }
 
@@ -125,7 +125,4 @@ class PathsPostgresRepo @Inject() (
     }
   }
 
-  private lazy val selectAllQuery = for {
-    pathRow <- Paths
-  } yield pathRow
 }
