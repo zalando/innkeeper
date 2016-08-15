@@ -5,9 +5,10 @@ import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import com.google.inject.Inject
 import org.slf4j.LoggerFactory
-import org.zalando.spearheads.innkeeper.Rejections.{EmptyPathHostIdsRejection, PathOwnedByTeamAuthorizationRejection, UnmarshallRejection}
+import org.zalando.spearheads.innkeeper.Rejections._
 import org.zalando.spearheads.innkeeper.api.JsonProtocols._
 import org.zalando.spearheads.innkeeper.api.PathPatch
+import org.zalando.spearheads.innkeeper.api.validation.{Invalid, Valid}
 import org.zalando.spearheads.innkeeper.metrics.RouteMetrics
 import org.zalando.spearheads.innkeeper.oauth.OAuthDirectives._
 import org.zalando.spearheads.innkeeper.oauth.{AuthenticatedUser, Scopes}
@@ -60,14 +61,20 @@ class PatchPaths @Inject() (
   }
 
   private def patchPathRoute(id: Long, pathPatch: PathPatch, authenticatedUser: AuthenticatedUser, reqDesc: String): Route = {
-    metrics.postPaths.time {
-      val userName = authenticatedUser.username.getOrElse("")
-      logger.info(s"$reqDesc: $pathPatch")
+    onSuccess(pathsService.isPathPatchValid(id, pathPatch)) {
+      case Valid =>
+        metrics.postPaths.time {
+          val userName = authenticatedUser.username.getOrElse("")
+          logger.info(s"$reqDesc: $pathPatch")
 
-      onComplete(pathsService.patch(id, pathPatch, userName)) {
-        case Success(ServiceResult.Success(pathOut)) => complete(pathOut)
-        case _                                       => reject
-      }
+          onComplete(pathsService.patch(id, pathPatch, userName)) {
+            case Success(ServiceResult.Success(pathOut)) => complete(pathOut)
+            case _                                       => reject
+          }
+        }
+
+      case Invalid(message) =>
+        reject(InvalidPathPatchRejection(reqDesc, message))
     }
   }
 }

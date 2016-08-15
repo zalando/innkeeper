@@ -5,6 +5,7 @@ import java.time.LocalDateTime
 import akka.NotUsed
 import akka.stream.scaladsl.Source
 import com.google.inject.Inject
+import org.zalando.spearheads.innkeeper.api.validation.{Invalid, Valid, ValidationResult}
 import org.zalando.spearheads.innkeeper.api.{PathIn, PathOut, PathPatch, TeamName, UserName}
 import org.zalando.spearheads.innkeeper.dao.{AuditType, AuditsRepo, PathRow, PathsRepo}
 import org.zalando.spearheads.innkeeper.services.ServiceResult._
@@ -35,6 +36,8 @@ trait PathsService {
     uriOption: Option[String] = None): Source[PathOut, NotUsed]
 
   def allPaths: Source[PathOut, NotUsed]
+
+  def isPathPatchValid(pathId: Long, pathPatch: PathPatch): Future[ValidationResult]
 }
 
 class DefaultPathsService @Inject() (pathsRepo: PathsRepo, auditsRepo: AuditsRepo)(implicit val executionContext: ExecutionContext)
@@ -128,6 +131,17 @@ class DefaultPathsService @Inject() (pathsRepo: PathsRepo, auditsRepo: AuditsRep
 
   override def allPaths = pathRowsStreamToPathOutStream {
     pathsRepo.selectAll
+  }
+
+  override def isPathPatchValid(pathId: Long, pathPatch: PathPatch): Future[ValidationResult] = {
+    pathPatch.hostIds.map { newHostIds =>
+      pathsRepo.areNewHostIdsValid(pathId, newHostIds).map {
+        case true  => Valid
+        case false => Invalid("Host ids are not valid.")
+      }
+    } getOrElse {
+      Future(Valid)
+    }
   }
 
   private def pathRowsStreamToPathOutStream(streamOfRows: => DatabasePublisher[PathRow]): Source[PathOut, NotUsed] = {

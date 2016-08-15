@@ -6,6 +6,7 @@ import org.zalando.spearheads.innkeeper.api.PathPatch
 import slick.backend.DatabasePublisher
 
 import scala.concurrent.Future
+import scala.collection.immutable.Seq
 
 trait PathsRepo {
 
@@ -16,4 +17,5 @@ trait PathsRepo {
   def selectByOwnerTeamAndUri(ownedByTeam: Option[String], uri: Option[String]): DatabasePublisher[PathRow]
   def pathWithUriHostIdExists(uri: String, hostIds: Seq[Long]): Future[Boolean]
   def update(id: Long, pathPatch: PathPatch, updatedAt: LocalDateTime): Future[Option[PathRow]]
+  def areNewHostIdsValid(pathId: Long, newHostIds: Seq[Long]): Future[Boolean]
 }
