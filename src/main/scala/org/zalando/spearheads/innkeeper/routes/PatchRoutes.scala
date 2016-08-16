@@ -6,7 +6,7 @@ import akka.http.scaladsl.server.Route
 import com.google.inject.Inject
 import org.slf4j.LoggerFactory
 import org.zalando.spearheads.innkeeper.Rejections.{IncorrectTeamRejection, UnmarshallRejection}
-import org.zalando.spearheads.innkeeper.RouteDirectives.findPathByRouteId
+import org.zalando.spearheads.innkeeper.RouteDirectives.{findPathByRouteId, isValidRoutePatch}
 import org.zalando.spearheads.innkeeper.api.JsonProtocols._
 import org.zalando.spearheads.innkeeper.api.RoutePatch
 import org.zalando.spearheads.innkeeper.api.validation.RouteValidationService

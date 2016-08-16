@@ -5,11 +5,11 @@ import java.time.LocalDateTime
 import com.google.inject.{Inject, Singleton}
 import org.slf4j.LoggerFactory
 import org.zalando.spearheads.innkeeper.api.PathPatch
+import org.zalando.spearheads.innkeeper.dao.MyPostgresDriver.api._
 import slick.backend.DatabasePublisher
 
-import scala.collection.immutable.List
+import scala.collection.immutable.Seq
 import scala.concurrent.{ExecutionContext, Future}
-import org.zalando.spearheads.innkeeper.dao.MyPostgresDriver.api._
 
 @Singleton
 class PathsPostgresRepo @Inject() (
@@ -77,7 +77,7 @@ class PathsPostgresRepo @Inject() (
     logger.debug("selectAll")
 
     db.stream {
-      selectAllQuery.result
+      Paths.result
     }
   }
 
@@ -113,7 +113,7 @@ class PathsPostgresRepo @Inject() (
         .update((updatedAt, ownedByTeam.name))
     }
 
-    val actions = List(
+    val actions = Seq(
       updateHostIdsActionOpt,
       updateOwnedByTeamActionOpt
     ).flatten
@@ -125,7 +125,19 @@ class PathsPostgresRepo @Inject() (
     }
   }
 
-  private lazy val selectAllQuery = for {
-    pathRow <- Paths
-  } yield pathRow
+  override def areNewHostIdsValid(pathId: Long, newHostIds: Seq[Long]): Future[Boolean] = {
+    if (newHostIds.isEmpty) return Future(true)
+
+    val newHostIdsRep: Rep[Seq[Long]] = newHostIds
+
+    val invalidRouteIdsQuery = for {
+      (pathRow, routeRow) <- Paths join Routes on (_.id === _.pathId)
+      if pathRow.id === pathId && !(newHostIdsRep @> routeRow.hostIds)
+    } yield routeRow.id
+
+    val areValidQuery = !invalidRouteIdsQuery.exists
+
+    db.run(areValidQuery.result)
+  }
+
 }

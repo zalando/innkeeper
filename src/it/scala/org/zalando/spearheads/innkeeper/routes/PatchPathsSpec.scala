@@ -9,6 +9,8 @@ import org.zalando.spearheads.innkeeper.routes.AcceptanceSpecsHelper._
 import org.zalando.spearheads.innkeeper.routes.RoutesRepoHelper._
 import spray.json._
 
+import scala.collection.immutable.Seq
+
 class PatchPathsSpec extends FunSpec with BeforeAndAfter with Matchers {
 
   describe("patch /paths") {
@@ -122,6 +124,22 @@ class PatchPathsSpec extends FunSpec with BeforeAndAfter with Matchers {
 
           response.status should be(StatusCodes.BadRequest)
           entityString(response).parseJson.convertTo[Error].errorType should be("EPH")
+        }
+      }
+
+      describe("when path patch updates host ids so that route host ids are no longer valid") {
+        it("should return the 400 Bad Request status") {
+          val token = WRITE_TOKEN
+
+          RoutesRepoHelper.insertRoute(
+            pathHostIds = Seq(1L, 2L, 3L),
+            routeHostIds = Some(Seq(1L, 2L))
+          )
+
+          val response = PathsSpecsHelper.patchSlashPaths(1L, pathPatchHostIdsJsonString(List(1L)), token)
+
+          response.status should be(StatusCodes.BadRequest)
+          entityString(response).parseJson.convertTo[Error].errorType should be("IPP")
         }
       }
     }

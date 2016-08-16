@@ -5,11 +5,12 @@ import akka.http.scaladsl.model.HttpEntity.ChunkStreamPart
 import akka.http.scaladsl.model.{HttpEntity, HttpResponse, MediaTypes}
 import akka.http.scaladsl.server.directives.RouteDirectives._
 import akka.http.scaladsl.server._
-import akka.http.scaladsl.server.Directives.pass
+import akka.http.scaladsl.server.Directives.{complete => _, reject => _, _}
 import akka.http.scaladsl.util.FastFuture._
 import akka.stream.scaladsl.Source
 import org.zalando.spearheads.innkeeper.api._
-import org.zalando.spearheads.innkeeper.Rejections.{InvalidRouteNameRejection, InternalServerErrorRejection, PathNotFoundRejection, RouteNotFoundRejection}
+import org.zalando.spearheads.innkeeper.Rejections._
+import org.zalando.spearheads.innkeeper.api.validation.{Invalid, RouteValidationService, Valid}
 import org.zalando.spearheads.innkeeper.services.{PathsService, RoutesService, ServiceResult}
 import spray.json.JsonWriter
 
@@ -61,11 +62,21 @@ trait RouteDirectives {
     }
   }
 
-  def validateRoute(routeIn: RouteIn, requestDescription: String): Directive0 = {
-    if (RouteName.isValid(routeIn.name)) {
-      pass
-    } else {
+  def isValidRoute(routeIn: RouteIn, path: PathOut, requestDescription: String)(routeValidationService: RouteValidationService): Directive0 = {
+    if (!RouteName.isValid(routeIn.name)) {
       reject(InvalidRouteNameRejection(requestDescription))
+    } else {
+      routeValidationService.validateRouteForCreation(routeIn, path) match {
+        case Valid        => pass
+        case Invalid(msg) => reject(InvalidRouteFormatRejection(requestDescription, msg))
+      }
+    }
+  }
+
+  def isValidRoutePatch(routePatch: RoutePatch, path: PathOut, requestDescription: String)(routeValidationService: RouteValidationService): Directive0 = {
+    routeValidationService.validateRoutePatch(routePatch, path) match {
+      case Valid        => pass
+      case Invalid(msg) => reject(InvalidRoutePatchRejection(requestDescription, msg))
     }
   }
 }
