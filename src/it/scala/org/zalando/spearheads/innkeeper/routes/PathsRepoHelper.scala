@@ -19,7 +19,9 @@ object PathsRepoHelper extends ScalaFutures with DaoHelper {
       ownedByTeam = pathRow.ownedByTeam,
       createdBy = pathRow.createdBy,
       createdAt = pathRow.createdAt,
-      updatedAt = pathRow.updatedAt)).futureValue
+      updatedAt = pathRow.updatedAt,
+      hasStar = false
+    )).futureValue
   }
 
   def samplePath(
@@ -38,7 +40,8 @@ object PathsRepoHelper extends ScalaFutures with DaoHelper {
       ownedByTeam = ownedByTeam,
       createdBy = createdBy,
       createdAt = createdAt,
-      updatedAt = updatedAt
+      updatedAt = updatedAt,
+      hasStar = false
     )
   }
 }

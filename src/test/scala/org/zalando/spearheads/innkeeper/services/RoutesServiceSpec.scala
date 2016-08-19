@@ -325,7 +325,9 @@ class RoutesServiceSpec extends FunSpec with Matchers with MockFactory with Scal
     ownedByTeam = ownedByTeam,
     createdBy = createdBy,
     createdAt = createdAt,
-    updatedAt = updatedAt)
+    updatedAt = updatedAt,
+    hasStar = false
+  )
 
   val inactiveRouteRow = routeRowWithoutId.copy(
     id = Some(3),

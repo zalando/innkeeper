@@ -181,7 +181,8 @@ class EskipRouteServiceSpec extends FunSpec with Matchers with MockFactory with 
     ownedByTeam = "team",
     createdBy = "user",
     createdAt = referenceTime,
-    updatedAt = referenceTime
+    updatedAt = referenceTime,
+    hasStar = false
   )
 
   val routeData = RouteData(

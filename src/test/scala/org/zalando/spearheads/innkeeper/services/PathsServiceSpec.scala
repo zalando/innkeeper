@@ -203,7 +203,9 @@ class PathsServiceSpec extends FunSpec with Matchers with MockFactory with Scala
     ownedByTeam = ownedByTeam,
     createdBy = createdBy,
     createdAt = createdAt,
-    updatedAt = updatedAt)
+    updatedAt = updatedAt,
+    hasStar = false
+  )
 
   val pathRow = pathRowWithoutId.copy(id = Some(pathId))
 

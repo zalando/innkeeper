@@ -56,7 +56,8 @@ class DefaultPathsService @Inject() (pathsRepo: PathsRepo, auditsRepo: AuditsRep
       ownedByTeam = ownedByTeam.name,
       createdBy = createdBy.name,
       createdAt = createdAt,
-      updatedAt = createdAt
+      updatedAt = createdAt,
+      hasStar = path.hasStar.getOrElse(false)
     )
 
     pathsRepo.pathWithUriHostIdExists(path.uri, path.hostIds)

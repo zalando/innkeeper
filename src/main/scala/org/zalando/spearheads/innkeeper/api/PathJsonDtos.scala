@@ -13,7 +13,8 @@ sealed trait Path {
 case class PathIn(
   uri: String,
   hostIds: Seq[Long],
-  ownedByTeam: Option[TeamName] = None) extends Path
+  ownedByTeam: Option[TeamName] = None,
+  hasStar: Option[Boolean] = None) extends Path
 
 case class PathOut(
   id: Long,
