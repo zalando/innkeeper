@@ -127,6 +127,17 @@ class PatchPathsSpec extends FunSpec with BeforeAndAfter with Matchers {
         }
       }
 
+      describe("when host ids is empty for admin") {
+        it("should return the 400 Bad Request status") {
+          val token = ADMIN_TOKEN
+
+          val response = PathsSpecsHelper.patchSlashPaths(1L, pathPatchHostIdsJsonString(newHostIds = List.empty), token)
+
+          response.status should be(StatusCodes.BadRequest)
+          entityString(response).parseJson.convertTo[Error].errorType should be("EPH")
+        }
+      }
+
       describe("when path patch updates host ids so that route host ids are no longer valid") {
         it("should return the 400 Bad Request status") {
           val token = WRITE_TOKEN
