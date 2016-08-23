@@ -164,6 +164,16 @@ class PostPathsSpec extends FunSpec with BeforeAndAfter with Matchers {
         }
       }
 
+      describe("when host ids is empty for an admin token") {
+        val token = ADMIN_TOKEN
+
+        it("should return the 400 Bad Request status") {
+          val response = PathsSpecsHelper.postSlashPaths(pathJsonString(hostIds = List.empty), token)
+          response.status should be(StatusCodes.BadRequest)
+          entityString(response).parseJson.convertTo[Error].errorType should be("EPH")
+        }
+      }
+
       describe("when a token without admin privileges is provided and owned_by_team is defined") {
         it("should return the 403 Forbidden status") {
           val token = WRITE_TOKEN

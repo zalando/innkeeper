@@ -54,10 +54,14 @@ class PostPaths @Inject() (
           } ~ hasAdminAuthorization(authenticatedUser, team, reqDesc, scopes)(teamService) {
             logger.debug(s"post /paths admin team $team")
 
-            val createdBy = UserName(authenticatedUser.username)
-            val ownedByTeam = path.ownedByTeam.getOrElse(TeamName(team.name))
+            if (path.hostIds.isEmpty) {
+              reject(EmptyPathHostIdsRejection(reqDesc))
+            } else {
+              val createdBy = UserName(authenticatedUser.username)
+              val ownedByTeam = path.ownedByTeam.getOrElse(TeamName(team.name))
 
-            savePathRoute(path, ownedByTeam, createdBy, reqDesc)
+              savePathRoute(path, ownedByTeam, createdBy, reqDesc)
+            }
           }
         }
       } ~ {
