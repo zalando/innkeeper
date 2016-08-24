@@ -36,7 +36,7 @@ class PostPaths @Inject() (
         logger.info(s"We try to $reqDesc unmarshalled path $path")
 
         team(authenticatedUser, token, "path") { team =>
-          logger.debug(s"post /paths team $team")
+          logger.info(s"post /paths team $team")
 
           hasOneOfTheScopes(authenticatedUser, reqDesc, scopes.WRITE) {
             logger.debug(s"post /paths non-admin team $team")
