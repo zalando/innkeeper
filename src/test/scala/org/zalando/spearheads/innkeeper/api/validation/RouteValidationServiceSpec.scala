@@ -4,7 +4,7 @@ import java.time.LocalDateTime
 
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.{FunSpec, Matchers}
-import org.zalando.spearheads.innkeeper.api.{NewRoute, PathOut, Predicate, RouteIn, RouteName, StringArg, TeamName, UserName}
+import org.zalando.spearheads.innkeeper.api._
 
 import scala.collection.immutable.Seq
 
@@ -80,7 +80,31 @@ class RouteValidationServiceSpec extends FunSpec with Matchers with MockFactory 
         val route = buildRoute(NewRoute(), Option(Seq(1L, 4L)))
 
         val result = validationService.validateRouteForCreation(route, samplePath)
-        result should be(Invalid("The route host ids should be a subset of the path host ids."))
+        result shouldBe an[Invalid]
+      }
+    }
+
+    describe("when the predicate name is empty") {
+      it("should return Invalid") {
+        val predicate1 = Predicate("", Seq.empty[Arg])
+        val newRoute = NewRoute(Some(Seq(predicate1)))
+        val route = buildRoute(newRoute)
+
+        (predicateValidationService.validate _).expects(predicate1).returns(Valid)
+
+        val result = validationService.validateRouteForCreation(route, samplePath)
+        result shouldBe an[Invalid]
+      }
+    }
+
+    describe("when the filter name is empty") {
+      it("should return Invalid") {
+        val filter = Filter("", Seq.empty[Arg])
+        val newRoute = NewRoute(None, Some(Seq(filter)))
+        val route = buildRoute(newRoute)
+
+        val result = validationService.validateRouteForCreation(route, samplePath)
+        result shouldBe an[Invalid]
       }
     }
   }
