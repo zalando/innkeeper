@@ -51,7 +51,11 @@ class PatchPaths @Inject() (
           } ~ hasAdminAuthorization(authenticatedUser, team, reqDesc, scopes)(teamService) {
             logger.debug(s"patch /paths admin team $team")
 
-            patchPathRoute(id, pathPatch, authenticatedUser, reqDesc)
+            if (pathPatch.hostIds.exists(_.isEmpty)) {
+              reject(EmptyPathHostIdsRejection(reqDesc))
+            } else {
+              patchPathRoute(id, pathPatch, authenticatedUser, reqDesc)
+            }
           }
         }
       } ~ {
