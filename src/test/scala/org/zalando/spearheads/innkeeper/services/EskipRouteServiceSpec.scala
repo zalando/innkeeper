@@ -189,6 +189,7 @@ class EskipRouteServiceSpec extends FunSpec with Matchers with MockFactory with 
     name = routeName,
     uri = pathUri,
     hostIds = hostIds,
+    hasStar = false,
     routeJson = newRoute.toJson.compactPrint,
     usesCommonFilters = true,
     activateAt = referenceTime,

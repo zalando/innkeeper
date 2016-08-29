@@ -41,6 +41,20 @@ class RouteToEskipTransformerSpec extends FunSpec with Matchers with MockFactory
       routeToEskipTransformer.transform(contextWithRouteWithoutEndpoint) should
         be(expectedResult.copy(endpoint = "<shunt>"))
     }
+
+    it("should transform a route which has a star path to an eskip route") {
+      initMocks()
+      val routeDataWithStar = routeData.copy(hasStar = true)
+
+      val starPathSuffix = "/*_"
+      val expectedPathPredicate = NameWithStringArgs("Path", Seq(s""""$pathUri$starPathSuffix""""))
+      val expectedPredicates = Seq(expectedPathPredicate) ++ expectedResult.predicates.tail
+
+      routeToEskipTransformer.transform(routeDataWithStar) should
+        be(expectedResult.copy(
+          predicates = expectedPredicates
+        ))
+    }
   }
 
   def initMocks() = {
@@ -89,6 +103,7 @@ class RouteToEskipTransformerSpec extends FunSpec with Matchers with MockFactory
     name = routeName,
     uri = pathUri,
     hostIds = hostIds,
+    hasStar = false,
     usesCommonFilters = true,
     routeJson = newRoute.toJson.compactPrint,
     activateAt = LocalDateTime.now(),

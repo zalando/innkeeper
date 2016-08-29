@@ -27,6 +27,7 @@ case class RouteData(
   name: String,
   uri: String,
   hostIds: Seq[Long],
+  hasStar: Boolean,
   routeJson: String,
   usesCommonFilters: Boolean,
   activateAt: LocalDateTime,
