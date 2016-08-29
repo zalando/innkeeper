@@ -173,6 +173,11 @@ paths:
           required: false
           type: integer
           format: int64
+        - name: embed
+          in: query
+          description: The subresources to embed. Eg: path, hosts
+          required: false
+          type: string
       responses:
         '200':
           description: An array of routes
@@ -238,6 +243,11 @@ paths:
           in: path
           type: string
           required: true
+        - name: embed
+          in: query
+          description: The subresources to embed. Eg: path, hosts
+          required: false
+          type: string
       responses:
         '200':
           description: A route with a given `id`.

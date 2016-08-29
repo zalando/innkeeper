@@ -35,11 +35,14 @@ class RoutesPostgresRepo @Inject() (
     }
   }
 
-  override def selectById(id: Long): Future[Option[RouteRow]] = {
+  override def selectById(id: Long): Future[Option[(RouteRow, PathRow)]] = {
     logger.debug(s"selectById $id")
 
     db.run {
-      Routes.filter(_.id === id).result
+      Routes.join(Paths).on(_.pathId === _.id)
+        .filter {
+          case (r, p) => r.id === id
+        }.result
     }.map(_.headOption)
   }
 
@@ -51,13 +54,13 @@ class RoutesPostgresRepo @Inject() (
     }
   }
 
-  override def selectFiltered(filters: List[QueryFilter] = List.empty): DatabasePublisher[RouteRow] = {
-    logger.debug("selectFiltered")
+  override def selectFiltered(filters: List[QueryFilter] = List.empty): DatabasePublisher[(RouteRow, PathRow)] = {
+    logger.debug(s"selectFiltered $filters")
 
     val query = for {
       (routesTable, pathsTable) <- Routes join Paths on (_.pathId === _.id)
       if matchesFilters(filters, routesTable, pathsTable)
-    } yield routesTable
+    } yield (routesTable, pathsTable)
 
     db.stream {
       query.result
@@ -244,7 +247,7 @@ class RoutesPostgresRepo @Inject() (
       (routeRow.disableAt.isEmpty ||
         (routeRow.disableAt.isDefined && routeRow.disableAt > currentTime))
 
-  override def update(id: Long, routePatch: RoutePatch, updatedAt: LocalDateTime): Future[Option[RouteRow]] = {
+  override def update(id: Long, routePatch: RoutePatch, updatedAt: LocalDateTime): Future[Option[(RouteRow, PathRow)]] = {
     logger.debug(s"update route $id")
 
     val updateDescriptionActionOpt = routePatch.description.map { description =>

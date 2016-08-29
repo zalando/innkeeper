@@ -6,13 +6,13 @@ import akka.NotUsed
 import akka.stream.scaladsl.Source
 import com.google.inject.Inject
 import org.zalando.spearheads.innkeeper.api.JsonProtocols._
-import org.zalando.spearheads.innkeeper.api.{NewRoute, RouteIn, RouteName, RouteOut, RoutePatch, UserName}
-import org.zalando.spearheads.innkeeper.dao.{AuditsRepo, AuditType, QueryFilter, RouteRow, RoutesRepo}
+import org.zalando.spearheads.innkeeper.api.{Host, NewRoute, PathOut, RouteIn, RouteName, RouteOut, RoutePatch, UserName}
+import org.zalando.spearheads.innkeeper.dao.{AuditType, AuditsRepo, Embed, HostsEmbed, PathRow, PathsEmbed, QueryFilter, RouteRow, RoutesRepo}
 import org.zalando.spearheads.innkeeper.services.ServiceResult._
 import org.zalando.spearheads.innkeeper.utils.EnvConfig
 import slick.backend.DatabasePublisher
 import spray.json.{pimpAny, pimpString}
-
+import scala.collection.immutable.{Seq, Set}
 import scala.concurrent.{ExecutionContext, Future}
 
 trait RoutesService {
@@ -32,16 +32,18 @@ trait RoutesService {
 
   def allRoutes: Source[RouteOut, NotUsed]
 
-  def findFiltered(filters: List[QueryFilter]): Source[RouteOut, NotUsed]
+  def findFiltered(filters: List[QueryFilter], embed: Set[Embed]): Source[RouteOut, NotUsed]
 
-  def findById(id: Long): Future[Result[RouteOut]]
+  def findById(id: Long, embed: Set[Embed]): Future[Result[RouteOut]]
 
 }
 
 class DefaultRoutesService @Inject() (
     routesRepo: RoutesRepo,
     auditsRepo: AuditsRepo,
-    config: EnvConfig)(implicit val executionContext: ExecutionContext) extends RoutesService {
+    config: EnvConfig,
+    pathsService: PathsService,
+    hostsService: HostsService)(implicit val executionContext: ExecutionContext) extends RoutesService {
 
   override def create(
     route: RouteIn,
@@ -71,7 +73,7 @@ class DefaultRoutesService @Inject() (
           val insertRouteResult = routesRepo.insert(routeRow)
           auditRouteCreate(insertRouteResult, createdBy.name)
 
-          insertRouteResult.flatMap(rowToEventualMaybeRoute)
+          insertRouteResult.flatMap(rowToEventualMaybeRoute(_, None, None))
         case true =>
           Future.successful(Failure(DuplicateRouteName()))
       }
@@ -97,14 +99,14 @@ class DefaultRoutesService @Inject() (
     auditRouteUpdate(updateRouteResult, userName)
 
     updateRouteResult.flatMap {
-      case Some(routeRow) => rowToEventualMaybeRoute(routeRow)
-      case _              => Future(Failure(NotFound()))
+      case Some((routeRow, pathRow)) => rowToEventualMaybeRoute(routeRow, None, None)
+      case _                         => Future(Failure(NotFound()))
     }
   }
 
-  private def auditRouteUpdate(updateResult: Future[Option[RouteRow]], userName: String): Unit = {
+  private def auditRouteUpdate(updateResult: Future[Option[(RouteRow, PathRow)]], userName: String): Unit = {
     updateResult.onSuccess {
-      case Some(routeRow) =>
+      case Some((routeRow, pathRow)) =>
         routeRow.id.foreach { id =>
           auditsRepo.persistRouteLog(id, userName, AuditType.Update)
         }
@@ -139,33 +141,63 @@ class DefaultRoutesService @Inject() (
     routesRepo.selectAll
   }
 
-  override def findFiltered(filters: List[QueryFilter]): Source[RouteOut, NotUsed] = routeRowsStreamToRouteOutStream {
-    routesRepo.selectFiltered(filters)
+  override def findFiltered(filters: List[QueryFilter], embed: Set[Embed]): Source[RouteOut, NotUsed] = {
+    Source.fromPublisher(routesRepo.selectFiltered(filters).mapResult {
+      case (routeRow, pathRow) =>
+        routeRow.id.map { id =>
+          routeRowToRoute(id, routeRow,
+            getEmbeddedPath(embed, pathRow),
+            getEmbeddedHosts(embed, pathRow))
+        }
+    }).mapConcat(_.toList)
   }
 
-  private def routeRowsStreamToRouteOutStream(
-    streamOfRows: => DatabasePublisher[RouteRow]): Source[RouteOut, NotUsed] = {
+  def getEmbeddedHosts(embed: Set[Embed], pathRow: PathRow): Option[Seq[Host]] = {
+    if (embed(HostsEmbed)) {
+      Some(hostsService.getByIds(pathRow.hostIds.toSet))
+    } else {
+      None
+    }
+  }
+
+  def getEmbeddedPath(embed: Set[Embed], pathRow: PathRow): Option[PathOut] = {
+    if (embed(PathsEmbed)) {
+      pathRow.id.map(pathsService.pathRowToPath(_, pathRow))
+    } else {
+      None
+    }
+  }
+
+  private def routeRowsStreamToRouteOutStream(streamOfRows: => DatabasePublisher[RouteRow]): Source[RouteOut, NotUsed] = {
 
     Source.fromPublisher(streamOfRows.mapResult { routeRow =>
       routeRow.id.map { id =>
-        routeRowToRoute(id, routeRow)
+
+        routeRowToRoute(id, routeRow, None, None)
       }
     }).mapConcat(_.toList)
   }
 
-  override def findById(id: Long): Future[Result[RouteOut]] = {
+  override def findById(id: Long, embed: Set[Embed]): Future[Result[RouteOut]] = {
     routesRepo.selectById(id).flatMap {
-      case Some(routeRow) => rowToEventualMaybeRoute(routeRow)
-      case _              => Future(Failure(NotFound()))
+      case Some((routeRow, pathRow)) => rowToEventualMaybeRoute(
+        routeRow,
+        getEmbeddedPath(embed, pathRow),
+        getEmbeddedHosts(embed, pathRow))
+      case _ => Future(Failure(NotFound()))
     }
   }
 
-  private def rowToEventualMaybeRoute(routeRow: RouteRow): Future[Result[RouteOut]] = routeRow.id match {
-    case Some(id) => Future(Success(routeRowToRoute(id, routeRow)))
-    case None     => Future(Failure(NotFound()))
+  private def rowToEventualMaybeRoute(routeRow: RouteRow, path: Option[PathOut], hosts: Option[Seq[Host]]): Future[Result[RouteOut]] = routeRow.id match {
+    case Some(id) => Future(Success(routeRowToRoute(
+      id,
+      routeRow,
+      path,
+      hosts)))
+    case None => Future(Failure(NotFound()))
   }
 
-  private def routeRowToRoute(id: Long, routeRow: RouteRow) = {
+  private def routeRowToRoute(id: Long, routeRow: RouteRow, path: Option[PathOut], hosts: Option[Seq[Host]]) = {
     RouteOut(
       id = id,
       pathId = routeRow.pathId,
@@ -177,7 +209,8 @@ class DefaultRoutesService @Inject() (
       description = routeRow.description,
       disableAt = routeRow.disableAt,
       usesCommonFilters = routeRow.usesCommonFilters,
-      hostIds = routeRow.hostIds
-    )
+      hostIds = routeRow.hostIds,
+      path = path,
+      hosts = hosts)
   }
 }

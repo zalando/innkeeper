@@ -38,6 +38,8 @@ trait PathsService {
   def allPaths: Source[PathOut, NotUsed]
 
   def isPathPatchValid(pathId: Long, pathPatch: PathPatch): Future[ValidationResult]
+
+  def pathRowToPath(id: Long, pathRow: PathRow): PathOut
 }
 
 class DefaultPathsService @Inject() (pathsRepo: PathsRepo, auditsRepo: AuditsRepo)(implicit val executionContext: ExecutionContext)
@@ -157,7 +159,7 @@ class DefaultPathsService @Inject() (pathsRepo: PathsRepo, auditsRepo: AuditsRep
     case None     => Future(Failure(NotFound()))
   }
 
-  private def pathRowToPath(id: Long, pathRow: PathRow) = {
+  def pathRowToPath(id: Long, pathRow: PathRow): PathOut = {
     PathOut(
       id = id,
       uri = pathRow.uri,

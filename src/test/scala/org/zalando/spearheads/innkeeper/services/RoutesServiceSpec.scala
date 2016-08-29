@@ -11,12 +11,12 @@ import org.scalatest.{FunSpec, Matchers}
 import org.zalando.spearheads.innkeeper.FakeDatabasePublisher
 import org.zalando.spearheads.innkeeper.api.JsonProtocols._
 import org.zalando.spearheads.innkeeper.api.{NewRoute, NumericArg, Predicate, RouteIn, RouteName, RouteOut, StringArg, UserName}
-import org.zalando.spearheads.innkeeper.dao.{AuditType, AuditsRepo, RouteRow, RoutesRepo}
+import org.zalando.spearheads.innkeeper.dao.{AuditType, AuditsRepo, PathRow, RouteRow, RoutesRepo}
 import org.zalando.spearheads.innkeeper.services.ServiceResult.{DuplicateRouteName, NotFound}
 import org.zalando.spearheads.innkeeper.utils.EnvConfig
 import spray.json.pimpAny
 
-import scala.collection.immutable.Seq
+import scala.collection.immutable.{Seq, Set}
 import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.language.postfixOps
 import scala.concurrent.duration.DurationInt
@@ -29,8 +29,10 @@ class RoutesServiceSpec extends FunSpec with Matchers with MockFactory with Scal
   val routesRepo = mock[RoutesRepo]
   val auditsRepo = mock[AuditsRepo]
   val config = mock[EnvConfig]
+  val pathsService = mock[PathsService]
+  val hostsService = mock[HostsService]
 
-  val routesService = new DefaultRoutesService(routesRepo, auditsRepo, config)
+  val routesService = new DefaultRoutesService(routesRepo, auditsRepo, config, pathsService, hostsService)
 
   describe("RoutesServiceSpec") {
     describe("#create") {
@@ -136,10 +138,10 @@ class RoutesServiceSpec extends FunSpec with Matchers with MockFactory with Scal
       describe("when the route exists") {
         it("should find the route") {
           (routesRepo.selectById _).expects(routeId).returning {
-            Future(Some(routeRow))
+            Future(Some((routeRow, pathRow)))
           }
 
-          val routeServiceResult = routesService.findById(routeId).futureValue
+          val routeServiceResult = routesService.findById(routeId, Set.empty).futureValue
 
           routeServiceResult match {
             case ServiceResult.Success(route) => {
@@ -156,7 +158,7 @@ class RoutesServiceSpec extends FunSpec with Matchers with MockFactory with Scal
             Future(None)
           }
 
-          val routeServiceResult = routesService.findById(routeId).futureValue
+          val routeServiceResult = routesService.findById(routeId, Set.empty).futureValue
 
           routeServiceResult match {
             case ServiceResult.Failure(ServiceResult.NotFound(_)) =>
@@ -208,7 +210,9 @@ class RoutesServiceSpec extends FunSpec with Matchers with MockFactory with Scal
     usesCommonFilters = false,
     disableAt = Some(disableAt),
     description = Some(description),
-    hostIds = Some(Seq(1L))
+    hostIds = Some(Seq(1L)),
+    path = None,
+    hosts = None
   )
 
   val routeIn = RouteIn(
@@ -254,6 +258,15 @@ class RoutesServiceSpec extends FunSpec with Matchers with MockFactory with Scal
     pathId = pathId,
     name = routeName.name + "1",
     createdAt = createdAt.plusMinutes(1))
+
+  val pathRow = PathRow(
+    id = Some(pathId),
+    uri = "uri",
+    hostIds = Seq(1L),
+    ownedByTeam = ownedByTeam,
+    createdBy = createdBy,
+    createdAt = createdAt,
+    updatedAt = updatedAt)
 
   val inactiveRouteRow = routeRowWithoutId.copy(
     id = Some(3),

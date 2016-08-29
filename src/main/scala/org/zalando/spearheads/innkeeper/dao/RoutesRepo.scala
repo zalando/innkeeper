@@ -13,9 +13,9 @@ import scala.concurrent.Future
 trait RoutesRepo {
 
   def insert(route: RouteRow): Future[RouteRow]
-  def selectById(id: Long): Future[Option[RouteRow]]
+  def selectById(id: Long): Future[Option[(RouteRow, PathRow)]]
   def selectAll: DatabasePublisher[RouteRow]
-  def selectFiltered(filters: List[QueryFilter]): DatabasePublisher[RouteRow]
+  def selectFiltered(filters: List[QueryFilter]): DatabasePublisher[(RouteRow, PathRow)]
   def selectModifiedSince(since: LocalDateTime, currentTime: LocalDateTime): DatabasePublisher[ModifiedRoute]
   def routeWithNameExists(name: String): Future[Boolean]
 
@@ -31,5 +31,5 @@ trait RoutesRepo {
    */
   def delete(id: Long, deletedBy: Option[String] = None, dateTime: Option[LocalDateTime] = None): Future[Boolean]
 
-  def update(id: Long, pathPatch: RoutePatch, updatedAt: LocalDateTime): Future[Option[RouteRow]]
+  def update(id: Long, pathPatch: RoutePatch, updatedAt: LocalDateTime): Future[Option[(RouteRow, PathRow)]]
 }

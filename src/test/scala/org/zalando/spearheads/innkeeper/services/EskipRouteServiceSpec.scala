@@ -73,7 +73,7 @@ class EskipRouteServiceSpec extends FunSpec with Matchers with MockFactory with 
                                    | -> someFilter1(/^Hello$/,123)
                                    | -> "endpoint.my.com"""".stripMargin)
 
-          result.timestamp should be(referrenceTime)
+          result.timestamp should be(referenceTime)
         }
       }
     }
@@ -90,11 +90,11 @@ class EskipRouteServiceSpec extends FunSpec with Matchers with MockFactory with 
     )
 
     it("should find a route") {
-      (routesRepo.selectModifiedSince _).expects(referrenceTime, currentTime).returning {
+      (routesRepo.selectModifiedSince _).expects(referenceTime, currentTime).returning {
         FakeDatabasePublisher(Seq(ModifiedRoute(
           routeChangeType = RouteChangeType.Create,
           name = routeData.name,
-          timestamp = referrenceTime,
+          timestamp = referenceTime,
           routeData = Some(routeData)
         )))
       }
@@ -103,21 +103,21 @@ class EskipRouteServiceSpec extends FunSpec with Matchers with MockFactory with 
         .expects(routeData)
         .returning(emptyEskipRoute)
 
-      val result = eskipRouteService.findModifiedSince(referrenceTime, currentTime).runWith(Sink.head).futureValue
+      val result = eskipRouteService.findModifiedSince(referenceTime, currentTime).runWith(Sink.head).futureValue
       result.routeChangeType should be (RouteChangeType.Create)
     }
 
     it("should find a deleted route") {
-      (routesRepo.selectModifiedSince _).expects(referrenceTime, currentTime).returning {
+      (routesRepo.selectModifiedSince _).expects(referenceTime, currentTime).returning {
         FakeDatabasePublisher(Seq(ModifiedRoute(
           routeChangeType = RouteChangeType.Delete,
           name = routeData.name,
-          timestamp = referrenceTime,
+          timestamp = referenceTime,
           routeData = None
         )))
       }
 
-      val result = eskipRouteService.findModifiedSince(referrenceTime, currentTime).runWith(Sink.head).futureValue
+      val result = eskipRouteService.findModifiedSince(referenceTime, currentTime).runWith(Sink.head).futureValue
       result.routeChangeType should be (RouteChangeType.Delete)
     }
 
@@ -137,11 +137,11 @@ class EskipRouteServiceSpec extends FunSpec with Matchers with MockFactory with 
           | -> appendedSecond(0.8)
           | -> "endpoint.my.com"""".stripMargin)
 
-    result.timestamp should be(referrenceTime)
+    result.timestamp should be(referenceTime)
   }
 
-  val referrenceTime = LocalDateTime.of(2015, 10, 10, 10, 10, 10)
-  val currentTime = referrenceTime.plusDays(1)
+  val referenceTime = LocalDateTime.of(2015, 10, 10, 10, 10, 10)
+  val currentTime = referenceTime.plusDays(1)
 
   // route
   val routeName = "myRoute"
@@ -164,11 +164,11 @@ class EskipRouteServiceSpec extends FunSpec with Matchers with MockFactory with 
     pathId = pathId,
     name = routeName,
     routeJson = newRoute.toJson.compactPrint,
-    activateAt = referrenceTime,
+    activateAt = referenceTime,
     usesCommonFilters = true,
     createdBy = "user",
-    createdAt = referrenceTime,
-    updatedAt = referrenceTime,
+    createdAt = referenceTime,
+    updatedAt = referenceTime,
     disableAt = None,
     description = None,
     hostIds = None
@@ -180,8 +180,8 @@ class EskipRouteServiceSpec extends FunSpec with Matchers with MockFactory with 
     hostIds = hostIds,
     ownedByTeam = "team",
     createdBy = "user",
-    createdAt = referrenceTime,
-    updatedAt = referrenceTime
+    createdAt = referenceTime,
+    updatedAt = referenceTime
   )
 
   val routeData = RouteData(
@@ -190,7 +190,7 @@ class EskipRouteServiceSpec extends FunSpec with Matchers with MockFactory with 
     hostIds = hostIds,
     routeJson = newRoute.toJson.compactPrint,
     usesCommonFilters = true,
-    activateAt = referrenceTime,
+    activateAt = referenceTime,
     disableAt = None
   )
 
@@ -199,13 +199,15 @@ class EskipRouteServiceSpec extends FunSpec with Matchers with MockFactory with 
     1L,
     RouteName(routeName),
     newRoute,
-    referrenceTime,
+    referenceTime,
     activateAt = LocalDateTime.of(2015, 10, 10, 10, 10, 11),
     UserName("user"),
     usesCommonFilters = false,
     disableAt = Some(LocalDateTime.of(2015, 11, 11, 11, 11, 11)),
     description = None,
-    hostIds = None
+    hostIds = None,
+    hosts = None,
+    path = None
   )
 
   val eskipRoute = EskipRoute(

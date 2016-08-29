@@ -36,7 +36,9 @@ case class RouteOut(
   usesCommonFilters: Boolean,
   disableAt: Option[LocalDateTime],
   description: Option[String],
-  hostIds: Option[Seq[Long]])
+  hostIds: Option[Seq[Long]],
+  hosts: Option[Seq[Host]],
+  path: Option[PathOut])
 
 case class RoutePatch(
   route: Option[NewRoute],

@@ -44,22 +44,23 @@ class JsonProtocolsSpec extends FunSpec with Matchers {
           NumericArg("0.99"),
           NumericArg("1"))).toJson
 
-      predicateJson.prettyPrint should be("""{
-                                             |  "name": "somePredicate",
-                                             |  "args": [{
-                                             |    "value": "Hello",
-                                             |    "type": "string"
-                                             |  }, {
-                                             |    "value": "123",
-                                             |    "type": "number"
-                                             |  }, {
-                                             |    "value": "0.99",
-                                             |    "type": "number"
-                                             |  }, {
-                                             |    "value": "1",
-                                             |    "type": "number"
-                                             |  }]
-                                             |}""".stripMargin)
+      predicateJson.prettyPrint should be(
+        """{
+          |  "name": "somePredicate",
+          |  "args": [{
+          |    "value": "Hello",
+          |    "type": "string"
+          |  }, {
+          |    "value": "123",
+          |    "type": "number"
+          |  }, {
+          |    "value": "0.99",
+          |    "type": "number"
+          |  }, {
+          |    "value": "1",
+          |    "type": "number"
+          |  }]
+          |}""".stripMargin)
     }
   }
 
@@ -98,22 +99,23 @@ class JsonProtocolsSpec extends FunSpec with Matchers {
           NumericArg("0.99"),
           NumericArg("1"))).toJson
 
-      filterJson.prettyPrint should be("""{
-                                         |  "name": "someFilter",
-                                         |  "args": [{
-                                         |    "value": "Hello",
-                                         |    "type": "string"
-                                         |  }, {
-                                         |    "value": "123",
-                                         |    "type": "number"
-                                         |  }, {
-                                         |    "value": "0.99",
-                                         |    "type": "number"
-                                         |  }, {
-                                         |    "value": "1",
-                                         |    "type": "number"
-                                         |  }]
-                                         |}""".stripMargin)
+      filterJson.prettyPrint should be(
+        """{
+          |  "name": "someFilter",
+          |  "args": [{
+          |    "value": "Hello",
+          |    "type": "string"
+          |  }, {
+          |    "value": "123",
+          |    "type": "number"
+          |  }, {
+          |    "value": "0.99",
+          |    "type": "number"
+          |  }, {
+          |    "value": "1",
+          |    "type": "number"
+          |  }]
+          |}""".stripMargin)
     }
   }
 
@@ -297,36 +299,15 @@ class JsonProtocolsSpec extends FunSpec with Matchers {
       usesCommonFilters = false,
       Some(LocalDateTime.of(2015, 11, 11, 11, 11, 11)),
       Some("this is a route"),
-      Some(Seq(1L))
+      Some(Seq(1L)),
+      None,
+      None
     )
 
-    it("should unmarshall the RouteOut") {
-      val route = """{
-                    |  "created_by": "user",
-                    |  "name": "THE_ROUTE",
-                    |  "description": "this is a route",
-                    |  "uses_common_filters": false,
-                    |  "activate_at": "2015-10-10T10:10:10",
-                    |  "disable_at": "2015-11-11T11:11:11",
-                    |  "id": 1,
-                    |  "path_id": 1,
-                    |  "created_at": "2015-10-10T10:10:10",
-                    |  "deleted_at": "2015-10-10T10:10:10",
-                    |  "predicates": [{
-                    |     "name": "somePredicate",
-                    |     "args": [{
-                    |      "value": "Hello",
-                    |      "type": "string"
-                    |    }, {
-                    |      "value": "123",
-                    |      "type": "number"
-                    |    }]
-                    |  }],
-                    |  "filters": [],
-                    |  "host_ids": [1]
-                    |}""".stripMargin.parseJson.convertTo[RouteOut]
-      route should be(routeOut)
-    }
+    val routeOutWithEmbedded =
+      routeOut.copy(
+        path = Some(pathOut),
+        hosts = Some(List(host)))
 
     it("should marshall the RouteOut") {
       routeOut.toJson.prettyPrint should be {
@@ -349,6 +330,47 @@ class JsonProtocolsSpec extends FunSpec with Matchers {
           |  "activate_at": "2015-10-10T10:10:10",
           |  "id": 1,
           |  "disable_at": "2015-11-11T11:11:11",
+          |  "filters": [],
+          |  "created_at": "2015-10-10T10:10:10",
+          |  "path_id": 1
+          |}""".stripMargin
+      }
+    }
+
+    it("should marshall the RouteOut with embedded objects") {
+      routeOutWithEmbedded.toJson.prettyPrint should be {
+        """{
+          |  "created_by": "user",
+          |  "name": "THE_ROUTE",
+          |  "predicates": [{
+          |    "name": "somePredicate",
+          |    "args": [{
+          |      "value": "Hello",
+          |      "type": "string"
+          |    }, {
+          |      "value": "123",
+          |      "type": "number"
+          |    }]
+          |  }],
+          |  "path": {
+          |    "created_by": "username",
+          |    "owned_by_team": "team",
+          |    "host_ids": [1, 2, 3],
+          |    "uri": "/hello",
+          |    "id": 1,
+          |    "created_at": "2015-10-10T10:10:10",
+          |    "updated_at": "2016-10-10T10:10:10"
+          |  },
+          |  "host_ids": [1],
+          |  "description": "this is a route",
+          |  "uses_common_filters": false,
+          |  "activate_at": "2015-10-10T10:10:10",
+          |  "id": 1,
+          |  "disable_at": "2015-11-11T11:11:11",
+          |  "hosts": [{
+          |    "id": 1,
+          |    "name": "name"
+          |  }],
           |  "filters": [],
           |  "created_at": "2015-10-10T10:10:10",
           |  "path_id": 1
@@ -406,8 +428,6 @@ class JsonProtocolsSpec extends FunSpec with Matchers {
 
   describe("Host") {
 
-    val host = Host(1, "name")
-
     it("should marshall") {
       host.toJson.prettyPrint should be(
         """{
@@ -432,15 +452,6 @@ class JsonProtocolsSpec extends FunSpec with Matchers {
   }
 
   describe("PathOut") {
-    val pathOut = PathOut(
-      id = 1,
-      uri = "/hello",
-      hostIds = List(1, 2, 3),
-      ownedByTeam = TeamName("team"),
-      createdBy = UserName("username"),
-      createdAt = LocalDateTime.of(2015, 10, 10, 10, 10, 10),
-      updatedAt = LocalDateTime.of(2016, 10, 10, 10, 10, 10)
-    )
 
     it("should marshall") {
       pathOut.toJson.prettyPrint should be(
@@ -465,4 +476,16 @@ class JsonProtocolsSpec extends FunSpec with Matchers {
       error.detail should be(Some("Error Detail"))
     }
   }
+
+  private def host = Host(1, "name")
+
+  private def pathOut = PathOut(
+    id = 1,
+    uri = "/hello",
+    hostIds = List(1, 2, 3),
+    ownedByTeam = TeamName("team"),
+    createdBy = UserName("username"),
+    createdAt = LocalDateTime.of(2015, 10, 10, 10, 10, 10),
+    updatedAt = LocalDateTime.of(2016, 10, 10, 10, 10, 10)
+  )
 }

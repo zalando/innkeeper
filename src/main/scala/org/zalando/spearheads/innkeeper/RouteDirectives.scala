@@ -11,21 +11,35 @@ import akka.stream.scaladsl.Source
 import org.zalando.spearheads.innkeeper.api._
 import org.zalando.spearheads.innkeeper.Rejections._
 import org.zalando.spearheads.innkeeper.api.validation.{Invalid, RouteValidationService, Valid}
+import org.zalando.spearheads.innkeeper.dao.{Embed, HostsEmbed, PathsEmbed, UnknownEmbed}
 import org.zalando.spearheads.innkeeper.services.{PathsService, RoutesService, ServiceResult}
 import spray.json.JsonWriter
-
 import scala.concurrent.ExecutionContext
 import scala.util.Success
+import scala.collection.immutable.Set
 
 /**
  * @author dpersa
  */
 trait RouteDirectives {
 
-  def findRoute(id: Long, routesService: RoutesService, requestDescription: String)(implicit executionContext: ExecutionContext): Directive1[RouteOut] =
+  def extractEmbed(parameterMultiMap: Map[String, List[String]]): Directive1[Set[Embed]] =
+    Directive[Tuple1[Set[Embed]]] { inner => ctx =>
+      {
+        inner(Tuple1(parameterMultiMap.get("embed").map { embedParams =>
+          embedParams.map {
+            case "paths" => PathsEmbed
+            case "hosts" => HostsEmbed
+            case _       => UnknownEmbed
+          }
+        }.getOrElse(Set.empty[Embed]).toSet))(ctx)
+      }
+    }
+
+  def findRoute(id: Long, routesService: RoutesService, embed: Set[Embed], requestDescription: String)(implicit executionContext: ExecutionContext): Directive1[RouteOut] =
     Directive[Tuple1[RouteOut]] { inner => ctx =>
       {
-        routesService.findById(id).fast.transformWith {
+        routesService.findById(id, embed).fast.transformWith {
           case Success(ServiceResult.Success(routeOut))                  => inner(Tuple1(routeOut))(ctx)
           case Success(ServiceResult.Failure(ServiceResult.NotFound(_))) => reject(RouteNotFoundRejection(requestDescription))(ctx)
           case _                                                         => reject(InternalServerErrorRejection(requestDescription))(ctx)
