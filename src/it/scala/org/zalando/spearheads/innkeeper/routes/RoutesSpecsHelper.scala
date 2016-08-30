@@ -14,7 +14,7 @@ object RoutesSpecsHelper {
 
   private val routesUri = s"$baseUri/routes"
 
-  private def routeUri(id: Long) = s"$routesUri/$id"
+  private def routeUri(id: Long, embed: List[String] = List.empty) = s"$routesUri/$id${paramsToUri("embed", embed)}"
 
   private def routeWithEmbedUri(names: List[String]) = routesUri + paramsToUri("embed", names)
 
@@ -92,7 +92,7 @@ object RoutesSpecsHelper {
 
   def getSlashRoutesByPathId(pathIds: List[Long], token: String): HttpResponse = doGet(routeByPathIdUri(pathIds), token)
 
-  def getSlashRoute(id: Long, token: String = ""): HttpResponse = slashRoute(id, token)
+  def getSlashRoute(id: Long, token: String = "", embed: List[String] = List.empty): HttpResponse = slashRoute(id, embed, token)
 
   def deleteDeletedRoutes(deletedBefore: LocalDateTime, token: String = ""): HttpResponse =
     deleteDeletedRoutes(RequestParameters.urlDateTimeFormatter.format(deletedBefore), token)
@@ -109,18 +109,19 @@ object RoutesSpecsHelper {
   def getUpdatedRoutes(localDateTime: LocalDateTime, token: String): HttpResponse =
     getUpdatedRoutes(RequestParameters.urlDateTimeFormatter.format(localDateTime), token)
 
-  def deleteSlashRoute(id: Long, token: String = ""): HttpResponse = slashRoute(id, token, HttpMethods.DELETE)
+  def deleteSlashRoute(id: Long, token: String = ""): HttpResponse = slashRoute(id, List.empty, token, HttpMethods.DELETE)
 
   def getUpdatedRoutes(localDateTime: String, token: String): HttpResponse = doGet(s"$baseUri/updated-routes/$localDateTime", token)
 
   private def slashRoute(
     id: Long,
+    embed: List[String] = List.empty,
     token: Option[String] = None,
     method: HttpMethod = HttpMethods.GET): HttpResponse = {
 
     val futureResponse = Http().singleRequest(
       HttpRequest(
-        uri = routeUri(id),
+        uri = routeUri(id, embed),
         method = method,
         headers = headersForToken(token)
       )

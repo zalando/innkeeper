@@ -35,8 +35,8 @@ class GetRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
         val entity = entityString(response)
         val routes = entity.parseJson.convertTo[Seq[RouteOut]]
         routes.size should be(2)
-        routes(0).path should not be('defined)
-        routes(0).hosts should not be('defined)
+        routes(0).path should not be ('defined)
+        routes(0).hosts should not be ('defined)
       }
 
       describe("when embedding the path") {
@@ -50,7 +50,7 @@ class GetRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
           val routes = entity.parseJson.convertTo[Seq[RouteOut]]
           routes.size should be(2)
           routes(0).path should be('defined)
-          routes(0).hosts should not be('defined)
+          routes(0).hosts should not be ('defined)
         }
       }
 
@@ -64,7 +64,7 @@ class GetRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
           val entity = entityString(response)
           val routes = entity.parseJson.convertTo[Seq[RouteOut]]
           routes.size should be(2)
-          routes(0).path should not be('defined)
+          routes(0).path should not be ('defined)
           routes(0).hosts should be('defined)
         }
       }
