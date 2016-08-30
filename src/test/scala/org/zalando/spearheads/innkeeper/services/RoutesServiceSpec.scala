@@ -4,16 +4,19 @@ import java.time.LocalDateTime
 
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
+import akka.stream.scaladsl.Sink
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.{FunSpec, Matchers}
+import org.zalando.spearheads.innkeeper.FakeDatabasePublisher
 import org.zalando.spearheads.innkeeper.api.JsonProtocols._
 import org.zalando.spearheads.innkeeper.api.{NewRoute, NumericArg, PathOut, Predicate, RouteIn, RouteName, RouteOut, StringArg, TeamName, UserName}
-import org.zalando.spearheads.innkeeper.dao.{AuditType, AuditsRepo, HostsEmbed, PathRow, PathsEmbed, RouteRow, RoutesRepo}
+import org.zalando.spearheads.innkeeper.dao.{AuditType, AuditsRepo, HostsEmbed, PathRow, PathsEmbed, RouteNameFilter, RouteRow, RoutesRepo}
 import org.zalando.spearheads.innkeeper.services.ServiceResult.{DuplicateRouteName, NotFound}
 import org.zalando.spearheads.innkeeper.utils.EnvConfig
 import spray.json.pimpAny
 import org.zalando.spearheads.innkeeper.api.Host
+
 import scala.collection.immutable.{Seq, Set}
 import scala.concurrent.{ExecutionContext, Future}
 import scala.language.postfixOps
@@ -102,6 +105,41 @@ class RoutesServiceSpec extends FunSpec with Matchers with MockFactory with Scal
         whenReady(routesService.remove(routeId, username.get).failed) { e =>
           e shouldBe a[IllegalStateException]
         }
+      }
+    }
+
+    describe("#findFiltered") {
+
+      it ("should find the routes") {
+        val filters = Seq(RouteNameFilter(Seq("the_route")))
+        (routesRepo.selectFiltered _).expects(filters).returning(FakeDatabasePublisher(Seq((routeRow, pathRow))))
+
+        val routeOut = routesService.findFiltered(Seq(RouteNameFilter(Seq("the_route"))), Set.empty)
+          .runWith(Sink.head).futureValue
+
+        verifyRoute(routeOut, None, None)
+      }
+
+      it ("should find the routes with embedded path") {
+        val filters = Seq(RouteNameFilter(Seq("the_route")))
+        (routesRepo.selectFiltered _).expects(filters).returning(FakeDatabasePublisher(Seq((routeRow, pathRow))))
+        (pathsService.pathRowToPath _).expects(pathId, pathRow).returning(pathOut)
+
+        val routeOut = routesService.findFiltered(Seq(RouteNameFilter(Seq("the_route"))), Set(PathsEmbed))
+          .runWith(Sink.head).futureValue
+
+        verifyRoute(routeOut, Some(pathOut), None)
+      }
+
+      it ("should find the routes with embedded hosts") {
+        val filters = Seq(RouteNameFilter(Seq("the_route")))
+        (routesRepo.selectFiltered _).expects(filters).returning(FakeDatabasePublisher(Seq((routeRow, pathRow))))
+        (hostsService.getByIds _).expects(Set(hostId)).returning(Seq(host))
+
+        val routeOut = routesService.findFiltered(Seq(RouteNameFilter(Seq("the_route"))), Set(HostsEmbed))
+          .runWith(Sink.head).futureValue
+
+        verifyRoute(routeOut, None, Some(Seq(host)))
       }
     }
 
