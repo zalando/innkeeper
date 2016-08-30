@@ -35,8 +35,6 @@ trait PathsService {
     ownedByTeamOption: Option[TeamName] = None,
     uriOption: Option[String] = None): Source[PathOut, NotUsed]
 
-  def allPaths: Source[PathOut, NotUsed]
-
   def isPathPatchValid(pathId: Long, pathPatch: PathPatch): Future[ValidationResult]
 
   def pathRowToPath(id: Long, pathRow: PathRow): PathOut
@@ -130,10 +128,6 @@ class DefaultPathsService @Inject() (pathsRepo: PathsRepo, auditsRepo: AuditsRep
     pathRowsStreamToPathOutStream {
       pathsRepo.selectByOwnerTeamAndUri(ownedByTeamOption.map(_.name), uriOption)
     }
-
-  override def allPaths = pathRowsStreamToPathOutStream {
-    pathsRepo.selectAll
-  }
 
   override def isPathPatchValid(pathId: Long, pathPatch: PathPatch): Future[ValidationResult] = {
     pathPatch.hostIds.map { newHostIds =>

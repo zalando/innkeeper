@@ -166,32 +166,6 @@ class PathsServiceSpec extends FunSpec with Matchers with MockFactory with Scala
         }
       }
     }
-
-    describe("#allPaths") {
-
-      it("should find all paths") {
-        (pathsRepo.selectAll _).expects().returning {
-          FakeDatabasePublisher[PathRow](Seq(pathRow))
-        }
-
-        val result = pathsService.allPaths
-        val path = result.runWith(Sink.head).futureValue
-        verifyPath(path)
-      }
-
-      it("should return an empty list if there are no paths") {
-        (pathsRepo.selectAll _).expects().returning {
-          FakeDatabasePublisher[PathRow](Seq())
-        }
-
-        val result = pathsService.allPaths
-        val path = result.runWith(Sink.head)
-
-        an[NoSuchElementException] should be thrownBy {
-          Await.result(path, 100 millis)
-        }
-      }
-    }
   }
 
   def verifyPath(path: PathOut) = {

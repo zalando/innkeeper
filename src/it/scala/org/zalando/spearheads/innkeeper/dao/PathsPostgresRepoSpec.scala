@@ -111,23 +111,6 @@ class PathsPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers wi
       }
     }
 
-    describe("#selectAll") {
-
-      it("should select all routes") {
-        val createdAt = LocalDateTime.now()
-        val updatedAt = createdAt
-        val activateAt = createdAt.minusMinutes(5)
-        insertPath(samplePath(uri = "/hello1", createdAt = createdAt, updatedAt = updatedAt))
-        insertPath(samplePath(uri = "/hello2", createdAt = createdAt, updatedAt = updatedAt))
-
-        val paths: Seq[PathRow] = pathsRepo.selectAll
-
-        paths should not be 'empty
-        paths(0) should be (samplePath(id = 1, uri = "/hello1", createdAt = createdAt, updatedAt = updatedAt, activateAt = activateAt))
-        paths(1) should be (samplePath(id = 2, uri = "/hello2", createdAt = createdAt, updatedAt = updatedAt, activateAt = activateAt))
-      }
-    }
-
     describe ("#selectByOwnerTeamAndUri") {
 
       it ("should select routes by owner team") {
