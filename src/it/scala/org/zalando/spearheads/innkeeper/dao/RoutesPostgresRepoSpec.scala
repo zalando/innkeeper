@@ -32,12 +32,16 @@ class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers w
 
     describe("#selectById") {
       it("should select a route by id") {
-        insertRoute()
+        insertRoute(name = "the-route")
         val result: Option[(RouteRow, PathRow)] = routesRepo.selectById(1).futureValue
 
-        result.isDefined should be (true)
-        result.get._1.id should be ('defined)
-        result.get._1.routeJson should be (routeJson("GET"))
+        result match {
+          case Some((routeRow, pathRow)) =>
+            routeRow.id should be ('defined)
+            routeRow.routeJson should be (routeJson("GET"))
+            pathRow.uri should be (s"/path-for-the-route")
+          case _ => fail("wrong result")
+        }
       }
     }
 
@@ -92,7 +96,8 @@ class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers w
           hostIds = None
         )
 
-        val result: (RouteRow, PathRow) = routesRepo.update(insertedRoute.id.get, routePatch, updatedAt).futureValue.get
+        val result =
+          routesRepo.update(insertedRoute.id.get, routePatch, updatedAt).futureValue.get
 
         result._1.routeJson should not be insertedRoute.routeJson
       }
@@ -109,7 +114,7 @@ class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers w
           hostIds = updatedHostIds
         )
 
-        val result: (RouteRow, PathRow) = routesRepo.update(insertedRoute.id.get, routePatch, updatedAt).futureValue.get
+        val result = routesRepo.update(insertedRoute.id.get, routePatch, updatedAt).futureValue.get
         result._1.hostIds should be(updatedHostIds)
       }
     }
