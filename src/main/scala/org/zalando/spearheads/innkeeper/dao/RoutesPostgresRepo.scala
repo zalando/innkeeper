@@ -9,7 +9,6 @@ import org.zalando.spearheads.innkeeper.api.JsonProtocols._
 import org.zalando.spearheads.innkeeper.dao.MyPostgresDriver.api._
 import slick.backend.DatabasePublisher
 import spray.json.pimpAny
-
 import scala.collection.immutable.{List, Seq}
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -46,7 +45,7 @@ class RoutesPostgresRepo @Inject() (
     }.map(_.headOption)
   }
 
-  override def selectFiltered(filters: List[QueryFilter] = List.empty): DatabasePublisher[(RouteRow, PathRow)] = {
+  override def selectFiltered(filters: Seq[QueryFilter] = List.empty): DatabasePublisher[(RouteRow, PathRow)] = {
     logger.debug(s"selectFiltered $filters")
 
     val query = for {
@@ -213,7 +212,7 @@ class RoutesPostgresRepo @Inject() (
     }
   }
 
-  private def matchesFilters(filters: List[QueryFilter], routesTable: RoutesTable, pathsTable: PathsTable): Rep[Boolean] = {
+  private def matchesFilters(filters: Seq[QueryFilter], routesTable: RoutesTable, pathsTable: PathsTable): Rep[Boolean] = {
     filters.map {
       case RouteNameFilter(routeNames) =>
         routeNames.map(routesTable.name === _)

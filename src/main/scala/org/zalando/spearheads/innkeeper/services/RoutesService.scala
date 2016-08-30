@@ -30,7 +30,7 @@ trait RoutesService {
 
   def remove(id: Long, deletedBy: String): Future[Result[Boolean]]
 
-  def findFiltered(filters: List[QueryFilter], embed: Set[Embed]): Source[RouteOut, NotUsed]
+  def findFiltered(filters: Seq[QueryFilter], embed: Set[Embed]): Source[RouteOut, NotUsed]
 
   def findById(id: Long, embed: Set[Embed]): Future[Result[RouteOut]]
 
@@ -135,7 +135,7 @@ class DefaultRoutesService @Inject() (
     }
   }
 
-  override def findFiltered(filters: List[QueryFilter], embed: Set[Embed]): Source[RouteOut, NotUsed] = {
+  override def findFiltered(filters: Seq[QueryFilter], embed: Set[Embed]): Source[RouteOut, NotUsed] = {
     Source.fromPublisher(routesRepo.selectFiltered(filters).mapResult {
       case (routeRow, pathRow) =>
         routeRow.id.map { id =>
