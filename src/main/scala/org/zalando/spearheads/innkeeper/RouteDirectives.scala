@@ -11,7 +11,7 @@ import akka.stream.scaladsl.Source
 import org.zalando.spearheads.innkeeper.api._
 import org.zalando.spearheads.innkeeper.Rejections._
 import org.zalando.spearheads.innkeeper.api.validation.{Invalid, RouteValidationService, Valid}
-import org.zalando.spearheads.innkeeper.dao.{Embed, HostsEmbed, PathsEmbed, UnknownEmbed}
+import org.zalando.spearheads.innkeeper.dao.{Embed, HostsEmbed, PathEmbed, UnknownEmbed}
 import org.zalando.spearheads.innkeeper.services.{PathsService, RoutesService, ServiceResult}
 import spray.json.JsonWriter
 import scala.concurrent.ExecutionContext
@@ -28,7 +28,7 @@ trait RouteDirectives {
       {
         inner(Tuple1(parameterMultiMap.get("embed").map { embedParams =>
           embedParams.map {
-            case "paths" => PathsEmbed
+            case "path"  => PathEmbed
             case "hosts" => HostsEmbed
             case _       => UnknownEmbed
           }

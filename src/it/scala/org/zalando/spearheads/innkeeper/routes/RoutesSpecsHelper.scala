@@ -16,6 +16,8 @@ object RoutesSpecsHelper {
 
   private def routeUri(id: Long) = s"$routesUri/$id"
 
+  private def routeWithEmbedUri(names: List[String]) = routesUri + paramsToUri("embed", names)
+
   private def routeByNameUri(names: List[String]) = routesUri + paramsToUri("name", names)
 
   private def routeByTeamUri(teams: List[String]) = routesUri + paramsToUri("owned_by_team", teams)
@@ -71,6 +73,8 @@ object RoutesSpecsHelper {
     postSlashRoutes(route(routeName, pathId))(token)
 
   def getSlashRoutes(token: String = ""): HttpResponse = doGet(routesUri, token)
+
+  def getSlashRoutesWithEmbed(names: List[String], token: String): HttpResponse = doGet(routeWithEmbedUri(names), token)
 
   def getSlashCurrentRoutes(token: String = ""): HttpResponse = doGet(currentRoutesUri, token)
 

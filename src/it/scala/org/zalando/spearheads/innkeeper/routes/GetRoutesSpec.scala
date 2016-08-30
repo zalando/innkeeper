@@ -12,6 +12,7 @@ import spray.json._
 import spray.json.DefaultJsonProtocol._
 import org.zalando.spearheads.innkeeper.api.JsonProtocols._
 import org.zalando.spearheads.innkeeper.routes.RoutesSpecsHelper._
+import scala.collection.immutable.Seq
 
 class GetRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
 
@@ -34,6 +35,38 @@ class GetRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
         val entity = entityString(response)
         val routes = entity.parseJson.convertTo[Seq[RouteOut]]
         routes.size should be(2)
+        routes(0).path should not be('defined)
+        routes(0).hosts should not be('defined)
+      }
+
+      describe("when embedding the path") {
+        it ("should return the correct routes with path") {
+          insertRoute("R1")
+          insertRoute("R2")
+
+          val response = getSlashRoutesWithEmbed(List("path"), token)
+          response.status should be(StatusCodes.OK)
+          val entity = entityString(response)
+          val routes = entity.parseJson.convertTo[Seq[RouteOut]]
+          routes.size should be(2)
+          routes(0).path should be('defined)
+          routes(0).hosts should not be('defined)
+        }
+      }
+
+      describe("when embedding the hosts") {
+        it ("should return the correct routes with hosts") {
+          insertRoute(name = "R1", pathHostIds = Seq(1L))
+          insertRoute(name = "R2", pathHostIds = Seq(1L))
+
+          val response = getSlashRoutesWithEmbed(List("hosts"), token)
+          response.status should be(StatusCodes.OK)
+          val entity = entityString(response)
+          val routes = entity.parseJson.convertTo[Seq[RouteOut]]
+          routes.size should be(2)
+          routes(0).path should not be('defined)
+          routes(0).hosts should be('defined)
+        }
       }
 
       describe("when filtering the routes by name") {

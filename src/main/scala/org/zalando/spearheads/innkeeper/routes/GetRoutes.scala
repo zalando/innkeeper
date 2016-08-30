@@ -58,10 +58,12 @@ class GetRoutes @Inject() (
                     None
                   }
                 case _ => None
-              }
+              }.toList
+
+              logger.debug(s"Filters $filters. Embed: $embed")
 
               chunkedResponseOf[RouteOut](jsonService) {
-                routesService.findFiltered(filters.toList, embed)
+                routesService.findFiltered(filters, embed)
               }
             }
           }

@@ -7,7 +7,7 @@ import akka.stream.scaladsl.Source
 import com.google.inject.Inject
 import org.zalando.spearheads.innkeeper.api.JsonProtocols._
 import org.zalando.spearheads.innkeeper.api.{Host, NewRoute, PathOut, RouteIn, RouteName, RouteOut, RoutePatch, UserName}
-import org.zalando.spearheads.innkeeper.dao.{AuditType, AuditsRepo, Embed, HostsEmbed, PathRow, PathsEmbed, QueryFilter, RouteRow, RoutesRepo}
+import org.zalando.spearheads.innkeeper.dao.{AuditType, AuditsRepo, Embed, HostsEmbed, PathRow, PathEmbed, QueryFilter, RouteRow, RoutesRepo}
 import org.zalando.spearheads.innkeeper.services.ServiceResult._
 import org.zalando.spearheads.innkeeper.utils.EnvConfig
 import slick.backend.DatabasePublisher
@@ -155,7 +155,7 @@ class DefaultRoutesService @Inject() (
   }
 
   def getEmbeddedPath(embed: Set[Embed], pathRow: PathRow): Option[PathOut] = {
-    if (embed(PathsEmbed)) {
+    if (embed(PathEmbed)) {
       pathRow.id.map(pathsService.pathRowToPath(_, pathRow))
     } else {
       None

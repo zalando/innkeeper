@@ -11,7 +11,7 @@ import org.scalatest.{FunSpec, Matchers}
 import org.zalando.spearheads.innkeeper.FakeDatabasePublisher
 import org.zalando.spearheads.innkeeper.api.JsonProtocols._
 import org.zalando.spearheads.innkeeper.api.{NewRoute, NumericArg, PathOut, Predicate, RouteIn, RouteName, RouteOut, StringArg, TeamName, UserName}
-import org.zalando.spearheads.innkeeper.dao.{AuditType, AuditsRepo, HostsEmbed, PathRow, PathsEmbed, RouteNameFilter, RouteRow, RoutesRepo}
+import org.zalando.spearheads.innkeeper.dao.{AuditType, AuditsRepo, HostsEmbed, PathRow, PathEmbed, RouteNameFilter, RouteRow, RoutesRepo}
 import org.zalando.spearheads.innkeeper.services.ServiceResult.{DuplicateRouteName, NotFound}
 import org.zalando.spearheads.innkeeper.utils.EnvConfig
 import spray.json.pimpAny
@@ -125,7 +125,7 @@ class RoutesServiceSpec extends FunSpec with Matchers with MockFactory with Scal
         (routesRepo.selectFiltered _).expects(filters).returning(FakeDatabasePublisher(Seq((routeRow, pathRow))))
         (pathsService.pathRowToPath _).expects(pathId, pathRow).returning(pathOut)
 
-        val routeOut = routesService.findFiltered(Seq(RouteNameFilter(Seq("the_route"))), Set(PathsEmbed))
+        val routeOut = routesService.findFiltered(Seq(RouteNameFilter(Seq("the_route"))), Set(PathEmbed))
           .runWith(Sink.head).futureValue
 
         verifyRoute(routeOut, Some(pathOut), None)
@@ -167,7 +167,7 @@ class RoutesServiceSpec extends FunSpec with Matchers with MockFactory with Scal
 
           (pathsService.pathRowToPath _).expects(pathId, pathRow).returning(pathOut)
 
-          val routeServiceResult = routesService.findById(routeId, Set(PathsEmbed)).futureValue
+          val routeServiceResult = routesService.findById(routeId, Set(PathEmbed)).futureValue
 
           routeServiceResult match {
             case ServiceResult.Success(route) => {

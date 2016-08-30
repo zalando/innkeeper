@@ -139,6 +139,8 @@ object JsonProtocols {
         filters = fields.get("filters").flatMap(_.convertTo[Option[Seq[Filter]]])
         endpoint = fields.get("endpoint").flatMap(_.convertTo[Option[String]])
         hostIds = fields.get("host_ids").map(_.convertTo[Seq[Long]])
+        path = fields.get("path").flatMap(_.convertTo[Option[PathOut]])
+        hosts = fields.get("hosts").flatMap(_.convertTo[Option[Seq[Host]]])
       } yield RouteOut(
         id = id,
         pathId = pathId,
@@ -151,8 +153,8 @@ object JsonProtocols {
         createdBy = UserName(createdBy),
         route = NewRoute(predicates, filters, endpoint),
         hostIds = hostIds,
-        hosts = None,
-        path = None
+        hosts = hosts,
+        path = path
       )
       parsedValueOpt.getOrElse {
         throw new DeserializationException("Error deserializing the route")

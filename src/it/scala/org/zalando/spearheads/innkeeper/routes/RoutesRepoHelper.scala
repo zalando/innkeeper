@@ -3,7 +3,6 @@ package org.zalando.spearheads.innkeeper.routes
 import java.time.LocalDateTime
 import org.scalatest.time.{Seconds, Span}
 import org.zalando.spearheads.innkeeper.dao.{PathRow, RouteRow}
-
 import scala.collection.immutable.Seq
 
 object RoutesRepoHelper extends DaoHelper {
