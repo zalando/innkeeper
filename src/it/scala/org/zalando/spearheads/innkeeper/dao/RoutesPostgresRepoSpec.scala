@@ -33,7 +33,7 @@ class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers w
     describe("#selectById") {
       it("should select a route by id") {
         insertRoute(name = "the-route")
-        val result: Option[(RouteRow, PathRow)] = routesRepo.selectById(1).futureValue
+        val result = routesRepo.selectById(1).futureValue
 
         result match {
           case Some((routeRow, pathRow)) =>
@@ -58,7 +58,7 @@ class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers w
           hostIds = None
         )
 
-        val result: (RouteRow, PathRow) = routesRepo.update(insertedRoute.id.get, routePatch, updatedAt).futureValue.get
+        val result = routesRepo.update(insertedRoute.id.get, routePatch, updatedAt).futureValue.get
 
         result._1.description.contains(updatedDescription) should be(true)
       }
@@ -75,7 +75,7 @@ class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers w
           hostIds = None
         )
 
-        val result: (RouteRow, PathRow) = routesRepo.update(insertedRoute.id.get, routePatch, updatedAt).futureValue.get
+        val result = routesRepo.update(insertedRoute.id.get, routePatch, updatedAt).futureValue.get
 
         result._1.usesCommonFilters should be(updatedUsesCommonFilters)
       }
@@ -119,52 +119,6 @@ class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers w
       }
     }
 
-    describe("#selectAll") {
-
-      it("should select all routes") {
-        val createdAt = LocalDateTime.now()
-        val activateAt = createdAt.minusMinutes(5)
-
-        insertRoute("R1", method = "GET", createdAt = createdAt, activateAt = activateAt)
-        insertRoute("R2", method = "POST", createdAt = createdAt, activateAt = activateAt)
-
-        val routes: List[RouteRow] = routesRepo.selectAll
-
-        routes should not be 'empty
-        routes(0) should be (sampleRoute(
-          id = routes(0).id.get,
-          pathId = routes(0).pathId,
-          name = "R1",
-          method = "GET",
-          createdAt = createdAt,
-          activateAt = activateAt
-        ))
-        routes(1) should be (sampleRoute(
-          id = routes(1).id.get,
-          pathId = routes(1).pathId,
-          name = "R2",
-          method = "POST",
-          createdAt = createdAt,
-          activateAt = activateAt
-        ))
-      }
-
-      it("should not select the deleted routes") {
-        insertRoute("R1")
-        insertRoute("R2")
-        val createdAt = LocalDateTime.now()
-        insertRoute("R3", createdAt = createdAt)
-        insertRoute("R4", createdAt = createdAt)
-        deleteRoute(2)
-
-        val routes: List[RouteRow] = routesRepo.selectAll
-
-        routes should not be 'empty
-        routes.size should be (3)
-        routes.map(_.id.get).toSet should be (Set(1, 3, 4))
-      }
-    }
-
     describe("#selectModifiedSince") {
       it("should select the right routes") {
         insertRoute("R1")
@@ -174,7 +128,7 @@ class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers w
         insertRoute("R4", createdAt = createdAt)
         deleteRoute(1)
 
-        val routesWithPath: List[ModifiedRoute] =
+        val routesWithPath =
           routesRepo.selectModifiedSince(createdAt.minus(1, ChronoUnit.MICROS), LocalDateTime.now())
 
         routesWithPath.size should be (3)
@@ -333,7 +287,7 @@ class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers w
       }
 
       it("should filter by path id") {
-        val route1 = insertRoute("R1")
+        insertRoute("R1")
         val route2 = insertRoute("R2")
         val route3 = insertRoute("R3")
 
@@ -344,9 +298,9 @@ class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers w
       }
 
       it("should filter by team and route name") {
-        val route1 = insertRoute("R1", ownedByTeam = "team-1")
+        insertRoute("R1", ownedByTeam = "team-1")
         val route2 = insertRoute("R2", ownedByTeam = "team-2")
-        val route3 = insertRoute("R3", ownedByTeam = "team-3")
+        insertRoute("R3", ownedByTeam = "team-3")
 
         val filters = List(RouteNameFilter(List("R2", "R3")), TeamFilter(List("team-1", "team-2")))
         val result: List[(RouteRow, PathRow)] = routesRepo.selectFiltered(filters)

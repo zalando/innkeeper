@@ -30,8 +30,6 @@ trait RoutesService {
 
   def remove(id: Long, deletedBy: String): Future[Result[Boolean]]
 
-  def allRoutes: Source[RouteOut, NotUsed]
-
   def findFiltered(filters: List[QueryFilter], embed: Set[Embed]): Source[RouteOut, NotUsed]
 
   def findById(id: Long, embed: Set[Embed]): Future[Result[RouteOut]]
@@ -135,10 +133,6 @@ class DefaultRoutesService @Inject() (
       case true  => auditsRepo.persistRouteLog(id, userName, AuditType.Delete)
       case false =>
     }
-  }
-
-  override def allRoutes: Source[RouteOut, NotUsed] = routeRowsStreamToRouteOutStream {
-    routesRepo.selectAll
   }
 
   override def findFiltered(filters: List[QueryFilter], embed: Set[Embed]): Source[RouteOut, NotUsed] = {

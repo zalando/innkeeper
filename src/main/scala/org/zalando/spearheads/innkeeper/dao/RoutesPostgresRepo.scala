@@ -46,14 +46,6 @@ class RoutesPostgresRepo @Inject() (
     }.map(_.headOption)
   }
 
-  override def selectAll: DatabasePublisher[RouteRow] = {
-    logger.debug("selectAll")
-
-    db.stream {
-      Routes.result
-    }
-  }
-
   override def selectFiltered(filters: List[QueryFilter] = List.empty): DatabasePublisher[(RouteRow, PathRow)] = {
     logger.debug(s"selectFiltered $filters")
 
