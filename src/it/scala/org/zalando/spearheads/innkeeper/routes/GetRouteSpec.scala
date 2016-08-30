@@ -42,7 +42,7 @@ class GetRouteSpec extends FunSpec with BeforeAndAfter with Matchers {
           insertRoute("R1")
           insertRoute("R2")
 
-          val response = getSlashRoute(2, token, List("path"))
+          val response = getSlashRoute(2, token, Seq("path"))
           response.status should be(StatusCodes.OK)
           val entity = entityString(response)
           val route = entity.parseJson.convertTo[RouteOut]
@@ -59,7 +59,7 @@ class GetRouteSpec extends FunSpec with BeforeAndAfter with Matchers {
           insertRoute("R1", pathHostIds = Seq(1L))
           insertRoute("R2")
 
-          val response = getSlashRoute(2, token, List("hosts"))
+          val response = getSlashRoute(2, token, Seq("hosts"))
           response.status should be(StatusCodes.OK)
           val entity = entityString(response)
           val route = entity.parseJson.convertTo[RouteOut]

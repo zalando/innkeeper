@@ -4,7 +4,7 @@ import java.time.LocalDateTime
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.time.{Seconds, Span}
 import org.zalando.spearheads.innkeeper.dao.PathRow
-import scala.collection.immutable.List
+import scala.collection.immutable.Seq
 
 object PathsRepoHelper extends ScalaFutures with DaoHelper {
 
@@ -25,7 +25,7 @@ object PathsRepoHelper extends ScalaFutures with DaoHelper {
   def samplePath(
     id: Long = 1,
     uri: String = "/uri",
-    hostIds: List[Long] = List(1, 2, 3),
+    hostIds: Seq[Long] = Seq(1L, 2L, 3L),
     createdBy: String = "testuser",
     ownedByTeam: String = "testteam",
     createdAt: LocalDateTime = LocalDateTime.now(),

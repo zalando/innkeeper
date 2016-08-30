@@ -16,14 +16,14 @@ import org.zalando.spearheads.innkeeper.services.{PathsService, RoutesService, S
 import spray.json.JsonWriter
 import scala.concurrent.ExecutionContext
 import scala.util.Success
-import scala.collection.immutable.Set
+import scala.collection.immutable.{Set, Seq}
 
 /**
  * @author dpersa
  */
 trait RouteDirectives {
 
-  def extractEmbed(parameterMultiMap: Map[String, List[String]]): Directive1[Set[Embed]] =
+  def extractEmbed(parameterMultiMap: Map[String, Seq[String]]): Directive1[Set[Embed]] =
     Directive[Tuple1[Set[Embed]]] { inner => ctx =>
       {
         inner(Tuple1(parameterMultiMap.get("embed").map { embedParams =>

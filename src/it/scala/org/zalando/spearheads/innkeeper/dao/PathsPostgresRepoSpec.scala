@@ -9,8 +9,7 @@ import org.scalatest.{BeforeAndAfter, FunSpec, Matchers}
 import org.zalando.spearheads.innkeeper.api.{PathPatch, TeamName}
 import org.zalando.spearheads.innkeeper.routes.PathsRepoHelper._
 import org.zalando.spearheads.innkeeper.routes.RoutesRepoHelper
-
-import scala.collection.immutable.List
+import scala.collection.immutable.Seq
 import scala.language.postfixOps
 
 class PathsPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers with ScalaFutures {
@@ -30,14 +29,14 @@ class PathsPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers wi
         val pathRow = insertPath()
         pathRow.id should be ('defined)
         pathRow.uri should be("/uri")
-        pathRow.hostIds should be(List(1, 2, 3))
+        pathRow.hostIds should be(Seq(1, 2, 3))
       }
 
       it("should insert a path with no host ids") {
-        val pathRow = insertPath(samplePath(hostIds = List()))
+        val pathRow = insertPath(samplePath(hostIds = Seq.empty))
         pathRow.id should be('defined)
         pathRow.uri should be("/uri")
-        pathRow.hostIds should be(List.empty)
+        pathRow.hostIds should be(Seq.empty)
       }
     }
 
@@ -49,14 +48,14 @@ class PathsPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers wi
         pathRow.isDefined should be (true)
         pathRow.get.id should be ('defined)
         pathRow.get.uri should be ("/uri")
-        pathRow.get.hostIds should be (List(1, 2, 3))
+        pathRow.get.hostIds should be (Seq(1, 2, 3))
       }
     }
 
     describe("#patch") {
       it("should update only host ids") {
         insertPath()
-        val updatedHostId = List(1L)
+        val updatedHostId = Seq(1L)
         val updatedAt = LocalDateTime.now()
         val pathPatch = PathPatch(hostIds = Some(updatedHostId), ownedByTeam = None)
         val pathRow = pathsRepo.update(1L, pathPatch, updatedAt).futureValue
@@ -78,13 +77,13 @@ class PathsPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers wi
         pathRow.isDefined should be (true)
         pathRow.get.id should be ('defined)
         pathRow.get.uri should be ("/uri")
-        pathRow.get.hostIds should be (List(1L, 2L, 3L))
+        pathRow.get.hostIds should be (Seq(1L, 2L, 3L))
         pathRow.get.ownedByTeam should be (newOwnedByTeam.name)
       }
 
       it("should update host ids and owning team") {
         insertPath()
-        val updatedHostId = List(1L)
+        val updatedHostId = Seq(1L)
         val newOwnedByTeam = TeamName("new-owning-team")
         val updatedAt = LocalDateTime.now()
         val pathPatch = PathPatch(hostIds = Some(updatedHostId), ownedByTeam = Some(newOwnedByTeam))
@@ -108,7 +107,7 @@ class PathsPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers wi
         pathRow.isDefined should be (true)
         pathRow.get.id should be ('defined)
         pathRow.get.uri should be ("/uri")
-        pathRow.get.hostIds should be (List(1, 2, 3))
+        pathRow.get.hostIds should be (Seq(1, 2, 3))
       }
     }
 
@@ -121,7 +120,7 @@ class PathsPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers wi
         insertPath(samplePath(uri = "/hello1", createdAt = createdAt, updatedAt = updatedAt))
         insertPath(samplePath(uri = "/hello2", createdAt = createdAt, updatedAt = updatedAt))
 
-        val paths: List[PathRow] = pathsRepo.selectAll
+        val paths: Seq[PathRow] = pathsRepo.selectAll
 
         paths should not be 'empty
         paths(0) should be (samplePath(id = 1, uri = "/hello1", createdAt = createdAt, updatedAt = updatedAt, activateAt = activateAt))
@@ -133,27 +132,27 @@ class PathsPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers wi
 
       it ("should select routes by owner team") {
         insertSamplePaths()
-        val paths: List[PathRow] = pathsRepo.selectByOwnerTeamAndUri(Some("the-team-1"), None)
-        paths.map(_.uri) should contain theSameElementsAs List("/hello1", "/hello2")
+        val paths = pathsRepo.selectByOwnerTeamAndUri(Some("the-team-1"), None)
+        paths.map(_.uri) should contain theSameElementsAs Seq("/hello1", "/hello2")
       }
 
       it ("should select routes by uri") {
         insertSamplePaths()
-        val paths: List[PathRow] = pathsRepo.selectByOwnerTeamAndUri(None, Some("/hello3"))
-        paths.map(_.ownedByTeam) should contain theSameElementsAs List("the-team-2")
+        val paths = pathsRepo.selectByOwnerTeamAndUri(None, Some("/hello3"))
+        paths.map(_.ownedByTeam) should contain theSameElementsAs Seq("the-team-2")
       }
 
       it ("should select routes by team and uri") {
         insertSamplePaths()
-        val paths: List[PathRow] = pathsRepo.selectByOwnerTeamAndUri(Some("the-team-2"), Some("/hello3"))
+        val paths = pathsRepo.selectByOwnerTeamAndUri(Some("the-team-2"), Some("/hello3"))
         paths.map(path => (path.uri, path.ownedByTeam)) should
-          contain theSameElementsAs List(("/hello3", "the-team-2"))
+          contain theSameElementsAs Seq(("/hello3", "the-team-2"))
       }
 
       it ("should select all") {
         insertSamplePaths()
-        val paths: List[PathRow] = pathsRepo.selectByOwnerTeamAndUri(None, None)
-        paths.map(_.uri) should contain theSameElementsAs List("/hello1", "/hello2", "/hello3", "/hello4")
+        val paths = pathsRepo.selectByOwnerTeamAndUri(None, None)
+        paths.map(_.uri) should contain theSameElementsAs Seq("/hello1", "/hello2", "/hello3", "/hello4")
       }
     }
 
@@ -162,14 +161,14 @@ class PathsPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers wi
         val uri = "test-uri"
         insertPath(samplePath(
           uri = uri,
-          hostIds = List(1, 2, 3)
+          hostIds = Seq(1, 2, 3)
         ))
         insertPath(samplePath(
           uri = uri,
-          hostIds = List(4, 5, 6)
+          hostIds = Seq(4, 5, 6)
         ))
 
-        pathsRepo.pathWithUriHostIdExists(uri, List(7, 8, 9))
+        pathsRepo.pathWithUriHostIdExists(uri, Seq(7, 8, 9))
           .futureValue
           .shouldBe(false)
       }
@@ -178,14 +177,14 @@ class PathsPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers wi
         val uri = "test-uri"
         insertPath(samplePath(
           uri = uri,
-          hostIds = List(1, 2, 3)
+          hostIds = Seq(1, 2, 3)
         ))
         insertPath(samplePath(
           uri = uri,
-          hostIds = List(4, 5, 6)
+          hostIds = Seq(4, 5, 6)
         ))
 
-        pathsRepo.pathWithUriHostIdExists(uri, List(6, 7, 8))
+        pathsRepo.pathWithUriHostIdExists(uri, Seq(6, 7, 8))
           .futureValue
           .shouldBe(true)
       }
@@ -194,10 +193,10 @@ class PathsPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers wi
         val uri = "test-uri"
         insertPath(samplePath(
           uri = uri,
-          hostIds = List.empty
+          hostIds = Seq.empty
         ))
 
-        pathsRepo.pathWithUriHostIdExists(uri, List(6, 7, 8))
+        pathsRepo.pathWithUriHostIdExists(uri, Seq(6, 7, 8))
           .futureValue
           .shouldBe(true)
       }

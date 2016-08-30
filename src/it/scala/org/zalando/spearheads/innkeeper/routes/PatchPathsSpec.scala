@@ -8,7 +8,6 @@ import org.zalando.spearheads.innkeeper.routes.AcceptanceSpecToken._
 import org.zalando.spearheads.innkeeper.routes.AcceptanceSpecsHelper._
 import org.zalando.spearheads.innkeeper.routes.RoutesRepoHelper._
 import spray.json._
-
 import scala.collection.immutable.Seq
 
 class PatchPathsSpec extends FunSpec with BeforeAndAfter with Matchers {
@@ -120,7 +119,7 @@ class PatchPathsSpec extends FunSpec with BeforeAndAfter with Matchers {
         it("should return the 400 Bad Request status") {
           val token = WRITE_TOKEN
 
-          val response = PathsSpecsHelper.patchSlashPaths(1L, pathPatchHostIdsJsonString(newHostIds = List.empty), token)
+          val response = PathsSpecsHelper.patchSlashPaths(1L, pathPatchHostIdsJsonString(newHostIds = Seq.empty), token)
 
           response.status should be(StatusCodes.BadRequest)
           entityString(response).parseJson.convertTo[Error].errorType should be("EPH")
@@ -131,7 +130,7 @@ class PatchPathsSpec extends FunSpec with BeforeAndAfter with Matchers {
         it("should return the 400 Bad Request status") {
           val token = ADMIN_TOKEN
 
-          val response = PathsSpecsHelper.patchSlashPaths(1L, pathPatchHostIdsJsonString(newHostIds = List.empty), token)
+          val response = PathsSpecsHelper.patchSlashPaths(1L, pathPatchHostIdsJsonString(newHostIds = Seq.empty), token)
 
           response.status should be(StatusCodes.BadRequest)
           entityString(response).parseJson.convertTo[Error].errorType should be("EPH")
@@ -147,7 +146,7 @@ class PatchPathsSpec extends FunSpec with BeforeAndAfter with Matchers {
             routeHostIds = Some(Seq(1L, 2L))
           )
 
-          val response = PathsSpecsHelper.patchSlashPaths(1L, pathPatchHostIdsJsonString(List(1L)), token)
+          val response = PathsSpecsHelper.patchSlashPaths(1L, pathPatchHostIdsJsonString(Seq(1L)), token)
 
           response.status should be(StatusCodes.BadRequest)
           entityString(response).parseJson.convertTo[Error].errorType should be("IPP")
@@ -156,9 +155,9 @@ class PatchPathsSpec extends FunSpec with BeforeAndAfter with Matchers {
     }
   }
 
-  private val newHostIds = List(1L, 2L, 3L, 4L, 5L)
+  private val newHostIds = Seq(1L, 2L, 3L, 4L, 5L)
   private val newOwningTeam = "newOwningTeam"
-  private def pathPatchHostIdsJsonString(newHostIds: List[Long] = newHostIds) =
+  private def pathPatchHostIdsJsonString(newHostIds: Seq[Long] = newHostIds) =
     s"""{
         |  "host_ids": [${newHostIds.mkString(", ")}]
         |}

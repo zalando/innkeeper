@@ -2,13 +2,11 @@ package org.zalando.spearheads.innkeeper.dao
 
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
-
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.time.{Seconds, Span}
 import org.scalatest.{BeforeAndAfter, FunSpec, Matchers}
 import org.zalando.spearheads.innkeeper.api._
 import org.zalando.spearheads.innkeeper.routes.RoutesRepoHelper._
-
 import scala.collection.immutable.Seq
 
 class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers with ScalaFutures {
@@ -147,7 +145,7 @@ class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers w
 
         deleteRoute(route3.id.get)
 
-        val routesWithPath: List[ModifiedRoute] =
+        val routesWithPath: Seq[ModifiedRoute] =
           routesRepo.selectModifiedSince(createdAt.minus(1, ChronoUnit.MICROS), LocalDateTime.now())
 
         routesWithPath.map(_.name).toSet should be (Set("R2", "R3", "R5"))
@@ -164,7 +162,7 @@ class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers w
         )
         insertRoute("R3")
 
-        val routes: List[ModifiedRoute] = routesRepo.selectModifiedSince(createdAt.minus(1, ChronoUnit.MICROS), LocalDateTime.now())
+        val routes = routesRepo.selectModifiedSince(createdAt.minus(1, ChronoUnit.MICROS), LocalDateTime.now())
 
         routes.map(_.name).toSet should be (Set("R3"))
       }
@@ -194,7 +192,7 @@ class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers w
         insertRoute("R3", createdAt = createdAt, activateAt = createdAt)
         insertRoute("R4", createdAt = createdAt, activateAt = createdAt)
 
-        val updateFuture = pathsRepo.update(r1.id.get, PathPatch(Some(List(1L)), None), createdAt.plusDays(1))
+        val updateFuture = pathsRepo.update(r1.id.get, PathPatch(Some(Seq(1L)), None), createdAt.plusDays(1))
         updateFuture.futureValue
 
         val result = routesRepo.selectModifiedSince(
@@ -258,8 +256,8 @@ class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers w
         val route2 = insertRoute("R2")
         val route3 = insertRoute("R3")
 
-        val filters = List(RouteNameFilter(List("R2", "R3")))
-        val result: List[(RouteRow, PathRow)] = routesRepo.selectFiltered(filters)
+        val filters = Seq(RouteNameFilter(Seq("R2", "R3")))
+        val result: Seq[(RouteRow, PathRow)] = routesRepo.selectFiltered(filters)
 
         result.flatMap(_._1.id).toSet should be (Set(route2.id, route3.id).flatten)
       }
@@ -269,8 +267,8 @@ class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers w
         val route2 = insertRoute("R2", ownedByTeam = "team-2")
         val route3 = insertRoute("R3", ownedByTeam = "team-3")
 
-        val filters = List(TeamFilter(List("team-2", "team-3")))
-        val routes: List[(RouteRow, PathRow)] = routesRepo.selectFiltered(filters)
+        val filters = Seq(TeamFilter(Seq("team-2", "team-3")))
+        val routes: Seq[(RouteRow, PathRow)] = routesRepo.selectFiltered(filters)
 
         routes.flatMap(_._1.id).toSet should be (Set(route2.id, route3.id).flatten)
       }
@@ -280,8 +278,8 @@ class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers w
         val route2 = insertRoute("R2")
         val route3 = insertRoute("R3")
 
-        val filters = List(PathUriFilter(List("/path-for-R2", "/path-for-R3")))
-        val result: List[(RouteRow, PathRow)] = routesRepo.selectFiltered(filters)
+        val filters = Seq(PathUriFilter(Seq("/path-for-R2", "/path-for-R3")))
+        val result: Seq[(RouteRow, PathRow)] = routesRepo.selectFiltered(filters)
 
         result.flatMap(_._1.id).toSet should be (Set(route2.id, route3.id).flatten)
       }
@@ -291,8 +289,8 @@ class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers w
         val route2 = insertRoute("R2")
         val route3 = insertRoute("R3")
 
-        val filters = List(PathIdFilter(List(2L, 3L)))
-        val result: List[(RouteRow, PathRow)] = routesRepo.selectFiltered(filters)
+        val filters = Seq(PathIdFilter(Seq(2L, 3L)))
+        val result: Seq[(RouteRow, PathRow)] = routesRepo.selectFiltered(filters)
 
         result.flatMap(_._1.id).toSet should be (Set(route2.id, route3.id).flatten)
       }
@@ -302,8 +300,8 @@ class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers w
         val route2 = insertRoute("R2", ownedByTeam = "team-2")
         insertRoute("R3", ownedByTeam = "team-3")
 
-        val filters = List(RouteNameFilter(List("R2", "R3")), TeamFilter(List("team-1", "team-2")))
-        val result: List[(RouteRow, PathRow)] = routesRepo.selectFiltered(filters)
+        val filters = Seq(RouteNameFilter(Seq("R2", "R3")), TeamFilter(Seq("team-1", "team-2")))
+        val result: Seq[(RouteRow, PathRow)] = routesRepo.selectFiltered(filters)
 
         result.flatMap(_._1.id).toSet should be (Set(route2.id).flatten)
       }
@@ -313,7 +311,7 @@ class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers w
         val route2 = insertRoute("R2")
         deleteRoute(route1.id.get)
 
-        val result: List[(RouteRow, PathRow)] = routesRepo.selectFiltered()
+        val result: Seq[(RouteRow, PathRow)] = routesRepo.selectFiltered()
         result.flatMap(_._1.id).toSet should be (Set(route2.id).flatten)
       }
 
@@ -321,7 +319,7 @@ class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers w
         insertRoute("R2", disableAt = Some(LocalDateTime.now().minusMinutes(3)))
         insertRoute("R1")
 
-        val result: List[(RouteRow, PathRow)] = routesRepo.selectFiltered()
+        val result: Seq[(RouteRow, PathRow)] = routesRepo.selectFiltered()
         result.size should be (2)
       }
     }

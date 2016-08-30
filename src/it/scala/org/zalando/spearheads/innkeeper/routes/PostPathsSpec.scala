@@ -8,13 +8,14 @@ import org.zalando.spearheads.innkeeper.routes.RoutesRepoHelper._
 import org.zalando.spearheads.innkeeper.api._
 import spray.json._
 import org.zalando.spearheads.innkeeper.api.JsonProtocols._
+import scala.collection.immutable.Seq
 
 class PostPathsSpec extends FunSpec with BeforeAndAfter with Matchers {
 
   private val pathUri = "uri-1"
-  private val hostIds = List(1L, 2L)
+  private val hostIds = Seq(1L, 2L)
   private val otherOwningTeam = "otherOwningTeam"
-  private def pathJsonString(pathUri: String = pathUri, hostIds: List[Long] = hostIds) =
+  private def pathJsonString(pathUri: String = pathUri, hostIds: Seq[Long] = hostIds) =
     s"""{
         |  "uri": "$pathUri",
         |  "host_ids": [${hostIds.mkString(", ")}]
@@ -128,7 +129,7 @@ class PostPathsSpec extends FunSpec with BeforeAndAfter with Matchers {
         it("should return the 400 Bad Request status") {
           val path = PathsRepoHelper.samplePath(
             uri = pathUri,
-            hostIds = List(1L, 2L, 3L)
+            hostIds = Seq(1L, 2L, 3L)
           )
           PathsRepoHelper.insertPath(path)
 
@@ -144,7 +145,7 @@ class PostPathsSpec extends FunSpec with BeforeAndAfter with Matchers {
         it("should return the 400 Bad Request status") {
           val path = PathsRepoHelper.samplePath(
             uri = pathUri,
-            hostIds = List.empty
+            hostIds = Seq.empty
           )
           PathsRepoHelper.insertPath(path)
 
@@ -158,7 +159,7 @@ class PostPathsSpec extends FunSpec with BeforeAndAfter with Matchers {
         val token = WRITE_TOKEN
 
         it("should return the 400 Bad Request status") {
-          val response = PathsSpecsHelper.postSlashPaths(pathJsonString(hostIds = List.empty), token)
+          val response = PathsSpecsHelper.postSlashPaths(pathJsonString(hostIds = Seq.empty), token)
           response.status should be(StatusCodes.BadRequest)
           entityString(response).parseJson.convertTo[Error].errorType should be("EPH")
         }
@@ -168,7 +169,7 @@ class PostPathsSpec extends FunSpec with BeforeAndAfter with Matchers {
         val token = ADMIN_TOKEN
 
         it("should return the 400 Bad Request status") {
-          val response = PathsSpecsHelper.postSlashPaths(pathJsonString(hostIds = List.empty), token)
+          val response = PathsSpecsHelper.postSlashPaths(pathJsonString(hostIds = Seq.empty), token)
           response.status should be(StatusCodes.BadRequest)
           entityString(response).parseJson.convertTo[Error].errorType should be("EPH")
         }

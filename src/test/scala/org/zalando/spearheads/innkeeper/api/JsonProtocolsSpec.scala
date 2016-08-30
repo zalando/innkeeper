@@ -307,7 +307,7 @@ class JsonProtocolsSpec extends FunSpec with Matchers {
     val routeOutWithEmbedded =
       routeOut.copy(
         path = Some(pathOut),
-        hosts = Some(List(host)))
+        hosts = Some(Seq(host)))
 
     it("should marshall the RouteOut") {
       routeOut.toJson.prettyPrint should be {
@@ -381,11 +381,11 @@ class JsonProtocolsSpec extends FunSpec with Matchers {
 
   describe("RoutePatch") {
     it("should unmarshall the RoutePatch") {
-      val predicate = Predicate("somePredicate", List(StringArg("Hello"), NumericArg("123")))
-      val filter = Filter("someFilter", List(StringArg("World"), NumericArg("321")))
+      val predicate = Predicate("somePredicate", Seq(StringArg("Hello"), NumericArg("123")))
+      val filter = Filter("someFilter", Seq(StringArg("World"), NumericArg("321")))
       val expectedRouteData = NewRoute(
-        predicates = Some(List(predicate)),
-        filters = Some(List(filter)),
+        predicates = Some(Seq(predicate)),
+        filters = Some(Seq(filter)),
         endpoint = Some("some-endpoint.com")
       )
       val expected = RoutePatch(Some(expectedRouteData), Some(false), Some("route description"), Some(Seq(1L, 2L)))
@@ -439,7 +439,7 @@ class JsonProtocolsSpec extends FunSpec with Matchers {
 
   describe("PathIn") {
 
-    val pathIn = PathIn("/hello", List(1, 2, 3))
+    val pathIn = PathIn("/hello", Seq(1, 2, 3))
 
     it("should unmarshall") {
       val result = """{
@@ -482,7 +482,7 @@ class JsonProtocolsSpec extends FunSpec with Matchers {
   private def pathOut = PathOut(
     id = 1,
     uri = "/hello",
-    hostIds = List(1, 2, 3),
+    hostIds = Seq(1, 2, 3),
     ownedByTeam = TeamName("team"),
     createdBy = UserName("username"),
     createdAt = LocalDateTime.of(2015, 10, 10, 10, 10, 10),

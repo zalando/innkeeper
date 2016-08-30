@@ -1,7 +1,6 @@
 package org.zalando.spearheads.innkeeper.services
 
 import java.time.LocalDateTime
-
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Sink
@@ -12,9 +11,8 @@ import org.zalando.spearheads.innkeeper.FakeDatabasePublisher
 import org.zalando.spearheads.innkeeper.api.{PathIn, PathOut, TeamName, UserName}
 import org.zalando.spearheads.innkeeper.dao.{AuditType, AuditsRepo, PathRow, PathsRepo}
 import org.zalando.spearheads.innkeeper.services.ServiceResult.DuplicatePathUriHost
-
 import scala.concurrent.duration.DurationInt
-import scala.collection.immutable.List
+import scala.collection.immutable.Seq
 import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.language.postfixOps
 
@@ -207,7 +205,7 @@ class PathsServiceSpec extends FunSpec with Matchers with MockFactory with Scala
 
   val pathId: Long = 1
   val uri = "/uri"
-  val hostIds = List(1L, 2L, 3L)
+  val hostIds = Seq(1L, 2L, 3L)
   val createdBy = "user"
   val ownedByTeam = "team"
   val createdAt = LocalDateTime.now()
