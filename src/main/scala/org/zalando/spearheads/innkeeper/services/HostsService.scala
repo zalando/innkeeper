@@ -1,10 +1,8 @@
 package org.zalando.spearheads.innkeeper.services
 
 import javax.inject.Inject
-
 import org.zalando.spearheads.innkeeper.api.Host
 import org.zalando.spearheads.innkeeper.dao.HostsRepo
-
 import scala.collection.immutable.{Seq, Set}
 
 trait HostsService {

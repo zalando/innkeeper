@@ -282,5 +282,4 @@ class RoutesPostgresRepo @Inject() (
       selectById(id)
     }
   }
-
 }

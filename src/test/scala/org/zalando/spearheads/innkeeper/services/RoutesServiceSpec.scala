@@ -4,22 +4,19 @@ import java.time.LocalDateTime
 
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
-import akka.stream.scaladsl.Sink
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.{FunSpec, Matchers}
-import org.zalando.spearheads.innkeeper.FakeDatabasePublisher
 import org.zalando.spearheads.innkeeper.api.JsonProtocols._
-import org.zalando.spearheads.innkeeper.api.{NewRoute, NumericArg, Predicate, RouteIn, RouteName, RouteOut, StringArg, UserName}
-import org.zalando.spearheads.innkeeper.dao.{AuditType, AuditsRepo, PathRow, RouteRow, RoutesRepo}
+import org.zalando.spearheads.innkeeper.api.{NewRoute, NumericArg, PathOut, Predicate, RouteIn, RouteName, RouteOut, StringArg, TeamName, UserName}
+import org.zalando.spearheads.innkeeper.dao.{AuditType, AuditsRepo, HostsEmbed, PathRow, PathsEmbed, RouteRow, RoutesRepo}
 import org.zalando.spearheads.innkeeper.services.ServiceResult.{DuplicateRouteName, NotFound}
 import org.zalando.spearheads.innkeeper.utils.EnvConfig
 import spray.json.pimpAny
-
+import org.zalando.spearheads.innkeeper.api.Host
 import scala.collection.immutable.{Seq, Set}
-import scala.concurrent.{Await, ExecutionContext, Future}
+import scala.concurrent.{ExecutionContext, Future}
 import scala.language.postfixOps
-import scala.concurrent.duration.DurationInt
 
 class RoutesServiceSpec extends FunSpec with Matchers with MockFactory with ScalaFutures {
 
@@ -119,11 +116,46 @@ class RoutesServiceSpec extends FunSpec with Matchers with MockFactory with Scal
 
           routeServiceResult match {
             case ServiceResult.Success(route) => {
-              verifyRoute(route)
+              verifyRoute(route, None, None)
             }
             case _ => fail()
           }
         }
+
+        it("should find the route with embedded path") {
+          (routesRepo.selectById _).expects(routeId).returning {
+            Future(Some((routeRow, pathRow)))
+          }
+
+          (pathsService.pathRowToPath _).expects(pathId, pathRow).returning(pathOut)
+
+          val routeServiceResult = routesService.findById(routeId, Set(PathsEmbed)).futureValue
+
+          routeServiceResult match {
+            case ServiceResult.Success(route) => {
+              verifyRoute(route, Some(pathOut), None)
+            }
+            case _ => fail()
+          }
+        }
+
+        it("should find the route with embedded hosts") {
+          (routesRepo.selectById _).expects(routeId).returning {
+            Future(Some((routeRow, pathRow)))
+          }
+
+          (hostsService.getByIds _).expects(Set(hostId)).returning(Seq(host))
+
+          val routeServiceResult = routesService.findById(routeId, Set(HostsEmbed)).futureValue
+
+          routeServiceResult match {
+            case ServiceResult.Success(route) => {
+              verifyRoute(route, None, Some(Seq(host)))
+            }
+            case _ => fail()
+          }
+        }
+
       }
 
       describe("when the route does not exist") {
@@ -143,7 +175,7 @@ class RoutesServiceSpec extends FunSpec with Matchers with MockFactory with Scal
     }
   }
 
-  def verifyRoute(route: RouteOut) = {
+  def verifyRoute(route: RouteOut, path: Option[PathOut], hosts: Option[Seq[Host]]) = {
     route.id should be(routeId)
     route.name should be(routeName)
     route.description should be(Some(description))
@@ -151,6 +183,8 @@ class RoutesServiceSpec extends FunSpec with Matchers with MockFactory with Scal
     route.createdBy should be(UserName(createdBy))
     route.activateAt should be(activateAt)
     route.disableAt should be(Some(disableAt))
+    route.path should be(path)
+    route.hosts should be(hosts)
   }
 
   val routeId: Long = 1
@@ -173,6 +207,19 @@ class RoutesServiceSpec extends FunSpec with Matchers with MockFactory with Scal
   val disableAt = referenceTime
   val routeName = RouteName("THE_ROUTE")
   val pathId = 1L
+  val hostId = 1L
+
+  val host = Host(hostId, "host.com")
+
+  val pathOut = PathOut(
+    id = pathId,
+    uri = "/uri",
+    hostIds = Seq(1L),
+    ownedByTeam = TeamName(ownedByTeam),
+    createdBy = UserName(createdBy),
+    createdAt = createdAt,
+    updatedAt = updatedAt)
+
   val savedRoute = RouteOut(
     id = routeId,
     pathId = pathId,
