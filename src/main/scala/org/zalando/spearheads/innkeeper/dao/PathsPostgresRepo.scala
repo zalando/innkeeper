@@ -73,14 +73,6 @@ class PathsPostgresRepo @Inject() (
     }
   }
 
-  override def selectAll: DatabasePublisher[PathRow] = {
-    logger.debug("selectAll")
-
-    db.stream {
-      Paths.result
-    }
-  }
-
   override def pathWithUriHostIdExists(uri: String, hostIds: Seq[Long]): Future[Boolean] = {
     logger.debug("uri hostId pairs are duplicate check")
 

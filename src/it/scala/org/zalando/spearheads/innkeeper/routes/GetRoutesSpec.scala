@@ -12,6 +12,7 @@ import spray.json._
 import spray.json.DefaultJsonProtocol._
 import org.zalando.spearheads.innkeeper.api.JsonProtocols._
 import org.zalando.spearheads.innkeeper.routes.RoutesSpecsHelper._
+import scala.collection.immutable.Seq
 
 class GetRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
 
@@ -34,6 +35,38 @@ class GetRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
         val entity = entityString(response)
         val routes = entity.parseJson.convertTo[Seq[RouteOut]]
         routes.size should be(2)
+        routes(0).path should not be ('defined)
+        routes(0).hosts should not be ('defined)
+      }
+
+      describe("when embedding the path") {
+        it ("should return the correct routes with path") {
+          insertRoute("R1")
+          insertRoute("R2")
+
+          val response = getSlashRoutesWithEmbed(Seq("path"), token)
+          response.status should be(StatusCodes.OK)
+          val entity = entityString(response)
+          val routes = entity.parseJson.convertTo[Seq[RouteOut]]
+          routes.size should be(2)
+          routes(0).path should be('defined)
+          routes(0).hosts should not be ('defined)
+        }
+      }
+
+      describe("when embedding the hosts") {
+        it ("should return the correct routes with hosts") {
+          insertRoute(name = "R1", pathHostIds = Seq(1L))
+          insertRoute(name = "R2", pathHostIds = Seq(1L))
+
+          val response = getSlashRoutesWithEmbed(Seq("hosts"), token)
+          response.status should be(StatusCodes.OK)
+          val entity = entityString(response)
+          val routes = entity.parseJson.convertTo[Seq[RouteOut]]
+          routes.size should be(2)
+          routes(0).path should not be ('defined)
+          routes(0).hosts should be('defined)
+        }
       }
 
       describe("when filtering the routes by name") {
@@ -43,7 +76,7 @@ class GetRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
           insertRoute("R2")
           insertRoute("R3")
 
-          val response = getSlashRoutesByName(List("R1", "R2"), token)
+          val response = getSlashRoutesByName(Seq("R1", "R2"), token)
           response.status should be(StatusCodes.OK)
           val entity = entityString(response)
           val routes = entity.parseJson.convertTo[Seq[RouteOut]]
@@ -81,7 +114,7 @@ class GetRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
           insertRoute("R2", ownedByTeam = "team-2")
           insertRoute("R3", ownedByTeam = "team-3")
 
-          val response = getSlashRoutesByTeam(List("team-1", "team-2"), token)
+          val response = getSlashRoutesByTeam(Seq("team-1", "team-2"), token)
           response.status should be(StatusCodes.OK)
           val entity = entityString(response)
           val routes = entity.parseJson.convertTo[Seq[RouteOut]]
@@ -118,7 +151,7 @@ class GetRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
             insertRoute("R2", ownedByTeam = "team-2")
             insertRoute("R3", ownedByTeam = "team-3")
 
-            val response = getSlashRoutesByPathId(List(1L, 2L), token)
+            val response = getSlashRoutesByPathId(Seq(1L, 2L), token)
             response.status should be(StatusCodes.OK)
             val entity = entityString(response)
             val routes = entity.parseJson.convertTo[Seq[RouteOut]]
@@ -134,7 +167,7 @@ class GetRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
           insertRoute("R2")
           insertRoute("R3")
 
-          val response = getSlashRoutesByUri(List("/path-for-R1", "/path-for-R2"), token)
+          val response = getSlashRoutesByUri(Seq("/path-for-R1", "/path-for-R2"), token)
           response.status should be(StatusCodes.OK)
           val entity = entityString(response)
           val routes = entity.parseJson.convertTo[Seq[RouteOut]]

@@ -98,6 +98,8 @@ object JsonProtocols {
     }
   }
 
+  implicit val hostFormat = jsonFormat(Host, "id", "name")
+
   implicit object RouteOutFormat extends RootJsonFormat[RouteOut] {
     override def write(routeOut: RouteOut): JsValue = {
       val fieldsMap = Map(
@@ -113,7 +115,9 @@ object JsonProtocols {
         "predicates" -> routeOut.route.predicates.toJson,
         "filters" -> routeOut.route.filters.toJson,
         "endpoint" -> routeOut.route.endpoint.toJson,
-        "host_ids" -> routeOut.hostIds.toJson
+        "host_ids" -> routeOut.hostIds.toJson,
+        "hosts" -> routeOut.hosts.toJson,
+        "path" -> routeOut.path.toJson
       ).filter(_._2 != JsNull)
 
       JsObject(fieldsMap)
@@ -135,6 +139,8 @@ object JsonProtocols {
         filters = fields.get("filters").flatMap(_.convertTo[Option[Seq[Filter]]])
         endpoint = fields.get("endpoint").flatMap(_.convertTo[Option[String]])
         hostIds = fields.get("host_ids").map(_.convertTo[Seq[Long]])
+        path = fields.get("path").flatMap(_.convertTo[Option[PathOut]])
+        hosts = fields.get("hosts").flatMap(_.convertTo[Option[Seq[Host]]])
       } yield RouteOut(
         id = id,
         pathId = pathId,
@@ -146,9 +152,10 @@ object JsonProtocols {
         createdAt = createdAt,
         createdBy = UserName(createdBy),
         route = NewRoute(predicates, filters, endpoint),
-        hostIds = hostIds
+        hostIds = hostIds,
+        hosts = hosts,
+        path = path
       )
-
       parsedValueOpt.getOrElse {
         throw new DeserializationException("Error deserializing the route")
       }
@@ -202,8 +209,6 @@ object JsonProtocols {
       }
     }
   }
-
-  implicit val hostFormat = jsonFormat(Host, "id", "name")
 
   implicit val pathInFormat = jsonFormat(PathIn, "uri", "host_ids", "owned_by_team")
 

@@ -9,6 +9,7 @@ import org.zalando.spearheads.innkeeper.api.{Error, RouteName, RouteOut, UserNam
 import spray.json._
 import org.zalando.spearheads.innkeeper.api.JsonProtocols._
 import org.zalando.spearheads.innkeeper.routes.RoutesSpecsHelper._
+import scala.collection.immutable.Seq
 
 class GetRouteSpec extends FunSpec with BeforeAndAfter with Matchers {
 
@@ -34,6 +35,41 @@ class GetRouteSpec extends FunSpec with BeforeAndAfter with Matchers {
         route.createdBy should be(UserName("testuser"))
         routeFiltersShouldBeCorrect(route)
         routePredicatesShouldBeCorrect(route)
+      }
+
+      describe("when embedding the path") {
+        it("should return the route with the specified id with a path") {
+          insertRoute("R1")
+          insertRoute("R2")
+
+          val response = getSlashRoute(2, token, Seq("path"))
+          response.status should be(StatusCodes.OK)
+          val entity = entityString(response)
+          val route = entity.parseJson.convertTo[RouteOut]
+          route.name should be(RouteName("R2"))
+          route.createdBy should be(UserName("testuser"))
+          route.path should be('defined)
+          routeFiltersShouldBeCorrect(route)
+          routePredicatesShouldBeCorrect(route)
+        }
+      }
+
+      describe("when embedding the hosts") {
+        it("should return the route with the specified id with hosts") {
+          insertRoute("R1", pathHostIds = Seq(1L))
+          insertRoute("R2")
+
+          val response = getSlashRoute(2, token, Seq("hosts"))
+          response.status should be(StatusCodes.OK)
+          val entity = entityString(response)
+          val route = entity.parseJson.convertTo[RouteOut]
+          route.name should be(RouteName("R2"))
+          route.createdBy should be(UserName("testuser"))
+          route.path should not be ('defined)
+          route.hosts should be('defined)
+          routeFiltersShouldBeCorrect(route)
+          routePredicatesShouldBeCorrect(route)
+        }
       }
     }
 

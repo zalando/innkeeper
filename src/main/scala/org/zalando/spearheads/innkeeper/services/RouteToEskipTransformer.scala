@@ -52,7 +52,7 @@ class DefaultRouteToEskipTransformer @Inject() (hostsService: HostsService, comm
   private[this] def createHostPredicate(hostIds: Seq[Long]) = {
     val hosts = hostsService.getByIds(hostIds.toSet)
     val hostsString = hosts
-      .map(_.replace(".", "[.]"))
+      .map(_.name.replace(".", "[.]"))
       .mkString("|")
     val hostsRegex = s"/^($hostsString)$$/"
     NameWithStringArgs("Host", Seq(hostsRegex))

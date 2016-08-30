@@ -8,9 +8,9 @@ import org.zalando.spearheads.innkeeper.dao.MyPostgresDriver.api._
 import org.zalando.spearheads.innkeeper.dao.{AuditsPostgresRepo, InnkeeperPostgresSchema, PathsPostgresRepo, RoutesPostgresRepo}
 import org.zalando.spearheads.innkeeper.utils.EnvConfig
 import slick.backend.DatabasePublisher
-
 import scala.language.implicitConversions
 import scala.concurrent.ExecutionContext
+import scala.collection.immutable.Seq
 
 trait DaoHelper extends ScalaFutures {
   val envConfig: EnvConfig = null // only used for migration
@@ -29,7 +29,7 @@ trait DaoHelper extends ScalaFutures {
     schema.createSchema.futureValue
   }
 
-  implicit def databasePublisherToList[T](databasePublisher: DatabasePublisher[T]): List[T] = {
+  implicit def databasePublisherToList[T](databasePublisher: DatabasePublisher[T]): Seq[T] = {
     Source.fromPublisher(databasePublisher).runFold(Seq.empty[T]) {
       case (seq, item) => seq :+ item
     }.futureValue.toList

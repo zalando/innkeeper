@@ -1,6 +1,6 @@
 package org.zalando.spearheads.innkeeper.routes
 
-import akka.http.scaladsl.server.Directives.{complete, get}
+import akka.http.scaladsl.server.Directives.{complete, get, parameterMultiMap}
 import akka.http.scaladsl.server.Route
 import com.google.inject.Inject
 import org.slf4j.LoggerFactory
@@ -10,6 +10,7 @@ import org.zalando.spearheads.innkeeper.oauth.OAuthDirectives.hasOneOfTheScopes
 import org.zalando.spearheads.innkeeper.oauth.{AuthenticatedUser, Scopes}
 import org.zalando.spearheads.innkeeper.services.RoutesService
 import spray.json.pimpAny
+import org.zalando.spearheads.innkeeper.RouteDirectives.extractEmbed
 import scala.concurrent.ExecutionContext
 import org.zalando.spearheads.innkeeper.api.JsonProtocols._
 import spray.json.DefaultJsonProtocol._
@@ -35,8 +36,12 @@ class GetRoute @Inject() (
       hasOneOfTheScopes(authenticatedUser, reqDesc, scopes.READ, scopes.ADMIN) {
         metrics.getRoute.time {
 
-          findRoute(id, routesService, reqDesc)(executionContext) { route =>
-            complete(route.toJson)
+          parameterMultiMap { parameterMultiMap =>
+            extractEmbed(parameterMultiMap) { embed =>
+              findRoute(id, routesService, embed, reqDesc)(executionContext) { route =>
+                complete(route.toJson)
+              }
+            }
           }
         }
       }

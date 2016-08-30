@@ -10,16 +10,16 @@ import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.{FunSpec, Matchers}
 import org.zalando.spearheads.innkeeper.FakeDatabasePublisher
 import org.zalando.spearheads.innkeeper.api.JsonProtocols._
-import org.zalando.spearheads.innkeeper.api.{NewRoute, NumericArg, Predicate, RouteIn, RouteName, RouteOut, StringArg, UserName}
-import org.zalando.spearheads.innkeeper.dao.{AuditType, AuditsRepo, RouteRow, RoutesRepo}
+import org.zalando.spearheads.innkeeper.api.{NewRoute, NumericArg, PathOut, Predicate, RouteIn, RouteName, RouteOut, StringArg, TeamName, UserName}
+import org.zalando.spearheads.innkeeper.dao.{AuditType, AuditsRepo, HostsEmbed, PathRow, PathEmbed, RouteNameFilter, RouteRow, RoutesRepo}
 import org.zalando.spearheads.innkeeper.services.ServiceResult.{DuplicateRouteName, NotFound}
 import org.zalando.spearheads.innkeeper.utils.EnvConfig
 import spray.json.pimpAny
+import org.zalando.spearheads.innkeeper.api.Host
 
-import scala.collection.immutable.Seq
-import scala.concurrent.{Await, ExecutionContext, Future}
+import scala.collection.immutable.{Seq, Set}
+import scala.concurrent.{ExecutionContext, Future}
 import scala.language.postfixOps
-import scala.concurrent.duration.DurationInt
 
 class RoutesServiceSpec extends FunSpec with Matchers with MockFactory with ScalaFutures {
 
@@ -29,8 +29,10 @@ class RoutesServiceSpec extends FunSpec with Matchers with MockFactory with Scal
   val routesRepo = mock[RoutesRepo]
   val auditsRepo = mock[AuditsRepo]
   val config = mock[EnvConfig]
+  val pathsService = mock[PathsService]
+  val hostsService = mock[HostsService]
 
-  val routesService = new DefaultRoutesService(routesRepo, auditsRepo, config)
+  val routesService = new DefaultRoutesService(routesRepo, auditsRepo, config, pathsService, hostsService)
 
   describe("RoutesServiceSpec") {
     describe("#create") {
@@ -106,29 +108,38 @@ class RoutesServiceSpec extends FunSpec with Matchers with MockFactory with Scal
       }
     }
 
-    describe("#allRoutes") {
-      it("should find all routes") {
-        (routesRepo.selectAll _).expects().returning {
-          FakeDatabasePublisher[RouteRow](Seq(routeRow))
-        }
+    describe("#findFiltered") {
 
-        val result = routesService.allRoutes
-        val route = result.runWith(Sink.head).futureValue
+      it ("should find the routes") {
+        val filters = Seq(RouteNameFilter(Seq("the_route")))
+        (routesRepo.selectFiltered _).expects(filters).returning(FakeDatabasePublisher(Seq((routeRow, pathRow))))
 
-        verifyRoute(route)
+        val routeOut = routesService.findFiltered(Seq(RouteNameFilter(Seq("the_route"))), Set.empty)
+          .runWith(Sink.head).futureValue
+
+        verifyRoute(routeOut, None, None)
       }
 
-      it("should return an empty list if there are no routes") {
-        (routesRepo.selectAll _).expects().returning {
-          FakeDatabasePublisher[RouteRow](Seq())
-        }
+      it ("should find the routes with embedded path") {
+        val filters = Seq(RouteNameFilter(Seq("the_route")))
+        (routesRepo.selectFiltered _).expects(filters).returning(FakeDatabasePublisher(Seq((routeRow, pathRow))))
+        (pathsService.pathRowToPath _).expects(pathId, pathRow).returning(pathOut)
 
-        val result = routesService.allRoutes
-        val route = result.runWith(Sink.head)
+        val routeOut = routesService.findFiltered(Seq(RouteNameFilter(Seq("the_route"))), Set(PathEmbed))
+          .runWith(Sink.head).futureValue
 
-        an[NoSuchElementException] should be thrownBy {
-          Await.result(route, 100 millis)
-        }
+        verifyRoute(routeOut, Some(pathOut), None)
+      }
+
+      it ("should find the routes with embedded hosts") {
+        val filters = Seq(RouteNameFilter(Seq("the_route")))
+        (routesRepo.selectFiltered _).expects(filters).returning(FakeDatabasePublisher(Seq((routeRow, pathRow))))
+        (hostsService.getByIds _).expects(Set(hostId)).returning(Seq(host))
+
+        val routeOut = routesService.findFiltered(Seq(RouteNameFilter(Seq("the_route"))), Set(HostsEmbed))
+          .runWith(Sink.head).futureValue
+
+        verifyRoute(routeOut, None, Some(Seq(host)))
       }
     }
 
@@ -136,18 +147,53 @@ class RoutesServiceSpec extends FunSpec with Matchers with MockFactory with Scal
       describe("when the route exists") {
         it("should find the route") {
           (routesRepo.selectById _).expects(routeId).returning {
-            Future(Some(routeRow))
+            Future(Some((routeRow, pathRow)))
           }
 
-          val routeServiceResult = routesService.findById(routeId).futureValue
+          val routeServiceResult = routesService.findById(routeId, Set.empty).futureValue
 
           routeServiceResult match {
             case ServiceResult.Success(route) => {
-              verifyRoute(route)
+              verifyRoute(route, None, None)
             }
             case _ => fail()
           }
         }
+
+        it("should find the route with embedded path") {
+          (routesRepo.selectById _).expects(routeId).returning {
+            Future(Some((routeRow, pathRow)))
+          }
+
+          (pathsService.pathRowToPath _).expects(pathId, pathRow).returning(pathOut)
+
+          val routeServiceResult = routesService.findById(routeId, Set(PathEmbed)).futureValue
+
+          routeServiceResult match {
+            case ServiceResult.Success(route) => {
+              verifyRoute(route, Some(pathOut), None)
+            }
+            case _ => fail()
+          }
+        }
+
+        it("should find the route with embedded hosts") {
+          (routesRepo.selectById _).expects(routeId).returning {
+            Future(Some((routeRow, pathRow)))
+          }
+
+          (hostsService.getByIds _).expects(Set(hostId)).returning(Seq(host))
+
+          val routeServiceResult = routesService.findById(routeId, Set(HostsEmbed)).futureValue
+
+          routeServiceResult match {
+            case ServiceResult.Success(route) => {
+              verifyRoute(route, None, Some(Seq(host)))
+            }
+            case _ => fail()
+          }
+        }
+
       }
 
       describe("when the route does not exist") {
@@ -156,7 +202,7 @@ class RoutesServiceSpec extends FunSpec with Matchers with MockFactory with Scal
             Future(None)
           }
 
-          val routeServiceResult = routesService.findById(routeId).futureValue
+          val routeServiceResult = routesService.findById(routeId, Set.empty).futureValue
 
           routeServiceResult match {
             case ServiceResult.Failure(ServiceResult.NotFound(_)) =>
@@ -167,7 +213,7 @@ class RoutesServiceSpec extends FunSpec with Matchers with MockFactory with Scal
     }
   }
 
-  def verifyRoute(route: RouteOut) = {
+  def verifyRoute(route: RouteOut, path: Option[PathOut], hosts: Option[Seq[Host]]) = {
     route.id should be(routeId)
     route.name should be(routeName)
     route.description should be(Some(description))
@@ -175,6 +221,8 @@ class RoutesServiceSpec extends FunSpec with Matchers with MockFactory with Scal
     route.createdBy should be(UserName(createdBy))
     route.activateAt should be(activateAt)
     route.disableAt should be(Some(disableAt))
+    route.path should be(path)
+    route.hosts should be(hosts)
   }
 
   val routeId: Long = 1
@@ -197,6 +245,19 @@ class RoutesServiceSpec extends FunSpec with Matchers with MockFactory with Scal
   val disableAt = referenceTime
   val routeName = RouteName("THE_ROUTE")
   val pathId = 1L
+  val hostId = 1L
+
+  val host = Host(hostId, "host.com")
+
+  val pathOut = PathOut(
+    id = pathId,
+    uri = "/uri",
+    hostIds = Seq(1L),
+    ownedByTeam = TeamName(ownedByTeam),
+    createdBy = UserName(createdBy),
+    createdAt = createdAt,
+    updatedAt = updatedAt)
+
   val savedRoute = RouteOut(
     id = routeId,
     pathId = pathId,
@@ -208,7 +269,9 @@ class RoutesServiceSpec extends FunSpec with Matchers with MockFactory with Scal
     usesCommonFilters = false,
     disableAt = Some(disableAt),
     description = Some(description),
-    hostIds = Some(Seq(1L))
+    hostIds = Some(Seq(1L)),
+    path = None,
+    hosts = None
   )
 
   val routeIn = RouteIn(
@@ -254,6 +317,15 @@ class RoutesServiceSpec extends FunSpec with Matchers with MockFactory with Scal
     pathId = pathId,
     name = routeName.name + "1",
     createdAt = createdAt.plusMinutes(1))
+
+  val pathRow = PathRow(
+    id = Some(pathId),
+    uri = "uri",
+    hostIds = Seq(1L),
+    ownedByTeam = ownedByTeam,
+    createdBy = createdBy,
+    createdAt = createdAt,
+    updatedAt = updatedAt)
 
   val inactiveRouteRow = routeRowWithoutId.copy(
     id = Some(3),

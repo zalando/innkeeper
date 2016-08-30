@@ -4,7 +4,7 @@ import java.time.LocalDateTime
 
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.{BeforeAndAfter, FunSpec, Matchers}
-import org.zalando.spearheads.innkeeper.api.{EskipRoute, Filter, NameWithStringArgs, NewRoute, NumericArg, Predicate, RegexArg, StringArg}
+import org.zalando.spearheads.innkeeper.api.{EskipRoute, Filter, Host, NameWithStringArgs, NewRoute, NumericArg, Predicate, RegexArg, StringArg}
 import org.zalando.spearheads.innkeeper.dao.RouteData
 import org.zalando.spearheads.innkeeper.api.JsonProtocols._
 import spray.json.pimpAny
@@ -55,7 +55,8 @@ class RouteToEskipTransformerSpec extends FunSpec with Matchers with MockFactory
     (hostsService.getByIds _).expects(hostIds.toSet).atLeastOnce().returning(hosts)
   }
 
-  val hosts = Seq("first.com", "second.com", "third.com")
+  val hosts = Seq(Host(1L, "first.com"), Host(2L, "second.com"), Host(3L, "third.com"))
+  val hostNames = Seq("first.com", "second.com", "third.com")
   val pathUri: String = "/the-uri"
   val hostIds = Seq(1L, 2L, 3L)
   val routeName: String = "myRoute"

@@ -9,8 +9,7 @@ import org.zalando.spearheads.innkeeper.api.JsonProtocols._
 import org.zalando.spearheads.innkeeper.dao.MyPostgresDriver.api._
 import slick.backend.DatabasePublisher
 import spray.json.pimpAny
-
-import scala.collection.immutable.{List, Seq}
+import scala.collection.immutable.Seq
 import scala.concurrent.{ExecutionContext, Future}
 
 /**
@@ -35,29 +34,24 @@ class RoutesPostgresRepo @Inject() (
     }
   }
 
-  override def selectById(id: Long): Future[Option[RouteRow]] = {
+  override def selectById(id: Long): Future[Option[(RouteRow, PathRow)]] = {
     logger.debug(s"selectById $id")
 
     db.run {
-      Routes.filter(_.id === id).result
+      Routes.join(Paths).on(_.pathId === _.id)
+        .filter {
+          case (r, p) => r.id === id
+        }.result
     }.map(_.headOption)
   }
 
-  override def selectAll: DatabasePublisher[RouteRow] = {
-    logger.debug("selectAll")
-
-    db.stream {
-      Routes.result
-    }
-  }
-
-  override def selectFiltered(filters: List[QueryFilter] = List.empty): DatabasePublisher[RouteRow] = {
-    logger.debug("selectFiltered")
+  override def selectFiltered(filters: Seq[QueryFilter] = Seq.empty): DatabasePublisher[(RouteRow, PathRow)] = {
+    logger.debug(s"selectFiltered $filters")
 
     val query = for {
       (routesTable, pathsTable) <- Routes join Paths on (_.pathId === _.id)
       if matchesFilters(filters, routesTable, pathsTable)
-    } yield routesTable
+    } yield (routesTable, pathsTable)
 
     db.stream {
       query.result
@@ -218,7 +212,7 @@ class RoutesPostgresRepo @Inject() (
     }
   }
 
-  private def matchesFilters(filters: List[QueryFilter], routesTable: RoutesTable, pathsTable: PathsTable): Rep[Boolean] = {
+  private def matchesFilters(filters: Seq[QueryFilter], routesTable: RoutesTable, pathsTable: PathsTable): Rep[Boolean] = {
     filters.map {
       case RouteNameFilter(routeNames) =>
         routeNames.map(routesTable.name === _)
@@ -232,7 +226,7 @@ class RoutesPostgresRepo @Inject() (
       case PathIdFilter(pathIds) =>
         pathIds.map(routesTable.pathId === _)
 
-      case _ => List.empty
+      case _ => Seq.empty
     }
       .flatMap(_.reduceOption(_ || _))
       .reduceOption(_ && _)
@@ -244,7 +238,7 @@ class RoutesPostgresRepo @Inject() (
       (routeRow.disableAt.isEmpty ||
         (routeRow.disableAt.isDefined && routeRow.disableAt > currentTime))
 
-  override def update(id: Long, routePatch: RoutePatch, updatedAt: LocalDateTime): Future[Option[RouteRow]] = {
+  override def update(id: Long, routePatch: RoutePatch, updatedAt: LocalDateTime): Future[Option[(RouteRow, PathRow)]] = {
     logger.debug(s"update route $id")
 
     val updateDescriptionActionOpt = routePatch.description.map { description =>
@@ -274,7 +268,7 @@ class RoutesPostgresRepo @Inject() (
         .update((updatedAt, newHostIds))
     }
 
-    val actions = List(
+    val actions = Seq(
       updateDescriptionActionOpt,
       updateUsesCommonFiltersActionOpt,
       updateRouteJsonActionOpt,
@@ -287,5 +281,4 @@ class RoutesPostgresRepo @Inject() (
       selectById(id)
     }
   }
-
 }
