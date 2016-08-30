@@ -4,7 +4,7 @@ import java.time.LocalDateTime
 
 import com.google.inject.{Inject, Singleton}
 import org.slf4j.LoggerFactory
-import org.zalando.spearheads.innkeeper.api.PathPatch
+import org.zalando.spearheads.innkeeper.api.{PathIn, PathPatch}
 import org.zalando.spearheads.innkeeper.dao.MyPostgresDriver.api._
 import slick.backend.DatabasePublisher
 
@@ -73,15 +73,37 @@ class PathsPostgresRepo @Inject() (
     }
   }
 
-  override def pathWithUriHostIdExists(uri: String, hostIds: Seq[Long]): Future[Boolean] = {
-    logger.debug("uri hostId pairs are duplicate check")
+  override def collisionExistsForPath(path: PathIn): Future[Boolean] = {
+    logger.debug("path uri collision check")
+
+    def position = SimpleExpression.binary[String, String, Int] {
+      (subString, string, queryBuilder) =>
+        import slick.util.MacroSupport._
+        import queryBuilder.{expr, sqlBuilder}
+        b"position($subString in $string)"
+    }
+
+    def startsWith(subString: Rep[String], string: Rep[String]) = {
+      position(subString, string) === 1
+    }
+
+    val query = Paths
+      .filter { pathRow =>
+        val pathHasStar: Rep[Boolean] = path.hasStar.contains(true)
+
+        val starPathConflictsWithExistingPath = pathHasStar && startsWith(path.uri, pathRow.uri)
+        val existingStarPathConflictsWithPath = pathRow.hasStar && startsWith(pathRow.uri, path.uri)
+
+        pathRow.uri === path.uri || starPathConflictsWithExistingPath || existingStarPathConflictsWithPath
+      }
+      .map(_.hostIds)
 
     db.run {
-      Paths.filter(_.uri === uri).map(_.hostIds).result
+      query.result
     }.map{ existingPathHostIds =>
       val pathWithAllHostIdsExists = existingPathHostIds.exists(_.isEmpty)
       val hostIdsIntersectWithExistingPathHostIds = existingPathHostIds.flatten
-        .intersect(hostIds)
+        .intersect(path.hostIds)
         .nonEmpty
 
       pathWithAllHostIdsExists || hostIdsIntersectWithExistingPathHostIds

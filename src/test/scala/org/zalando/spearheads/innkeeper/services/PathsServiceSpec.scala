@@ -32,7 +32,7 @@ class PathsServiceSpec extends FunSpec with Matchers with MockFactory with Scala
       it("should create a new path") {
         (pathsRepo.insert _).expects(pathRowWithoutId)
           .returning(Future(pathRow))
-        (pathsRepo.pathWithUriHostIdExists _).expects(pathIn.uri, pathIn.hostIds)
+        (pathsRepo.collisionExistsForPath _).expects(pathIn)
           .returning(Future(false))
         (auditsRepo.persistPathLog _).expects(*, "user", AuditType.Create)
 
@@ -49,7 +49,7 @@ class PathsServiceSpec extends FunSpec with Matchers with MockFactory with Scala
       it("should fail to create a path") {
         (pathsRepo.insert _).expects(pathRowWithoutId)
           .returning(Future(pathRowWithoutId))
-        (pathsRepo.pathWithUriHostIdExists _).expects(pathIn.uri, pathIn.hostIds)
+        (pathsRepo.collisionExistsForPath _).expects(pathIn)
           .returning(Future(false))
 
         val result = pathsService.create(pathIn, TeamName(ownedByTeam),
@@ -60,7 +60,7 @@ class PathsServiceSpec extends FunSpec with Matchers with MockFactory with Scala
 
       it("should fail to create a route with an existing name") {
 
-        (pathsRepo.pathWithUriHostIdExists _).expects(pathIn.uri, pathIn.hostIds)
+        (pathsRepo.collisionExistsForPath _).expects(pathIn)
           .returning(Future(true))
 
         val result = pathsService.create(pathIn, TeamName(ownedByTeam), UserName(createdBy), createdAt)

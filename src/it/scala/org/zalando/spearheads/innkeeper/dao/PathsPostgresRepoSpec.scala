@@ -6,7 +6,7 @@ import akka.stream.ActorMaterializer
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.time.{Seconds, Span}
 import org.scalatest.{BeforeAndAfter, FunSpec, Matchers}
-import org.zalando.spearheads.innkeeper.api.{PathPatch, TeamName}
+import org.zalando.spearheads.innkeeper.api.{PathIn, PathPatch, TeamName}
 import org.zalando.spearheads.innkeeper.routes.PathsRepoHelper._
 import org.zalando.spearheads.innkeeper.routes.RoutesRepoHelper
 import scala.collection.immutable.Seq
@@ -139,7 +139,7 @@ class PathsPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers wi
       }
     }
 
-    describe("#pathWithUriHostIdExists") {
+    describe("#collisionExistsForPath") {
       it("should return false if no existing path with the same uri has any of the provided host ids") {
         val uri = "test-uri"
         insertPath(samplePath(
@@ -151,7 +151,7 @@ class PathsPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers wi
           hostIds = Seq(4, 5, 6)
         ))
 
-        pathsRepo.pathWithUriHostIdExists(uri, Seq(7, 8, 9))
+        pathsRepo.collisionExistsForPath(PathIn(uri, Seq(7, 8, 9)))
           .futureValue
           .shouldBe(false)
       }
@@ -167,7 +167,7 @@ class PathsPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers wi
           hostIds = Seq(4, 5, 6)
         ))
 
-        pathsRepo.pathWithUriHostIdExists(uri, Seq(6, 7, 8))
+        pathsRepo.collisionExistsForPath(PathIn(uri, Seq(6, 7, 8)))
           .futureValue
           .shouldBe(true)
       }
@@ -179,7 +179,32 @@ class PathsPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers wi
           hostIds = Seq.empty
         ))
 
-        pathsRepo.pathWithUriHostIdExists(uri, Seq(6, 7, 8))
+        pathsRepo.collisionExistsForPath(PathIn(uri, Seq(6, 7, 8)))
+          .futureValue
+          .shouldBe(true)
+      }
+
+      it("should return true if an existing star path conflicts with the new path") {
+        val uri = "/test-uri"
+        insertPath(samplePath(
+          uri = uri,
+          hostIds = Seq(1, 2, 3),
+          hasStar = true
+        ))
+
+        pathsRepo.collisionExistsForPath(PathIn(s"$uri/sub-path", Seq(1)))
+          .futureValue
+          .shouldBe(true)
+      }
+
+      it("should return true if an existing path conflicts with the new star path") {
+        val uri = "/test-uri/sub-path"
+        insertPath(samplePath(
+          uri = uri,
+          hostIds = Seq(1, 2, 3)
+        ))
+
+        pathsRepo.collisionExistsForPath(PathIn("/test-uri", Seq(1), hasStar = Some(true)))
           .futureValue
           .shouldBe(true)
       }

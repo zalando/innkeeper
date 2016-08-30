@@ -49,6 +49,7 @@ class DefaultPathsService @Inject() (pathsRepo: PathsRepo, auditsRepo: AuditsRep
     createdBy: UserName,
     createdAt: LocalDateTime): Future[ServiceResult.Result[PathOut]] = {
 
+    val hasStar = path.hasStar.getOrElse(false)
     val pathRow = PathRow(
       id = None,
       uri = path.uri,
@@ -57,10 +58,10 @@ class DefaultPathsService @Inject() (pathsRepo: PathsRepo, auditsRepo: AuditsRep
       createdBy = createdBy.name,
       createdAt = createdAt,
       updatedAt = createdAt,
-      hasStar = path.hasStar.getOrElse(false)
+      hasStar = hasStar
     )
 
-    pathsRepo.pathWithUriHostIdExists(path.uri, path.hostIds)
+    pathsRepo.collisionExistsForPath(path)
       .flatMap {
         case false =>
           val insertPathResult = pathsRepo.insert(pathRow)
