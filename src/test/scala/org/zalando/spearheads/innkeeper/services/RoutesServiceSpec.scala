@@ -256,7 +256,9 @@ class RoutesServiceSpec extends FunSpec with Matchers with MockFactory with Scal
     ownedByTeam = TeamName(ownedByTeam),
     createdBy = UserName(createdBy),
     createdAt = createdAt,
-    updatedAt = updatedAt)
+    updatedAt = updatedAt,
+    hasStar = false
+  )
 
   val savedRoute = RouteOut(
     id = routeId,

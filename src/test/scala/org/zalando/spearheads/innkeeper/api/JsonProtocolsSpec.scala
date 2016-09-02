@@ -357,6 +357,7 @@ class JsonProtocolsSpec extends FunSpec with Matchers {
           |    "owned_by_team": "team",
           |    "host_ids": [1, 2, 3],
           |    "uri": "/hello",
+          |    "has_star": false,
           |    "id": 1,
           |    "created_at": "2015-10-10T10:10:10",
           |    "updated_at": "2016-10-10T10:10:10"
@@ -454,12 +455,14 @@ class JsonProtocolsSpec extends FunSpec with Matchers {
   describe("PathOut") {
 
     it("should marshall") {
+      println(pathOut.toJson.prettyPrint)
       pathOut.toJson.prettyPrint should be(
         """{
           |  "created_by": "username",
           |  "owned_by_team": "team",
           |  "host_ids": [1, 2, 3],
           |  "uri": "/hello",
+          |  "has_star": false,
           |  "id": 1,
           |  "created_at": "2015-10-10T10:10:10",
           |  "updated_at": "2016-10-10T10:10:10"
@@ -486,6 +489,7 @@ class JsonProtocolsSpec extends FunSpec with Matchers {
     ownedByTeam = TeamName("team"),
     createdBy = UserName("username"),
     createdAt = LocalDateTime.of(2015, 10, 10, 10, 10, 10),
-    updatedAt = LocalDateTime.of(2016, 10, 10, 10, 10, 10)
+    updatedAt = LocalDateTime.of(2016, 10, 10, 10, 10, 10),
+    hasStar = false
   )
 }

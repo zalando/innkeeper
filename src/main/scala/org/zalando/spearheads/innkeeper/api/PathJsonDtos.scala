@@ -13,6 +13,7 @@ case class PathOut(
   id: Long,
   uri: String,
   hostIds: Seq[Long],
+  hasStar: Boolean,
   ownedByTeam: TeamName,
   createdBy: UserName,
   createdAt: LocalDateTime,

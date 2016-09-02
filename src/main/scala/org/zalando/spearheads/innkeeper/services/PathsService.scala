@@ -163,6 +163,8 @@ class DefaultPathsService @Inject() (pathsRepo: PathsRepo, auditsRepo: AuditsRep
       createdAt = pathRow.createdAt,
       updatedAt = pathRow.updatedAt,
       ownedByTeam = TeamName(pathRow.ownedByTeam),
-      createdBy = UserName(pathRow.createdBy))
+      createdBy = UserName(pathRow.createdBy),
+      hasStar = pathRow.hasStar
+    )
   }
 }

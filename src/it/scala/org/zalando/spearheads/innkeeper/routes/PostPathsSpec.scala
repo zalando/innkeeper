@@ -59,6 +59,7 @@ class PostPathsSpec extends FunSpec with BeforeAndAfter with Matchers {
           path.ownedByTeam should be(TeamName(token.teamName))
           path.createdBy should be(UserName(token.userName))
           path.hostIds should be(hostIds)
+          path.hasStar should be(false)
         }
 
         it("should create the new star path") {
@@ -76,6 +77,7 @@ class PostPathsSpec extends FunSpec with BeforeAndAfter with Matchers {
           path.ownedByTeam should be(TeamName(token.teamName))
           path.createdBy should be(UserName(token.userName))
           path.hostIds should be(hostIds)
+          path.hasStar should be(true)
         }
       }
 
