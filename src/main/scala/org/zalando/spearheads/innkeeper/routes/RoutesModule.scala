@@ -2,7 +2,7 @@ package org.zalando.spearheads.innkeeper.routes
 
 import com.google.inject.AbstractModule
 import net.codingwell.scalaguice.ScalaModule
-import org.zalando.spearheads.innkeeper.InnkeeperRejectionHandler
+import org.zalando.spearheads.innkeeper.{InnkeeperRejectionHandler, ValidationDirectives}
 
 /**
  * @author dpersa
@@ -32,5 +32,6 @@ class RoutesModule extends AbstractModule with ScalaModule {
 
     // other
     bind[InnkeeperRejectionHandler].asEagerSingleton()
+    bind[ValidationDirectives].asEagerSingleton()
   }
 }
