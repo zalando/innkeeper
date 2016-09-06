@@ -55,7 +55,7 @@ class DefaultRouteToEskipTransformer @Inject() (hostsService: HostsService, comm
   }
 
   private[this] def createPathPredicate(pathUri: String, hasStar: Boolean) = {
-    val starSuffix = if (hasStar) "/*_" else ""
+    val starSuffix = if (hasStar) "/**" else ""
 
     NameWithStringArgs("Path", Seq(s""""$pathUri$starSuffix""""))
   }
