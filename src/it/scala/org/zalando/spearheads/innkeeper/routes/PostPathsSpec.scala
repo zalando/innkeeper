@@ -30,6 +30,14 @@ class PostPathsSpec extends FunSpec with BeforeAndAfter with Matchers {
         |}
   """.stripMargin
 
+  private def pathWithHasStarString(pathUri: String, hasStar: Boolean) =
+    s"""{
+        |  "uri": "$pathUri",
+        |  "host_ids": [${hostIds.mkString(", ")}],
+        |  "has_star": $hasStar
+        |}
+  """.stripMargin
+
   describe("post /paths") {
 
     describe("success") {
@@ -51,6 +59,25 @@ class PostPathsSpec extends FunSpec with BeforeAndAfter with Matchers {
           path.ownedByTeam should be(TeamName(token.teamName))
           path.createdBy should be(UserName(token.userName))
           path.hostIds should be(hostIds)
+          path.hasStar should be(false)
+        }
+
+        it("should create the new star path") {
+          val token = WRITE_TOKEN
+
+          val pathUri = "/api/service"
+          val requestBody = pathWithHasStarString(pathUri, hasStar = true)
+          val response = PathsSpecsHelper.postSlashPaths(requestBody, token)
+
+          response.status should be(StatusCodes.OK)
+          val entity = entityString(response)
+          val path = entity.parseJson.convertTo[PathOut]
+
+          path.uri should be(pathUri)
+          path.ownedByTeam should be(TeamName(token.teamName))
+          path.createdBy should be(UserName(token.userName))
+          path.hostIds should be(hostIds)
+          path.hasStar should be(true)
         }
       }
 
@@ -136,6 +163,18 @@ class PostPathsSpec extends FunSpec with BeforeAndAfter with Matchers {
           val response = PathsSpecsHelper.postSlashPaths(pathJsonString(), token)
           response.status should be(StatusCodes.BadRequest)
           entityString(response).parseJson.convertTo[Error].errorType should be("DPU")
+        }
+      }
+
+      describe("when a star path is to be saved and it doesn't match the configured patterns") {
+        val token = WRITE_TOKEN
+
+        it("should return the 400 Bad Request status") {
+          val requestBody = pathWithHasStarString("wrong-uri", hasStar = true)
+          val response = PathsSpecsHelper.postSlashPaths(requestBody, token)
+
+          response.status should be(StatusCodes.BadRequest)
+          entityString(response).parseJson.convertTo[Error].errorType should be("SPP")
         }
       }
 

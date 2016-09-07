@@ -5,7 +5,8 @@ import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import com.google.inject.Inject
 import org.slf4j.LoggerFactory
-import org.zalando.spearheads.innkeeper.Rejections.{DuplicatePathUriHostRejection, EmptyPathHostIdsRejection, PathOwnedByTeamAuthorizationRejection, UnmarshallRejection}
+import org.zalando.spearheads.innkeeper.Rejections.{DuplicatePathUriHostRejection, UnmarshallRejection}
+import org.zalando.spearheads.innkeeper.ValidationDirectives
 import org.zalando.spearheads.innkeeper.api.JsonProtocols._
 import org.zalando.spearheads.innkeeper.api.{PathIn, TeamName, UserName}
 import org.zalando.spearheads.innkeeper.metrics.RouteMetrics
@@ -22,6 +23,7 @@ class PostPaths @Inject() (
     pathsService: PathsService,
     metrics: RouteMetrics,
     scopes: Scopes,
+    validationDirectives: ValidationDirectives,
     implicit val teamService: TeamService,
     implicit val executionContext: ExecutionContext) {
 
@@ -41,11 +43,7 @@ class PostPaths @Inject() (
           hasOneOfTheScopes(authenticatedUser, reqDesc, scopes.WRITE) {
             logger.debug(s"post /paths non-admin team $team")
 
-            if (path.ownedByTeam.exists(_.name != team.name)) {
-              reject(PathOwnedByTeamAuthorizationRejection(reqDesc))
-            } else if (path.hostIds.isEmpty) {
-              reject(EmptyPathHostIdsRejection(reqDesc))
-            } else {
+            validationDirectives.validatePath(path, team, reqDesc, isAdmin = false) {
               val ownedByTeam = TeamName(team.name)
               val createdBy = UserName(authenticatedUser.username)
 
@@ -54,9 +52,7 @@ class PostPaths @Inject() (
           } ~ hasAdminAuthorization(authenticatedUser, team, reqDesc, scopes)(teamService) {
             logger.debug(s"post /paths admin team $team")
 
-            if (path.hostIds.isEmpty) {
-              reject(EmptyPathHostIdsRejection(reqDesc))
-            } else {
+            validationDirectives.validatePath(path, team, reqDesc, isAdmin = true) {
               val createdBy = UserName(authenticatedUser.username)
               val ownedByTeam = path.ownedByTeam.getOrElse(TeamName(team.name))
 

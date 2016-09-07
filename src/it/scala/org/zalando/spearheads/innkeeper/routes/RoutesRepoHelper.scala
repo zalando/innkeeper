@@ -116,7 +116,8 @@ object RoutesRepoHelper extends DaoHelper {
       ownedByTeam = ownedByTeam,
       createdAt = createdAt,
       updatedAt = createdAt,
-      createdBy = createdBy
+      createdBy = createdBy,
+      hasStar = false
     )).futureValue
 
     path.id.get

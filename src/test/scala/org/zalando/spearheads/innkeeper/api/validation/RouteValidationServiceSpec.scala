@@ -130,6 +130,7 @@ class RouteValidationServiceSpec extends FunSpec with Matchers with MockFactory 
     ownedByTeam = TeamName("some-team"),
     createdBy = UserName("some-one"),
     createdAt = referenceTime,
-    updatedAt = referenceTime
+    updatedAt = referenceTime,
+    hasStar = false
   )
 }

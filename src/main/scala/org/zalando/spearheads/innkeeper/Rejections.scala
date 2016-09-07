@@ -138,4 +138,10 @@ object Rejections {
     def message: String = "A path must have at least one host id"
     def code: String = "EPH"
   }
+
+  case class StarPathPatternRejection(requestDescription: String, patterns: Seq[String]) extends Rejection with InnkeeperRejection {
+    def statusCode: StatusCode = StatusCodes.BadRequest
+    def message: String = s"A star path must match the configured patterns:\n${patterns.mkString("\n")}"
+    def code: String = "SPP"
+  }
 }
