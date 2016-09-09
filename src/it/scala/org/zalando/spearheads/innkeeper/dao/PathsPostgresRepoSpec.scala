@@ -209,6 +209,65 @@ class PathsPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers wi
           .shouldBe(true)
       }
     }
+
+    describe("delete") {
+      it("should delete a path") {
+        val insertedPath = insertPath()
+
+        val insertedPathId = insertedPath.id.getOrElse(-1L)
+
+        val result = pathsRepo
+          .delete(insertedPathId)
+          .futureValue
+
+        result should be (true)
+
+        val pathRow = pathsRepo
+          .selectById(insertedPathId)
+          .futureValue
+
+        pathRow should be (None)
+      }
+
+      it("should not delete a path that does not exist") {
+        pathsRepo.delete(1L).futureValue should be (false)
+      }
+    }
+
+    describe("routesExistForPath") {
+      it("should return false if the path doesn't exist") {
+        val pathRow = pathsRepo
+          .routesExistForPath(1L)
+          .futureValue
+
+        pathRow should be (false)
+      }
+
+      it("should return false if the path exist and no routes exist for that path") {
+        val insertedPath = insertPath()
+
+        val insertedPathId = insertedPath.id.getOrElse(-1L)
+
+        val result = pathsRepo
+          .routesExistForPath(insertedPathId)
+          .futureValue
+
+        result should be (false)
+      }
+
+      it("should return true if the path exist and routes exist for that path") {
+        val insertedPath = insertPath()
+        RoutesRepoHelper.insertRoute(pathId = insertedPath.id)
+
+        val insertedPathId = insertedPath.id.getOrElse(-1L)
+
+        val result = pathsRepo
+          .routesExistForPath(insertedPathId)
+          .futureValue
+
+        result should be (true)
+      }
+    }
   }
 
   private def insertSamplePaths() = {

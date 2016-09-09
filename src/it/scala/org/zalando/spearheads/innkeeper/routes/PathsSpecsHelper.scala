@@ -66,6 +66,8 @@ object PathsSpecsHelper {
     futureResponse.futureValue
   }
 
+  def deleteSlashPath(id: Long, token: String = ""): HttpResponse = slashPath(id, Some(token), HttpMethods.DELETE)
+
   private def slashPath(
     id: Long,
     token: Option[String] = None,

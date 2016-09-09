@@ -110,6 +110,18 @@ class PathsPostgresRepo @Inject() (
     }
   }
 
+  override def delete(id: Long, deletedByOpt: Option[String]): Future[Boolean] = {
+    val deletedBy = deletedByOpt.getOrElse("unknown")
+    logger.debug("delete path with id {} by {}", id, deletedBy)
+
+    val deleteQuery = Paths.filter(_.id === id).delete
+
+    db.run(deleteQuery).map {
+      case 1 => true
+      case _ => false
+    }
+  }
+
   override def update(id: Long, pathPatch: PathPatch, updatedAt: LocalDateTime): Future[Option[PathRow]] = {
     logger.debug(s"patch $id")
 
@@ -154,4 +166,9 @@ class PathsPostgresRepo @Inject() (
     db.run(areValidQuery.result)
   }
 
+  override def routesExistForPath(pathId: Long): Future[Boolean] = {
+    val query = Routes.filter(_.pathId === pathId).exists
+
+    db.run(query.result)
+  }
 }

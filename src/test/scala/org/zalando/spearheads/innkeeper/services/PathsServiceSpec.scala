@@ -1,6 +1,7 @@
 package org.zalando.spearheads.innkeeper.services
 
 import java.time.LocalDateTime
+
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Sink
@@ -10,7 +11,8 @@ import org.scalatest.{FunSpec, Matchers}
 import org.zalando.spearheads.innkeeper.FakeDatabasePublisher
 import org.zalando.spearheads.innkeeper.api.{PathIn, PathOut, TeamName, UserName}
 import org.zalando.spearheads.innkeeper.dao.{AuditType, AuditsRepo, PathRow, PathsRepo}
-import org.zalando.spearheads.innkeeper.services.ServiceResult.DuplicatePathUriHost
+import org.zalando.spearheads.innkeeper.services.ServiceResult.{DuplicatePathUriHost, NotFound, PathHasRoutes}
+
 import scala.concurrent.duration.DurationInt
 import scala.collection.immutable.Seq
 import scala.concurrent.{Await, ExecutionContext, Future}
@@ -164,6 +166,33 @@ class PathsServiceSpec extends FunSpec with Matchers with MockFactory with Scala
 
           firstPath should not be 'defined
         }
+      }
+    }
+
+    describe("#remove") {
+      val username = Some("username")
+
+      it("should remove a path") {
+        (pathsRepo.routesExistForPath _).expects(pathId).returning(Future(false))
+        (pathsRepo.delete _).expects(pathId, username).returning(Future(true))
+        (auditsRepo.persistPathLog _).expects(*, username.get, AuditType.Delete)
+
+        val result = pathsService.remove(pathId, username.get).futureValue
+        result should be(ServiceResult.Success(true))
+      }
+
+      it("should not find a path") {
+        (pathsRepo.routesExistForPath _).expects(pathId).returning(Future(false))
+        (pathsRepo.delete _).expects(pathId, username).returning(Future(false))
+        val result = pathsService.remove(pathId, username.get).futureValue
+        result should be(ServiceResult.Failure(NotFound()))
+      }
+
+      it("should not remove a path if a route exists") {
+        (pathsRepo.routesExistForPath _).expects(pathId).returning(Future(true))
+
+        val result = pathsService.remove(pathId, username.get).futureValue
+        result should be(ServiceResult.Failure(PathHasRoutes()))
       }
     }
   }

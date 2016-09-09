@@ -27,6 +27,8 @@ trait PathsService {
     userName: String,
     updatedAt: LocalDateTime = LocalDateTime.now()): Future[Result[PathOut]]
 
+  def remove(id: Long, deletedBy: String): Future[Result[Boolean]]
+
   def findById(id: Long): Future[Result[PathOut]]
 
   def findByRouteId(routeId: Long): Future[Result[PathOut]]
@@ -107,6 +109,28 @@ class DefaultPathsService @Inject() (pathsRepo: PathsRepo, auditsRepo: AuditsRep
         }
 
       case None =>
+    }
+  }
+
+  override def remove(id: Long, deletedBy: String): Future[Result[Boolean]] = {
+    pathsRepo.routesExistForPath(id).flatMap {
+      case true => Future(Failure(PathHasRoutes()))
+      case false =>
+        val deleteResult = pathsRepo.delete(id, Some(deletedBy))
+
+        auditRouteDelete(deleteResult, id, deletedBy)
+
+        deleteResult.map {
+          case false => Failure(NotFound())
+          case true  => Success(true)
+        }
+    }
+  }
+
+  private def auditRouteDelete(deleteResult: Future[Boolean], id: Long, userName: String): Unit = {
+    deleteResult.onSuccess {
+      case true  => auditsRepo.persistPathLog(id, userName, AuditType.Delete)
+      case false =>
     }
   }
 

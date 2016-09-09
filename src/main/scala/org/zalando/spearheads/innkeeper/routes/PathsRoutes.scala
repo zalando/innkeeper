@@ -10,13 +10,14 @@ class PathsRoutes @Inject() (
     getPaths: GetPaths,
     getPath: GetPath,
     postPaths: PostPaths,
-    patchPaths: PatchPaths) {
+    patchPaths: PatchPaths,
+    deletePath: DeletePath) {
 
   def apply(authenticatedUser: AuthenticatedUser, token: String): RequestContext => Future[RouteResult] = {
     path("paths") {
       getPaths(authenticatedUser) ~ postPaths(authenticatedUser, token)
     } ~ path("paths" / LongNumber) { pathId =>
-      getPath(authenticatedUser, pathId) ~ patchPaths(authenticatedUser, token, pathId)
+      getPath(authenticatedUser, pathId) ~ patchPaths(authenticatedUser, token, pathId) ~ deletePath(authenticatedUser, token, pathId)
     }
   }
 }
