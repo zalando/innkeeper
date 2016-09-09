@@ -6,8 +6,10 @@ import org.zalando.spearheads.innkeeper.api.JsonProtocols._
 import org.zalando.spearheads.innkeeper.api._
 import org.zalando.spearheads.innkeeper.routes.AcceptanceSpecToken._
 import org.zalando.spearheads.innkeeper.routes.AcceptanceSpecsHelper._
+import org.zalando.spearheads.innkeeper.routes.PathsRepoHelper.samplePath
 import org.zalando.spearheads.innkeeper.routes.RoutesRepoHelper._
 import spray.json._
+
 import scala.collection.immutable.Seq
 
 class PatchPathsSpec extends FunSpec with BeforeAndAfter with Matchers {
@@ -24,7 +26,7 @@ class PatchPathsSpec extends FunSpec with BeforeAndAfter with Matchers {
         val token = WRITE_TOKEN
         it("should update the path host ids") {
 
-          val insertedPath = PathsRepoHelper.insertPath()
+          val insertedPath = PathsRepoHelper.insertPath(samplePath(ownedByTeam = token.teamName))
 
           val response = PathsSpecsHelper.patchSlashPaths(insertedPath.id.get, pathPatchHostIdsJsonString(), token)
 
@@ -108,7 +110,10 @@ class PatchPathsSpec extends FunSpec with BeforeAndAfter with Matchers {
         it("should return the 403 Forbidden status") {
           val token = WRITE_TOKEN
 
-          val response = PathsSpecsHelper.patchSlashPaths(1L, pathPatchOwningTeamJsonString, token)
+          val insertedPath = PathsRepoHelper.insertPath(samplePath(ownedByTeam = token.teamName))
+          val insertedPathId = insertedPath.id.getOrElse(-1L)
+
+          val response = PathsSpecsHelper.patchSlashPaths(insertedPathId, pathPatchOwningTeamJsonString, token)
 
           response.status should be(StatusCodes.Forbidden)
           entityString(response).parseJson.convertTo[Error].errorType should be("AUTH4")
@@ -119,7 +124,10 @@ class PatchPathsSpec extends FunSpec with BeforeAndAfter with Matchers {
         it("should return the 400 Bad Request status") {
           val token = WRITE_TOKEN
 
-          val response = PathsSpecsHelper.patchSlashPaths(1L, pathPatchHostIdsJsonString(newHostIds = Seq.empty), token)
+          val insertedPath = PathsRepoHelper.insertPath(samplePath(ownedByTeam = token.teamName))
+          val insertedPathId = insertedPath.id.getOrElse(-1L)
+
+          val response = PathsSpecsHelper.patchSlashPaths(insertedPathId, pathPatchHostIdsJsonString(newHostIds = Seq.empty), token)
 
           response.status should be(StatusCodes.BadRequest)
           entityString(response).parseJson.convertTo[Error].errorType should be("EPH")
@@ -130,7 +138,10 @@ class PatchPathsSpec extends FunSpec with BeforeAndAfter with Matchers {
         it("should return the 400 Bad Request status") {
           val token = ADMIN_TOKEN
 
-          val response = PathsSpecsHelper.patchSlashPaths(1L, pathPatchHostIdsJsonString(newHostIds = Seq.empty), token)
+          val insertedPath = PathsRepoHelper.insertPath(samplePath(ownedByTeam = token.teamName))
+          val insertedPathId = insertedPath.id.getOrElse(-1L)
+
+          val response = PathsSpecsHelper.patchSlashPaths(insertedPathId, pathPatchHostIdsJsonString(newHostIds = Seq.empty), token)
 
           response.status should be(StatusCodes.BadRequest)
           entityString(response).parseJson.convertTo[Error].errorType should be("EPH")
@@ -143,13 +154,28 @@ class PatchPathsSpec extends FunSpec with BeforeAndAfter with Matchers {
 
           RoutesRepoHelper.insertRoute(
             pathHostIds = Seq(1L, 2L, 3L),
-            routeHostIds = Some(Seq(1L, 2L))
+            routeHostIds = Some(Seq(1L, 2L)),
+            ownedByTeam = token.teamName
           )
 
           val response = PathsSpecsHelper.patchSlashPaths(1L, pathPatchHostIdsJsonString(Seq(1L)), token)
 
           response.status should be(StatusCodes.BadRequest)
           entityString(response).parseJson.convertTo[Error].errorType should be("IPP")
+        }
+      }
+
+      describe("when path patch is done by a WRITE token with a non-admin team different to the paths team") {
+        it("should return the 400 Bad Request status") {
+          val token = WRITE_TOKEN
+
+          val insertedPath = PathsRepoHelper.insertPath(samplePath(ownedByTeam = token.teamName + "-other"))
+          val insertedPathId = insertedPath.id.getOrElse(-1L)
+
+          val response = PathsSpecsHelper.patchSlashPaths(insertedPathId, pathPatchHostIdsJsonString(Seq(1L)), token)
+
+          response.status should be(StatusCodes.Forbidden)
+          entityString(response).parseJson.convertTo[Error].errorType should be("ITE")
         }
       }
     }
