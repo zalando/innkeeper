@@ -31,6 +31,12 @@ object Rejections {
     def code: String = "PNF"
   }
 
+  case class PathHasRoutesRejection(requestDescription: String) extends Rejection with InnkeeperRejection {
+    def statusCode: StatusCode = StatusCodes.Conflict
+    def message: String = "Path has routes"
+    def code: String = "PHR"
+  }
+
   case class IncorrectTeamRejection(requestDescription: String) extends Rejection with InnkeeperRejection {
     def statusCode: StatusCode = StatusCodes.Forbidden
     def message: String = "User not member of a team which is allowed to do this call"

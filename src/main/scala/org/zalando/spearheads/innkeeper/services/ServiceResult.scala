@@ -33,6 +33,8 @@ trait ServiceResult {
   case class DuplicateRouteName(message: String = "") extends FailureReason
 
   case class DuplicatePathUriHost(message: String = "") extends FailureReason
+
+  case class PathHasRoutes(message: String = "") extends FailureReason
 }
 
 object ServiceResult extends ServiceResult

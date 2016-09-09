@@ -455,7 +455,6 @@ class JsonProtocolsSpec extends FunSpec with Matchers {
   describe("PathOut") {
 
     it("should marshall") {
-      println(pathOut.toJson.prettyPrint)
       pathOut.toJson.prettyPrint should be(
         """{
           |  "created_by": "username",
