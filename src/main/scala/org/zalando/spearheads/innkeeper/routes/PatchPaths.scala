@@ -46,7 +46,7 @@ class PatchPaths @Inject() (
               if (path.ownedByTeam.name != team.name) {
                 reject(IncorrectTeamRejection(reqDesc))
               } else {
-                if (pathPatch.ownedByTeam.isDefined) {
+                if (pathPatch.ownedByTeam.exists(_.name != team.name)) {
                   reject(PathOwnedByTeamAuthorizationRejection(reqDesc))
                 } else if (pathPatch.hostIds.exists(_.isEmpty)) {
                   reject(EmptyPathHostIdsRejection(reqDesc))
