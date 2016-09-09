@@ -110,11 +110,9 @@ class PathsPostgresRepo @Inject() (
     }
   }
 
-  override def delete(id: Long, deletedByOpt: Option[String], dateTime: Option[LocalDateTime]): Future[Boolean] = {
+  override def delete(id: Long, deletedByOpt: Option[String]): Future[Boolean] = {
     val deletedBy = deletedByOpt.getOrElse("unknown")
-    logger.debug(s"delete $id by $deletedBy")
-
-    val deletedAt = dateTime.getOrElse(LocalDateTime.now())
+    logger.debug("delete path with id {} by {}", id, deletedBy)
 
     val deleteQuery = Paths.filter(_.id === id).delete
 

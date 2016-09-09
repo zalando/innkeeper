@@ -174,7 +174,7 @@ class PathsServiceSpec extends FunSpec with Matchers with MockFactory with Scala
 
       it("should remove a path") {
         (pathsRepo.routesExistForPath _).expects(pathId).returning(Future(false))
-        (pathsRepo.delete _).expects(pathId, username, None).returning(Future(true))
+        (pathsRepo.delete _).expects(pathId, username).returning(Future(true))
         (auditsRepo.persistPathLog _).expects(*, username.get, AuditType.Delete)
 
         val result = pathsService.remove(pathId, username.get).futureValue
@@ -183,7 +183,7 @@ class PathsServiceSpec extends FunSpec with Matchers with MockFactory with Scala
 
       it("should not find a path") {
         (pathsRepo.routesExistForPath _).expects(pathId).returning(Future(false))
-        (pathsRepo.delete _).expects(pathId, username, None).returning(Future(false))
+        (pathsRepo.delete _).expects(pathId, username).returning(Future(false))
         val result = pathsService.remove(pathId, username.get).futureValue
         result should be(ServiceResult.Failure(NotFound()))
       }
