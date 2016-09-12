@@ -214,14 +214,14 @@ class PostPathsSpec extends FunSpec with BeforeAndAfter with Matchers {
         }
       }
 
-      describe("when a token without admin privileges is provided and owned_by_team is defined") {
+      describe("when a token without admin privileges is provided and owned_by_team is different") {
         it("should return the 403 Forbidden status") {
           val token = WRITE_TOKEN
 
           val response = PathsSpecsHelper.postSlashPaths(pathWithOwningTeamJsonString, token)
 
           response.status should be(StatusCodes.Forbidden)
-          entityString(response).parseJson.convertTo[Error].errorType should be("AUTH4")
+          entityString(response).parseJson.convertTo[Error].errorType should be("ITE")
         }
       }
     }

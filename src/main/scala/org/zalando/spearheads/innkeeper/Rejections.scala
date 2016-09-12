@@ -123,7 +123,7 @@ object Rejections {
 
   case class PathOwnedByTeamAuthorizationRejection(requestDescription: String) extends Rejection with InnkeeperRejection {
     def statusCode: StatusCode = StatusCodes.Forbidden
-    def message: String = "Admin authorization is required for specifying owning team"
+    def message: String = "Admin authorization is required for changing owning team"
     def code: String = "AUTH4"
   }
 

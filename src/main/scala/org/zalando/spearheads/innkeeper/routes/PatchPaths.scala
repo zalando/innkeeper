@@ -6,6 +6,7 @@ import akka.http.scaladsl.server.Route
 import com.google.inject.Inject
 import org.slf4j.LoggerFactory
 import org.zalando.spearheads.innkeeper.Rejections._
+import org.zalando.spearheads.innkeeper.RouteDirectives._
 import org.zalando.spearheads.innkeeper.api.JsonProtocols._
 import org.zalando.spearheads.innkeeper.api.PathPatch
 import org.zalando.spearheads.innkeeper.api.validation.{Invalid, Valid}
@@ -41,14 +42,20 @@ class PatchPaths @Inject() (
           hasOneOfTheScopes(authenticatedUser, reqDesc, scopes.WRITE) {
             logger.debug(s"patch /paths non-admin team $team")
 
-            if (pathPatch.ownedByTeam.isDefined) {
-              reject(PathOwnedByTeamAuthorizationRejection(reqDesc))
-            } else if (pathPatch.hostIds.exists(_.isEmpty)) {
-              reject(EmptyPathHostIdsRejection(reqDesc))
-            } else {
-              patchPathRoute(id, pathPatch, authenticatedUser, reqDesc)
+            findPath(id, pathsService, reqDesc)(executionContext) { path =>
+              if (path.ownedByTeam.name != team.name) {
+                reject(IncorrectTeamRejection(reqDesc))
+              } else {
+                if (pathPatch.ownedByTeam.exists(_.name != team.name)) {
+                  reject(PathOwnedByTeamAuthorizationRejection(reqDesc))
+                } else if (pathPatch.hostIds.exists(_.isEmpty)) {
+                  reject(EmptyPathHostIdsRejection(reqDesc))
+                } else {
+                  patchPathRoute(id, pathPatch, authenticatedUser, reqDesc)
+                }
+              }
             }
-          } ~ hasAdminAuthorization(authenticatedUser, team, reqDesc, scopes)(teamService) {
+          } ~ (hasAdminAuthorization(authenticatedUser, team, reqDesc, scopes) & cancelRejections(classOf[IncorrectTeamRejection])) {
             logger.debug(s"patch /paths admin team $team")
 
             if (pathPatch.hostIds.exists(_.isEmpty)) {
