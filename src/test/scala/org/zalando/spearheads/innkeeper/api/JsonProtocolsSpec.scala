@@ -439,15 +439,54 @@ class JsonProtocolsSpec extends FunSpec with Matchers {
   }
 
   describe("PathIn") {
+    it("should unmarshall with default values") {
+      val pathIn = PathIn("/hello", Seq(1, 2, 3))
 
-    val pathIn = PathIn("/hello", Seq(1, 2, 3))
-
-    it("should unmarshall") {
       val result = """{
                      |  "uri": "/hello",
                      |  "host_ids": [1, 2, 3]
                      |}
                    """.stripMargin.parseJson.convertTo[PathIn]
+
+      result should be(pathIn)
+    }
+
+    it("should unmarshall with owned_by_team") {
+      val pathIn = PathIn("/hello", Seq(1, 2, 3), ownedByTeam = Some(TeamName("other-team")))
+
+      val result = """{
+                     |  "uri": "/hello",
+                     |  "host_ids": [1, 2, 3],
+                     |  "owned_by_team": "other-team"
+                     |}
+                   """.stripMargin.parseJson.convertTo[PathIn]
+
+      result should be(pathIn)
+    }
+
+    it("should unmarshall with has_star") {
+      val pathIn = PathIn("/hello", Seq(1, 2, 3), hasStar = Some(true))
+
+      val result = """{
+                     |  "uri": "/hello",
+                     |  "host_ids": [1, 2, 3],
+                     |  "has_star": true
+                     |}
+                   """.stripMargin.parseJson.convertTo[PathIn]
+
+      result should be(pathIn)
+    }
+
+    it("should unmarshall with owned by team") {
+      val pathIn = PathIn("/hello", Seq(1, 2, 3), isRegex = Some(true))
+
+      val result = """{
+                     |  "uri": "/hello",
+                     |  "host_ids": [1, 2, 3],
+                     |  "is_regex": true
+                     |}
+                   """.stripMargin.parseJson.convertTo[PathIn]
+
       result should be(pathIn)
     }
   }

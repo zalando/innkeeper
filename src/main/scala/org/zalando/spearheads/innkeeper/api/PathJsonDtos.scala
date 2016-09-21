@@ -7,7 +7,8 @@ case class PathIn(
   uri: String,
   hostIds: Seq[Long],
   ownedByTeam: Option[TeamName] = None,
-  hasStar: Option[Boolean] = None)
+  hasStar: Option[Boolean] = None,
+  isRegex: Option[Boolean] = None)
 
 case class PathOut(
   id: Long,
