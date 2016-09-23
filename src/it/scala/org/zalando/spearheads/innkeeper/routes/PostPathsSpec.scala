@@ -38,6 +38,14 @@ class PostPathsSpec extends FunSpec with BeforeAndAfter with Matchers {
         |}
   """.stripMargin
 
+  private def pathWithIsRegexString(pathUri: String, isRegex: Boolean) =
+    s"""{
+        |  "uri": "$pathUri",
+        |  "host_ids": [${hostIds.mkString(", ")}],
+        |  "is_regex": $isRegex
+        |}
+  """.stripMargin
+
   describe("post /paths") {
 
     describe("success") {
@@ -78,6 +86,24 @@ class PostPathsSpec extends FunSpec with BeforeAndAfter with Matchers {
           path.createdBy should be(UserName(token.userName))
           path.hostIds should be(hostIds)
           path.hasStar should be(true)
+        }
+
+        it("should create the new regex path") {
+          val token = WRITE_TOKEN
+
+          val pathUri = "/some-path"
+          val requestBody = pathWithIsRegexString(pathUri, isRegex = true)
+          val response = PathsSpecsHelper.postSlashPaths(requestBody, token)
+
+          response.status should be(StatusCodes.OK)
+          val entity = entityString(response)
+          val path = entity.parseJson.convertTo[PathOut]
+
+          path.uri should be(pathUri)
+          path.ownedByTeam should be(TeamName(token.teamName))
+          path.createdBy should be(UserName(token.userName))
+          path.hostIds should be(hostIds)
+          path.isRegex should be(true)
         }
       }
 

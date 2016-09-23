@@ -15,6 +15,7 @@ case class PathOut(
   uri: String,
   hostIds: Seq[Long],
   hasStar: Boolean,
+  isRegex: Boolean,
   ownedByTeam: TeamName,
   createdBy: UserName,
   createdAt: LocalDateTime,

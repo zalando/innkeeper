@@ -131,6 +131,7 @@ class RouteValidationServiceSpec extends FunSpec with Matchers with MockFactory 
     createdBy = UserName("some-one"),
     createdAt = referenceTime,
     updatedAt = referenceTime,
-    hasStar = false
+    hasStar = false,
+    isRegex = false
   )
 }

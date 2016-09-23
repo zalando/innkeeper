@@ -224,7 +224,8 @@ class PathsServiceSpec extends FunSpec with Matchers with MockFactory with Scala
     createdBy = UserName(createdBy),
     createdAt = createdAt,
     updatedAt = updatedAt,
-    hasStar = false
+    hasStar = false,
+    isRegex = false
   )
 
   val pathRowWithoutId = PathRow(
@@ -235,7 +236,8 @@ class PathsServiceSpec extends FunSpec with Matchers with MockFactory with Scala
     createdBy = createdBy,
     createdAt = createdAt,
     updatedAt = updatedAt,
-    hasStar = false
+    hasStar = false,
+    isRegex = false
   )
 
   val pathRow = pathRowWithoutId.copy(id = Some(pathId))

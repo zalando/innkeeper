@@ -359,6 +359,7 @@ class JsonProtocolsSpec extends FunSpec with Matchers {
           |    "uri": "/hello",
           |    "has_star": false,
           |    "id": 1,
+          |    "is_regex": false,
           |    "created_at": "2015-10-10T10:10:10",
           |    "updated_at": "2016-10-10T10:10:10"
           |  },
@@ -502,6 +503,7 @@ class JsonProtocolsSpec extends FunSpec with Matchers {
           |  "uri": "/hello",
           |  "has_star": false,
           |  "id": 1,
+          |  "is_regex": false,
           |  "created_at": "2015-10-10T10:10:10",
           |  "updated_at": "2016-10-10T10:10:10"
           |}""".stripMargin)
@@ -528,6 +530,7 @@ class JsonProtocolsSpec extends FunSpec with Matchers {
     createdBy = UserName("username"),
     createdAt = LocalDateTime.of(2015, 10, 10, 10, 10, 10),
     updatedAt = LocalDateTime.of(2016, 10, 10, 10, 10, 10),
-    hasStar = false
+    hasStar = false,
+    isRegex = false
   )
 }

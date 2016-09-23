@@ -222,6 +222,7 @@ object JsonProtocols {
     "uri",
     "host_ids",
     "has_star",
+    "is_regex",
     "owned_by_team",
     "created_by",
     "created_at",
