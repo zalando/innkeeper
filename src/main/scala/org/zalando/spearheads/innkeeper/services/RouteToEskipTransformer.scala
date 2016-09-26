@@ -59,7 +59,7 @@ class DefaultRouteToEskipTransformer @Inject() (hostsService: HostsService, comm
     val pathArg = (hasStar, isRegex) match {
       case (false, false) => wrapInQuotes(pathUri)
       case (true, false)  => wrapInQuotes(pathUri + STAR_PATH_SUFFIX)
-      case (_, true)      => pathUri
+      case (_, true)      => s"/$pathUri/"
     }
 
     NameWithStringArgs("Path", Seq(pathArg))

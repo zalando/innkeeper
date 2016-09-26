@@ -123,9 +123,9 @@ class PostPathsSpec extends FunSpec with BeforeAndAfter with Matchers {
       }
 
       describe("when an admin team token is provided") {
-        it("should create the new path with the provided owning team") {
-          val token = ADMIN_TEAM_TOKEN
+        val token = ADMIN_TEAM_TOKEN
 
+        it("should create the new path with the provided owning team") {
           val response = PathsSpecsHelper.postSlashPaths(pathWithOwningTeamJsonString, token)
 
           response.status should be(StatusCodes.OK)
@@ -136,6 +136,22 @@ class PostPathsSpec extends FunSpec with BeforeAndAfter with Matchers {
           path.ownedByTeam should be(TeamName(otherOwningTeam))
           path.createdBy should be(UserName(token.userName))
           path.hostIds should be(hostIds)
+        }
+
+        it("should create the new regex path") {
+          val pathUri = "/some-path"
+          val requestBody = pathWithIsRegexString(pathUri, isRegex = true)
+          val response = PathsSpecsHelper.postSlashPaths(requestBody, token)
+
+          response.status should be(StatusCodes.OK)
+          val entity = entityString(response)
+          val path = entity.parseJson.convertTo[PathOut]
+
+          path.uri should be(pathUri)
+          path.ownedByTeam should be(TeamName(token.teamName))
+          path.createdBy should be(UserName(token.userName))
+          path.hostIds should be(hostIds)
+          path.isRegex should be(true)
         }
       }
     }
