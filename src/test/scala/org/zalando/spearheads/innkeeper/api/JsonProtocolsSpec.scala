@@ -359,6 +359,7 @@ class JsonProtocolsSpec extends FunSpec with Matchers {
           |    "uri": "/hello",
           |    "has_star": false,
           |    "id": 1,
+          |    "is_regex": false,
           |    "created_at": "2015-10-10T10:10:10",
           |    "updated_at": "2016-10-10T10:10:10"
           |  },
@@ -439,15 +440,54 @@ class JsonProtocolsSpec extends FunSpec with Matchers {
   }
 
   describe("PathIn") {
+    it("should unmarshall with default values") {
+      val pathIn = PathIn("/hello", Seq(1, 2, 3))
 
-    val pathIn = PathIn("/hello", Seq(1, 2, 3))
-
-    it("should unmarshall") {
       val result = """{
                      |  "uri": "/hello",
                      |  "host_ids": [1, 2, 3]
                      |}
                    """.stripMargin.parseJson.convertTo[PathIn]
+
+      result should be(pathIn)
+    }
+
+    it("should unmarshall with owned_by_team") {
+      val pathIn = PathIn("/hello", Seq(1, 2, 3), ownedByTeam = Some(TeamName("other-team")))
+
+      val result = """{
+                     |  "uri": "/hello",
+                     |  "host_ids": [1, 2, 3],
+                     |  "owned_by_team": "other-team"
+                     |}
+                   """.stripMargin.parseJson.convertTo[PathIn]
+
+      result should be(pathIn)
+    }
+
+    it("should unmarshall with has_star") {
+      val pathIn = PathIn("/hello", Seq(1, 2, 3), hasStar = Some(true))
+
+      val result = """{
+                     |  "uri": "/hello",
+                     |  "host_ids": [1, 2, 3],
+                     |  "has_star": true
+                     |}
+                   """.stripMargin.parseJson.convertTo[PathIn]
+
+      result should be(pathIn)
+    }
+
+    it("should unmarshall with owned by team") {
+      val pathIn = PathIn("/hello", Seq(1, 2, 3), isRegex = Some(true))
+
+      val result = """{
+                     |  "uri": "/hello",
+                     |  "host_ids": [1, 2, 3],
+                     |  "is_regex": true
+                     |}
+                   """.stripMargin.parseJson.convertTo[PathIn]
+
       result should be(pathIn)
     }
   }
@@ -463,6 +503,7 @@ class JsonProtocolsSpec extends FunSpec with Matchers {
           |  "uri": "/hello",
           |  "has_star": false,
           |  "id": 1,
+          |  "is_regex": false,
           |  "created_at": "2015-10-10T10:10:10",
           |  "updated_at": "2016-10-10T10:10:10"
           |}""".stripMargin)
@@ -489,6 +530,7 @@ class JsonProtocolsSpec extends FunSpec with Matchers {
     createdBy = UserName("username"),
     createdAt = LocalDateTime.of(2015, 10, 10, 10, 10, 10),
     updatedAt = LocalDateTime.of(2016, 10, 10, 10, 10, 10),
-    hasStar = false
+    hasStar = false,
+    isRegex = false
   )
 }

@@ -17,7 +17,7 @@ class DefaultRouteToEskipTransformer @Inject() (hostsService: HostsService, comm
 
   def transform(routeData: RouteData): EskipRoute = {
     val route = routeData.routeJson.parseJson.convertTo[NewRoute]
-    val pathPredicate = createPathPredicate(routeData.uri, routeData.hasStar)
+    val pathPredicate = createPathPredicate(routeData.uri, routeData.hasStar, routeData.isRegex)
     val hostPredicate = createHostPredicate(routeData.hostIds)
     val regularPredicates = transformNameWithArgs(route.predicates)
     val eskipPredicates = Seq(pathPredicate, hostPredicate) ++ regularPredicates
@@ -54,11 +54,18 @@ class DefaultRouteToEskipTransformer @Inject() (hostsService: HostsService, comm
     NameWithStringArgs("Host", Seq(hostsRegex))
   }
 
-  private[this] def createPathPredicate(pathUri: String, hasStar: Boolean) = {
-    val starSuffix = if (hasStar) "/**" else ""
+  private val STAR_PATH_SUFFIX = "/**"
+  private[this] def createPathPredicate(pathUri: String, hasStar: Boolean, isRegex: Boolean) = {
+    val pathArg = (hasStar, isRegex) match {
+      case (false, false) => wrapInQuotes(pathUri)
+      case (true, false)  => wrapInQuotes(pathUri + STAR_PATH_SUFFIX)
+      case (_, true)      => s"/$pathUri/"
+    }
 
-    NameWithStringArgs("Path", Seq(s""""$pathUri$starSuffix""""))
+    NameWithStringArgs("Path", Seq(pathArg))
   }
+
+  private def wrapInQuotes(value: String): String = "\"" + value + "\""
 
   private[this] def transformEndpoint(endpointOption: Option[String]) = endpointOption match {
     case Some(endpoint) if !endpoint.isEmpty => s""""$endpoint""""

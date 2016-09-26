@@ -20,7 +20,8 @@ object PathsRepoHelper extends ScalaFutures with DaoHelper {
       createdBy = pathRow.createdBy,
       createdAt = pathRow.createdAt,
       updatedAt = pathRow.updatedAt,
-      hasStar = pathRow.hasStar
+      hasStar = pathRow.hasStar,
+      isRegex = pathRow.isRegex
     )).futureValue
   }
 
@@ -33,7 +34,8 @@ object PathsRepoHelper extends ScalaFutures with DaoHelper {
     createdAt: LocalDateTime = LocalDateTime.now(),
     updatedAt: LocalDateTime = LocalDateTime.now(),
     activateAt: LocalDateTime = LocalDateTime.now().minusHours(2),
-    hasStar: Boolean = false) = {
+    hasStar: Boolean = false,
+    isRegex: Boolean = false) = {
     PathRow(
       id = Some(id),
       uri = uri,
@@ -42,7 +44,8 @@ object PathsRepoHelper extends ScalaFutures with DaoHelper {
       createdBy = createdBy,
       createdAt = createdAt,
       updatedAt = updatedAt,
-      hasStar = hasStar
+      hasStar = hasStar,
+      isRegex = isRegex
     )
   }
 }

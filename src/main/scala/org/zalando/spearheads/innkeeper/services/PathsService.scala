@@ -52,6 +52,7 @@ class DefaultPathsService @Inject() (pathsRepo: PathsRepo, auditsRepo: AuditsRep
     createdAt: LocalDateTime): Future[ServiceResult.Result[PathOut]] = {
 
     val hasStar = path.hasStar.getOrElse(false)
+    val isRegex = path.isRegex.getOrElse(false)
     val pathRow = PathRow(
       id = None,
       uri = path.uri,
@@ -60,7 +61,8 @@ class DefaultPathsService @Inject() (pathsRepo: PathsRepo, auditsRepo: AuditsRep
       createdBy = createdBy.name,
       createdAt = createdAt,
       updatedAt = createdAt,
-      hasStar = hasStar
+      hasStar = hasStar,
+      isRegex = isRegex
     )
 
     pathsRepo.collisionExistsForPath(path)
@@ -188,7 +190,8 @@ class DefaultPathsService @Inject() (pathsRepo: PathsRepo, auditsRepo: AuditsRep
       updatedAt = pathRow.updatedAt,
       ownedByTeam = TeamName(pathRow.ownedByTeam),
       createdBy = UserName(pathRow.createdBy),
-      hasStar = pathRow.hasStar
+      hasStar = pathRow.hasStar,
+      isRegex = pathRow.isRegex
     )
   }
 }

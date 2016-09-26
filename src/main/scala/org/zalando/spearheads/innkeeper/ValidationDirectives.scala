@@ -13,7 +13,7 @@ class ValidationDirectives @Inject() (config: EnvConfig) {
   private val starPathPatterns = config.getStringSeq("path.star.patterns")
 
   def validatePath(path: PathIn, team: Team, requestDescription: String, isAdmin: Boolean): Directive0 = {
-    if (!isAdmin && path.ownedByTeam.exists(_.name != team.name)) {
+    if (!isAdmin && (path.ownedByTeam.exists(_.name != team.name) || path.isRegex.contains(true))) {
       reject(IncorrectTeamRejection(requestDescription))
     } else if (path.hostIds.isEmpty) {
       reject(EmptyPathHostIdsRejection(requestDescription))

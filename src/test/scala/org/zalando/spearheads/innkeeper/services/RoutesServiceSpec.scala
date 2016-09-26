@@ -257,7 +257,8 @@ class RoutesServiceSpec extends FunSpec with Matchers with MockFactory with Scal
     createdBy = UserName(createdBy),
     createdAt = createdAt,
     updatedAt = updatedAt,
-    hasStar = false
+    hasStar = false,
+    isRegex = false
   )
 
   val savedRoute = RouteOut(
@@ -328,7 +329,8 @@ class RoutesServiceSpec extends FunSpec with Matchers with MockFactory with Scal
     createdBy = createdBy,
     createdAt = createdAt,
     updatedAt = updatedAt,
-    hasStar = false
+    hasStar = false,
+    isRegex = false
   )
 
   val inactiveRouteRow = routeRowWithoutId.copy(

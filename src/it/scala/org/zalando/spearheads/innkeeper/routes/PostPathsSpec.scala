@@ -38,6 +38,14 @@ class PostPathsSpec extends FunSpec with BeforeAndAfter with Matchers {
         |}
   """.stripMargin
 
+  private def pathWithIsRegexString(pathUri: String, isRegex: Boolean) =
+    s"""{
+        |  "uri": "$pathUri",
+        |  "host_ids": [${hostIds.mkString(", ")}],
+        |  "is_regex": $isRegex
+        |}
+  """.stripMargin
+
   describe("post /paths") {
 
     describe("success") {
@@ -82,8 +90,9 @@ class PostPathsSpec extends FunSpec with BeforeAndAfter with Matchers {
       }
 
       describe("when a token with the admin scope is provided") {
+        val token = ADMIN_TOKEN
+
         it("should create the new path with the provided owning team") {
-          val token = ADMIN_TOKEN
           val response = PathsSpecsHelper.postSlashPaths(pathWithOwningTeamJsonString, token)
 
           response.status should be(StatusCodes.OK)
@@ -95,12 +104,28 @@ class PostPathsSpec extends FunSpec with BeforeAndAfter with Matchers {
           path.createdBy should be(UserName(token.userName))
           path.hostIds should be(hostIds)
         }
+
+        it("should create the new regex path") {
+          val pathUri = "/some-path"
+          val requestBody = pathWithIsRegexString(pathUri, isRegex = true)
+          val response = PathsSpecsHelper.postSlashPaths(requestBody, token)
+
+          response.status should be(StatusCodes.OK)
+          val entity = entityString(response)
+          val path = entity.parseJson.convertTo[PathOut]
+
+          path.uri should be(pathUri)
+          path.ownedByTeam should be(TeamName(token.teamName))
+          path.createdBy should be(UserName(token.userName))
+          path.hostIds should be(hostIds)
+          path.isRegex should be(true)
+        }
       }
 
       describe("when an admin team token is provided") {
-        it("should create the new path with the provided owning team") {
-          val token = ADMIN_TEAM_TOKEN
+        val token = ADMIN_TEAM_TOKEN
 
+        it("should create the new path with the provided owning team") {
           val response = PathsSpecsHelper.postSlashPaths(pathWithOwningTeamJsonString, token)
 
           response.status should be(StatusCodes.OK)
@@ -111,6 +136,22 @@ class PostPathsSpec extends FunSpec with BeforeAndAfter with Matchers {
           path.ownedByTeam should be(TeamName(otherOwningTeam))
           path.createdBy should be(UserName(token.userName))
           path.hostIds should be(hostIds)
+        }
+
+        it("should create the new regex path") {
+          val pathUri = "/some-path"
+          val requestBody = pathWithIsRegexString(pathUri, isRegex = true)
+          val response = PathsSpecsHelper.postSlashPaths(requestBody, token)
+
+          response.status should be(StatusCodes.OK)
+          val entity = entityString(response)
+          val path = entity.parseJson.convertTo[PathOut]
+
+          path.uri should be(pathUri)
+          path.ownedByTeam should be(TeamName(token.teamName))
+          path.createdBy should be(UserName(token.userName))
+          path.hostIds should be(hostIds)
+          path.isRegex should be(true)
         }
       }
     }
@@ -219,6 +260,18 @@ class PostPathsSpec extends FunSpec with BeforeAndAfter with Matchers {
           val token = WRITE_TOKEN
 
           val response = PathsSpecsHelper.postSlashPaths(pathWithOwningTeamJsonString, token)
+
+          response.status should be(StatusCodes.Forbidden)
+          entityString(response).parseJson.convertTo[Error].errorType should be("ITE")
+        }
+      }
+
+      describe("when a token without admin privileges is provided when creating a regex path") {
+        it("should return the 403 Forbidden status") {
+          val token = WRITE_TOKEN
+          val pathUri = "/some-path"
+          val requestBody = pathWithIsRegexString(pathUri, isRegex = true)
+          val response = PathsSpecsHelper.postSlashPaths(requestBody, token)
 
           response.status should be(StatusCodes.Forbidden)
           entityString(response).parseJson.convertTo[Error].errorType should be("ITE")

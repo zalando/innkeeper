@@ -14,7 +14,8 @@ case class PathRow(
   createdBy: String,
   createdAt: LocalDateTime,
   updatedAt: LocalDateTime,
-  hasStar: Boolean)
+  hasStar: Boolean,
+  isRegex: Boolean)
 
 class PathsTable(tag: Tag) extends Table[PathRow](tag, "PATHS") {
   def id = column[Long]("PATH_ID", O.PrimaryKey, O.AutoInc)
@@ -25,9 +26,10 @@ class PathsTable(tag: Tag) extends Table[PathRow](tag, "PATHS") {
   def createdAt = column[LocalDateTime]("CREATED_AT")
   def updatedAt = column[LocalDateTime]("UPDATED_AT")
   def hasStar = column[Boolean]("HAS_STAR")
+  def isRegex = column[Boolean]("IS_REGEX")
 
   def ownedByTeamIndex = index("PATH_OWNED_BY_TEAM_IDX", ownedByTeam)
 
   def * = // scalastyle:ignore
-    (id.?, uri, hostIds, ownedByTeam, createdBy, createdAt, updatedAt, hasStar) <> (PathRow.tupled, PathRow.unapply)
+    (id.?, uri, hostIds, ownedByTeam, createdBy, createdAt, updatedAt, hasStar, isRegex) <> (PathRow.tupled, PathRow.unapply)
 }
