@@ -87,10 +87,25 @@ class PostPathsSpec extends FunSpec with BeforeAndAfter with Matchers {
           path.hostIds should be(hostIds)
           path.hasStar should be(true)
         }
+      }
+
+      describe("when a token with the admin scope is provided") {
+        val token = ADMIN_TOKEN
+
+        it("should create the new path with the provided owning team") {
+          val response = PathsSpecsHelper.postSlashPaths(pathWithOwningTeamJsonString, token)
+
+          response.status should be(StatusCodes.OK)
+          val entity = entityString(response)
+          val path = entity.parseJson.convertTo[PathOut]
+
+          path.uri should be(pathUri)
+          path.ownedByTeam should be(TeamName(otherOwningTeam))
+          path.createdBy should be(UserName(token.userName))
+          path.hostIds should be(hostIds)
+        }
 
         it("should create the new regex path") {
-          val token = WRITE_TOKEN
-
           val pathUri = "/some-path"
           val requestBody = pathWithIsRegexString(pathUri, isRegex = true)
           val response = PathsSpecsHelper.postSlashPaths(requestBody, token)
@@ -104,22 +119,6 @@ class PostPathsSpec extends FunSpec with BeforeAndAfter with Matchers {
           path.createdBy should be(UserName(token.userName))
           path.hostIds should be(hostIds)
           path.isRegex should be(true)
-        }
-      }
-
-      describe("when a token with the admin scope is provided") {
-        it("should create the new path with the provided owning team") {
-          val token = ADMIN_TOKEN
-          val response = PathsSpecsHelper.postSlashPaths(pathWithOwningTeamJsonString, token)
-
-          response.status should be(StatusCodes.OK)
-          val entity = entityString(response)
-          val path = entity.parseJson.convertTo[PathOut]
-
-          path.uri should be(pathUri)
-          path.ownedByTeam should be(TeamName(otherOwningTeam))
-          path.createdBy should be(UserName(token.userName))
-          path.hostIds should be(hostIds)
         }
       }
 
@@ -245,6 +244,18 @@ class PostPathsSpec extends FunSpec with BeforeAndAfter with Matchers {
           val token = WRITE_TOKEN
 
           val response = PathsSpecsHelper.postSlashPaths(pathWithOwningTeamJsonString, token)
+
+          response.status should be(StatusCodes.Forbidden)
+          entityString(response).parseJson.convertTo[Error].errorType should be("ITE")
+        }
+      }
+
+      describe("when a token without admin privileges is provided when creating a regex path") {
+        it("should return the 403 Forbidden status") {
+          val token = WRITE_TOKEN
+          val pathUri = "/some-path"
+          val requestBody = pathWithIsRegexString(pathUri, isRegex = true)
+          val response = PathsSpecsHelper.postSlashPaths(requestBody, token)
 
           response.status should be(StatusCodes.Forbidden)
           entityString(response).parseJson.convertTo[Error].errorType should be("ITE")
