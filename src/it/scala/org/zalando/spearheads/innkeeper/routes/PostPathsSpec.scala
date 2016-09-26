@@ -87,6 +87,42 @@ class PostPathsSpec extends FunSpec with BeforeAndAfter with Matchers {
           path.hostIds should be(hostIds)
           path.hasStar should be(true)
         }
+
+        it("should create the new star path bypassing the pattern check for an admin token") {
+          val token = ADMIN_TOKEN
+
+          val pathUri = "/non-api-uri"
+          val requestBody = pathWithHasStarString(pathUri, hasStar = true)
+          val response = PathsSpecsHelper.postSlashPaths(requestBody, token)
+
+          response.status should be(StatusCodes.OK)
+          val entity = entityString(response)
+          val path = entity.parseJson.convertTo[PathOut]
+
+          path.uri should be(pathUri)
+          path.ownedByTeam should be(TeamName(token.teamName))
+          path.createdBy should be(UserName(token.userName))
+          path.hostIds should be(hostIds)
+          path.hasStar should be(true)
+        }
+
+        it("should create the new star path bypassing the pattern check for a token with the admin scope") {
+          val token = ADMIN_TEAM_TOKEN
+
+          val pathUri = "/non-api-uri"
+          val requestBody = pathWithHasStarString(pathUri, hasStar = true)
+          val response = PathsSpecsHelper.postSlashPaths(requestBody, token)
+
+          response.status should be(StatusCodes.OK)
+          val entity = entityString(response)
+          val path = entity.parseJson.convertTo[PathOut]
+
+          path.uri should be(pathUri)
+          path.ownedByTeam should be(TeamName(token.teamName))
+          path.createdBy should be(UserName(token.userName))
+          path.hostIds should be(hostIds)
+          path.hasStar should be(true)
+        }
       }
 
       describe("when a token with the admin scope is provided") {
