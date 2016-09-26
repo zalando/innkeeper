@@ -55,6 +55,19 @@ class RouteToEskipTransformerSpec extends FunSpec with Matchers with MockFactory
           predicates = expectedPredicates
         ))
     }
+
+    it("should transform a route which has a regex path to an eskip route") {
+      initMocks()
+      val routeDataWithStar = routeData.copy(isRegex = true)
+
+      val expectedPathPredicate = NameWithStringArgs("Path", Seq(pathUri))
+      val expectedPredicates = Seq(expectedPathPredicate) ++ expectedResult.predicates.tail
+
+      routeToEskipTransformer.transform(routeDataWithStar) should
+        be(expectedResult.copy(
+          predicates = expectedPredicates
+        ))
+    }
   }
 
   def initMocks() = {
@@ -104,6 +117,7 @@ class RouteToEskipTransformerSpec extends FunSpec with Matchers with MockFactory
     uri = pathUri,
     hostIds = hostIds,
     hasStar = false,
+    isRegex = false,
     usesCommonFilters = true,
     routeJson = newRoute.toJson.compactPrint,
     activateAt = LocalDateTime.now(),
