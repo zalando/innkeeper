@@ -17,7 +17,7 @@ class ValidationDirectives @Inject() (config: EnvConfig) {
       reject(IncorrectTeamRejection(requestDescription))
     } else if (path.hostIds.isEmpty) {
       reject(EmptyPathHostIdsRejection(requestDescription))
-    } else if (path.hasStar.contains(true) && !uriMatchesStarPathPatterns(path.uri)) {
+    } else if (!isAdmin && path.hasStar.contains(true) && !uriMatchesStarPathPatterns(path.uri)) {
       reject(StarPathPatternRejection(requestDescription, starPathPatterns))
     } else {
       pass
