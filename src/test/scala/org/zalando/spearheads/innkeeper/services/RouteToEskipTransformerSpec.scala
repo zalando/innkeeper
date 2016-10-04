@@ -47,7 +47,7 @@ class RouteToEskipTransformerSpec extends FunSpec with Matchers with MockFactory
       val routeDataWithStar = routeData.copy(hasStar = true)
 
       val starPathSuffix = "/**"
-      val expectedPathPredicate = NameWithStringArgs("Path", Seq(s""""$pathUri$starPathSuffix""""))
+      val expectedPathPredicate = NameWithStringArgs("PathSubtree", Seq(s""""$pathUri""""))
       val expectedPredicates = Seq(expectedPathPredicate) ++ expectedResult.predicates.tail
 
       routeToEskipTransformer.transform(routeDataWithStar) should
@@ -60,7 +60,7 @@ class RouteToEskipTransformerSpec extends FunSpec with Matchers with MockFactory
       initMocks()
       val routeDataWithStar = routeData.copy(isRegex = true)
 
-      val expectedPathPredicate = NameWithStringArgs("Path", Seq(s"/$pathUri/"))
+      val expectedPathPredicate = NameWithStringArgs("PathRegexp", Seq(s"/$pathUri/"))
       val expectedPredicates = Seq(expectedPathPredicate) ++ expectedResult.predicates.tail
 
       routeToEskipTransformer.transform(routeDataWithStar) should
