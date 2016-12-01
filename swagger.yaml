@@ -404,6 +404,18 @@ definitions:
       description:
         type: string
         description: Human readable description for the route
+      route:
+        $ref: '#/definitions/RouteData'
+      host_ids:
+        type: array
+        items:
+          type: integer
+          format: int64
+        description: |
+          Ids of the hosts to which route has to be applied. This list must be
+          a sublist of the host ids for the path.
+  RouteData:
+    properties:
       predicates:
         type: array
         items:
@@ -420,14 +432,6 @@ definitions:
         type: string
         description: |
           A valid http(s) endpoint that the request should be routed to
-      host_ids:
-        type: array
-        items:
-          type: integer
-          format: int64
-        description: |
-          Ids of the hosts to which route has to be applied. This list must be
-          a sublist of the host ids for the path.
   RouteOut:
     required:
       - id
