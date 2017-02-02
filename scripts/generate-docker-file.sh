@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-echo "FROM registry.opensource.zalan.do/stups/openjdk:8-43" > Dockerfile
+echo "FROM registry.opensource.zalan.do/stups/openjdk:8-cd28" > Dockerfile
 echo "MAINTAINER Team Pathfinder <team-pathfinder@zalando.de>" >> Dockerfile
 echo "" >> Dockerfile
 echo "EXPOSE 9080" >> Dockerfile
