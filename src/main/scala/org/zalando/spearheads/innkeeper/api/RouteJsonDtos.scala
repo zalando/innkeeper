@@ -8,10 +8,10 @@ case class RouteName(name: String)
 object RouteName {
   val validRouteNamePattern = "[a-zA-Z][a-zA-Z0-9_]*"
 
-  def isValid(routeName: RouteName) = routeName.name.matches(validRouteNamePattern)
+  def isValid(routeName: RouteName): Boolean = routeName.name.matches(validRouteNamePattern)
 }
 
-object InvalidUsereNameException
+object InvalidUserNameException
   extends RuntimeException(
     "Invalid uid for your token")
 

@@ -5,9 +5,9 @@ case class TeamName(name: String) extends AnyVal
 case class UserName(name: String) extends AnyVal
 
 object UserName {
-  def apply(name: Option[String]): UserName = name match {
+  def apply(nameOpt: Option[String]): UserName = nameOpt match {
     case Some(name) => UserName(name)
-    case _          => throw InvalidUsereNameException
+    case _          => throw InvalidUserNameException
   }
 }
 

@@ -322,18 +322,18 @@ paths:
           description: A processing or an unexpected error.
           schema:
             $ref: '#/definitions/Error'
-  '/updated-routes/{id}':
+  '/updated-routes/{timestamp}':
     get:
       security:
         - company:
           - routes.read
       parameters:
-        - name: id
+        - name: timestamp
           in: path
           type: string
           required: true
           format: ISO-8601
-      summary: Returns a list of updated routes.
+      summary: Returns a list of route updates after the provided timestamp.
       responses:
         '200':
           description: An array of route updates
@@ -348,13 +348,16 @@ paths:
 definitions:
   RouteIn:
     required:
+      - path_id
       - name
       - uses_common_filters
       - predicates
       - filters
       - endpoint
-      - path_id
     properties:
+      path_id:
+        type: integer
+        format: int64
       name:
         type: string
         pattern: /[A-Z][A-Z0-9_]*
@@ -368,6 +371,9 @@ definitions:
       activate_at:
         type: string
         description: The ISO-8601 date time when the route will be activated
+      disable_at:
+        type: string
+        description: The ISO-8601 date time when the route will be deactivated
       predicates:
         type: array
         items:
@@ -385,16 +391,13 @@ definitions:
         type: string
         description: |
           A valid http(s) endpoint that the request should be routed to
-      path_id:
-        type: integer
-        format: int64
       host_ids:
         type: array
         items:
           type: integer
           format: int64
         description: |
-          Ids of the hosts to which route has to be applied. This list must be 
+          Ids of the hosts to which route has to be applied. This list must be
           a sublist of the host ids for the path.
   RoutePatch:
     properties:
@@ -443,7 +446,6 @@ definitions:
       - endpoint
       - created_at
       - activate_at
-      - owned_by_team
       - created_by
     properties:
       id:
@@ -468,8 +470,9 @@ definitions:
       activate_at:
         type: string
         description: The ISO-8601 date time when the route will be activated
-      owned_by_team:
+      disable_at:
         type: string
+        description: The ISO-8601 date time when the route will be deactivated
       created_by:
         type: string
       predicates:
@@ -496,6 +499,14 @@ definitions:
         description: |
           Ids of the hosts to which route has to be applied. This list is a sublist
           of the host ids for the path.
+      hosts:
+        type: array
+        items:
+          $ref: '#/definitions/Host'
+        description: |
+          A list of Hosts resolved by host_ids.
+      path:
+        $ref: '#/definitions/PathOut'
   RouteChange:
     required:
       - type
@@ -571,6 +582,15 @@ definitions:
         type: array
         items:
           type: string
+      has_star:
+        type: boolean
+        description: the path will be serialized as a PathSubtree predicate
+      is_regex:
+        type: boolean
+        description: the path will be serialized as a PathRegexp predicate
+      owned_by_team:
+        type: string
+        description: defines the team owning this path.
     example: |
       {
         "uri": "/cart",
@@ -600,12 +620,18 @@ definitions:
       created_at:
         type: string
         format: date-time
+      has_star:
+        type: boolean
+      is_regex:
+        type: boolean
     example: |
       {
         "id": "1",
         "owned_by_team": "coast",
         "created_by": "user",
         "uri": "/cart",
+        "has_star": false,
+        "is_regex": false,
         "host_ids": ["1", "2"],
         "created_at": "1985-04-12T23:20:50.52Z"
       }
