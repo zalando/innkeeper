@@ -539,7 +539,7 @@ definitions:
         description: The arguments for the predicate, can be string or float64
         type: array
         items:
-          type: string
+          $ref: '#/definitions/Arg'
   Filter:
     required:
       - name
@@ -553,7 +553,17 @@ definitions:
         description: The arguments for the filter, can be string or float64
         type: array
         items:
-          type: string
+          $ref: '#/definitions/Arg'
+  Arg:
+    required:
+      - type
+      - value
+    properties:
+      type:
+        type: string
+        description: Must be one of [number, string, regex]
+      value:
+        description: A value representing the type
   Host:
     required:
       - id
