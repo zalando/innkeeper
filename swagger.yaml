@@ -145,6 +145,35 @@ paths:
           description: A processing or an unexpected error.
           schema:
             $ref: '#/definitions/Error'
+    delete:
+      security:
+        - company:
+          - routes.write
+      summary: Deletes a path
+      parameters:
+        - name: id
+          in: path
+          type: string
+          required: true
+      description: |
+        Deleting a path is only allowed for a client that is part of the team
+        owning it or has admin credentials.
+      responses:
+        '200':
+          description: Empty response
+        '403':
+          description: |
+            Happens in a case of insufficient permissions.
+          schema:
+            $ref: '#/definitions/Error'
+        '404':
+          description: Happens when trying to delete a non-existent Path.
+          schema:
+            $ref: '#/definitions/Error'
+        default:
+          description: A processing or an unexpected error.
+          schema:
+            $ref: '#/definitions/Error'
   '/routes':
     get:
       security:
@@ -302,16 +331,14 @@ paths:
           type: string
           required: true
       description: |
-        Deleting a route is only allowed for a client that originally defined
-        this route or with admin credentials.
+        Deleting a path is only allowed for a client that is part of the team
+        owning it or has admin credentials.
       responses:
         '200':
-          description: Information about a deleted route
-          schema:
-            $ref: '#/definitions/RouteOut'
+          description: Empty response
         '403':
           description: |
-            Usually happens in a case of insufficient permissions.
+            Happens in a case of insufficient permissions.
           schema:
             $ref: '#/definitions/Error'
         '404':
