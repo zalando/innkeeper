@@ -50,6 +50,7 @@ libraryDependencies ++= List(
   "nl.grons"                %% "metrics-scala"                        % "3.5.2",
   "org.asynchttpclient"      % "async-http-client"                    % "2.0.10",
   "net.jodah"                % "failsafe"                             % "0.8.3",
+  "com.google.guava"         % "guava"                                % "21.0",
 
   "org.flywaydb"             % "flyway-core"                          % "4.0.3",
 
