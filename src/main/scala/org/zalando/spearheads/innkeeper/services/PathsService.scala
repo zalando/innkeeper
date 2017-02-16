@@ -159,9 +159,13 @@ class DefaultPathsService @Inject() (pathsRepo: PathsRepo, auditsRepo: AuditsRep
 
   override def isPathPatchValid(pathId: Long, pathPatch: PathPatch): Future[ValidationResult] = {
     pathPatch.hostIds.map { newHostIds =>
-      pathsRepo.areNewHostIdsValid(pathId, newHostIds).map {
-        case true  => Valid
-        case false => Invalid("Host ids are not valid.")
+      for {
+        hostIdsAreValidForExistingRoutes <- pathsRepo.areNewHostIdsValid(pathId, newHostIds)
+        pathCollisionExists <- pathsRepo.collisionExistsForPatch(pathId, newHostIds)
+      } yield if (hostIdsAreValidForExistingRoutes && !pathCollisionExists) {
+        Valid
+      } else {
+        Invalid("Host ids are not valid.")
       }
     } getOrElse {
       Future(Valid)

@@ -165,6 +165,23 @@ class PatchPathsSpec extends FunSpec with BeforeAndAfter with Matchers {
         }
       }
 
+      describe("when path patch updates host ids so that a path collision exists") {
+        it("should return the 400 Bad Request status") {
+          val token = ADMIN_TOKEN
+          val uri = "/path"
+
+          PathsRepoHelper.insertPath(samplePath(uri = uri, hostIds = Seq(1L, 2L)))
+          val secondPath = PathsRepoHelper.insertPath(samplePath(uri = uri, hostIds = Seq(3L, 4L)))
+
+          val secondPathId = secondPath.id.getOrElse(-1L)
+
+          val response = PathsSpecsHelper.patchSlashPaths(secondPathId, pathPatchHostIdsJsonString(Seq(2L)), token)
+
+          response.status should be(StatusCodes.BadRequest)
+          entityString(response).parseJson.convertTo[Error].errorType should be("IPP")
+        }
+      }
+
       describe("when path patch is done by a WRITE token with a non-admin team different to the paths team") {
         it("should return the 400 Bad Request status") {
           val token = WRITE_TOKEN
