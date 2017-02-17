@@ -161,11 +161,13 @@ class DefaultPathsService @Inject() (pathsRepo: PathsRepo, auditsRepo: AuditsRep
     pathPatch.hostIds.map { newHostIds =>
       for {
         hostIdsAreValidForExistingRoutes <- pathsRepo.areNewHostIdsValid(pathId, newHostIds)
-        pathCollisionExists <- pathsRepo.collisionExistsForPatch(pathId, newHostIds)
-      } yield if (hostIdsAreValidForExistingRoutes && !pathCollisionExists) {
-        Valid
+        pathCollisionExists <- pathsRepo.collisionExistsForUpdate(pathId, newHostIds)
+      } yield if (!hostIdsAreValidForExistingRoutes) {
+        Invalid("At least a route exists where the route host ids are no longer a subset of the path host ids.")
+      } else if(pathCollisionExists) {
+        Invalid("A path with an uri collision exists for at least one of the provided host ids.")
       } else {
-        Invalid("Host ids are not valid.")
+        Valid
       }
     } getOrElse {
       Future(Valid)

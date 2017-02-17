@@ -15,7 +15,7 @@ trait PathsRepo {
   def selectByRouteId(routeId: Long): Future[Option[PathRow]]
   def selectByOwnerTeamAndUri(ownedByTeam: Option[String], uri: Option[String]): DatabasePublisher[PathRow]
   def collisionExistsForPath(path: PathIn): Future[Boolean]
-  def collisionExistsForPatch(pathId: Long, newHostIds: Seq[Long]): Future[Boolean]
+  def collisionExistsForUpdate(pathId: Long, newHostIds: Seq[Long]): Future[Boolean]
   def delete(id: Long, deletedBy: Option[String] = None): Future[Boolean]
   def update(id: Long, pathPatch: PathPatch, updatedAt: LocalDateTime): Future[Option[PathRow]]
   def areNewHostIdsValid(pathId: Long, newHostIds: Seq[Long]): Future[Boolean]

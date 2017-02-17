@@ -77,7 +77,7 @@ class PathsPostgresRepo @Inject() (
     logger.debug("path uri collision check")
 
     val query = Paths
-      .filter(filterPathsWithUriCollision(path.uri, path.hasStar.contains(true)))
+      .filter(filterForPathsWithUriCollision(path.uri, path.hasStar.contains(true)))
       .map(_.hostIds)
 
     db.run {
@@ -87,16 +87,16 @@ class PathsPostgresRepo @Inject() (
     }
   }
 
-  override def collisionExistsForPatch(pathId: Long, newHostIds: Seq[Long]): Future[Boolean] = {
+  override def collisionExistsForUpdate(pathId: Long, newHostIds: Seq[Long]): Future[Boolean] = {
     logger.debug("path uri collision check")
 
     selectById(pathId).flatMap {
-      case None => Future(true)
+      case None => Future(false)
 
       case Some(path) =>
         val query = Paths
           .filter(_.id =!= pathId)
-          .filter(filterPathsWithUriCollision(path.uri, path.hasStar))
+          .filter(filterForPathsWithUriCollision(path.uri, path.hasStar))
           .map(_.hostIds)
 
         db.run {
@@ -120,7 +120,7 @@ class PathsPostgresRepo @Inject() (
     }
   }
 
-  private def filterPathsWithUriCollision(pathUri: String, pathHasStar: Boolean)(pathRow: PathsTable) = {
+  private def filterForPathsWithUriCollision(pathUri: String, pathHasStar: Boolean)(pathRow: PathsTable): Rep[Boolean] = {
     import SlickExtension.startsWith
 
     val pathHasStarCondition: Rep[Boolean] = pathHasStar
@@ -130,7 +130,7 @@ class PathsPostgresRepo @Inject() (
     pathRow.uri === pathUri || starPathConflictsWithExistingPath || existingStarPathConflictsWithPath
   }
 
-  private def hostIdCollisionExists(newHostIds: Seq[Long], existingPathHostIds: scala.collection.Seq[Seq[Long]]) = {
+  private def hostIdCollisionExists(newHostIds: Seq[Long], existingPathHostIds: scala.collection.Seq[Seq[Long]]): Boolean = {
     val pathWithAllHostIdsExists = existingPathHostIds.exists(_.isEmpty)
     val hostIdsIntersectWithExistingPathHostIds = existingPathHostIds.flatten
       .intersect(newHostIds)
