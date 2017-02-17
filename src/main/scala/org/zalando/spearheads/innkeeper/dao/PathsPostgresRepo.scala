@@ -76,38 +76,67 @@ class PathsPostgresRepo @Inject() (
   override def collisionExistsForPath(path: PathIn): Future[Boolean] = {
     logger.debug("path uri collision check")
 
-    def position = SimpleExpression.binary[String, String, Int] {
+    val query = Paths
+      .filter(filterForPathsWithUriCollision(path.uri, path.hasStar.contains(true)))
+      .map(_.hostIds)
+
+    db.run {
+      query.result
+    }.map{ existingPathHostIds =>
+      hostIdCollisionExists(path.hostIds, existingPathHostIds)
+    }
+  }
+
+  override def collisionExistsForUpdate(pathId: Long, newHostIds: Seq[Long]): Future[Boolean] = {
+    logger.debug("path uri collision check")
+
+    selectById(pathId).flatMap {
+      case None => Future(false)
+
+      case Some(path) =>
+        val query = Paths
+          .filter(_.id =!= pathId)
+          .filter(filterForPathsWithUriCollision(path.uri, path.hasStar))
+          .map(_.hostIds)
+
+        db.run {
+          query.result
+        }.map{ existingPathHostIds =>
+          hostIdCollisionExists(newHostIds, existingPathHostIds)
+        }
+    }
+  }
+
+  private object SlickExtension {
+    private def position = SimpleExpression.binary[String, String, Int] {
       (subString, string, queryBuilder) =>
         import slick.util.MacroSupport._
         import queryBuilder.{expr, sqlBuilder}
         b"position($subString in $string)"
     }
 
-    def startsWith(subString: Rep[String], string: Rep[String]) = {
+    def startsWith(subString: Rep[String], string: Rep[String]): Rep[Boolean] = {
       position(subString, string) === 1
     }
+  }
 
-    val query = Paths
-      .filter { pathRow =>
-        val pathHasStar: Rep[Boolean] = path.hasStar.contains(true)
+  private def filterForPathsWithUriCollision(pathUri: String, pathHasStar: Boolean)(pathRow: PathsTable): Rep[Boolean] = {
+    import SlickExtension.startsWith
 
-        val starPathConflictsWithExistingPath = pathHasStar && startsWith(path.uri, pathRow.uri)
-        val existingStarPathConflictsWithPath = pathRow.hasStar && startsWith(pathRow.uri, path.uri)
+    val pathHasStarCondition: Rep[Boolean] = pathHasStar
+    val starPathConflictsWithExistingPath = pathHasStarCondition && startsWith(pathUri, pathRow.uri)
+    val existingStarPathConflictsWithPath = pathRow.hasStar && startsWith(pathRow.uri, pathUri)
 
-        pathRow.uri === path.uri || starPathConflictsWithExistingPath || existingStarPathConflictsWithPath
-      }
-      .map(_.hostIds)
+    pathRow.uri === pathUri || starPathConflictsWithExistingPath || existingStarPathConflictsWithPath
+  }
 
-    db.run {
-      query.result
-    }.map{ existingPathHostIds =>
-      val pathWithAllHostIdsExists = existingPathHostIds.exists(_.isEmpty)
-      val hostIdsIntersectWithExistingPathHostIds = existingPathHostIds.flatten
-        .intersect(path.hostIds)
-        .nonEmpty
+  private def hostIdCollisionExists(newHostIds: Seq[Long], existingPathHostIds: scala.collection.Seq[Seq[Long]]): Boolean = {
+    val pathWithAllHostIdsExists = existingPathHostIds.exists(_.isEmpty)
+    val hostIdsIntersectWithExistingPathHostIds = existingPathHostIds.flatten
+      .intersect(newHostIds)
+      .nonEmpty
 
-      pathWithAllHostIdsExists || hostIdsIntersectWithExistingPathHostIds
-    }
+    pathWithAllHostIdsExists || hostIdsIntersectWithExistingPathHostIds
   }
 
   override def delete(id: Long, deletedByOpt: Option[String]): Future[Boolean] = {
