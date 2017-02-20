@@ -23,11 +23,27 @@ class ZalandoTeamServiceSpec extends FunSpec with MockFactory with Matchers with
   val mockHttpClient: HttpClient = mock[HttpClient]
 
   implicit val executionContext: ExecutionContextExecutor = ExecutionContext.global
-  val teamMemberServiceUrl = "http://team.com/member="
+
+  private val userTeamServiceUrl = "http://team.com/member="
+  private val applicationTeamServiceUrl = "http://application.com/apps/"
+
+  def userTeamServiceUrlFor(username: String): String = userTeamServiceUrl + username
+  def applicationTeamServiceUrlFor(applicationName: String): String = applicationTeamServiceUrl + applicationName
+
 
   def setupTeamService(adminTeams: Set[String] = Set("team_admin")): ZalandoTeamService = {
-    (mockConfig.getStringSet _).expects("admin.teams").returning(adminTeams).anyNumberOfTimes
-    (mockConfig.getString _).expects("team.member.service.url").returning(teamMemberServiceUrl).anyNumberOfTimes
+    (mockConfig.getString _)
+      .expects("team.member.service.url")
+      .returning(userTeamServiceUrl)
+
+    (mockConfig.getString _)
+      .expects("application.service.url")
+      .returning(applicationTeamServiceUrl)
+
+    (mockConfig.getStringSet _)
+      .expects("admin.teams")
+      .returning(adminTeams)
+
     new ZalandoTeamService(mockConfig, mockHttpClient)
   }
 
@@ -57,7 +73,7 @@ class ZalandoTeamServiceSpec extends FunSpec with MockFactory with Matchers with
 
         it("should return the team") {
           val teamService = setupTeamService()
-          (mockHttpClient.callJson _).expects(s"$teamMemberServiceUrl$username", Some(token), HttpMethods.GET)
+          (mockHttpClient.callJson _).expects(userTeamServiceUrlFor(username), Some(token), HttpMethods.GET)
             .returning(Future(teamJson.parseJson))
 
           teamService.getForUsername(username, token).futureValue should be(ServiceResult.Success(Team("pathfinder", Official)))
@@ -70,7 +86,7 @@ class ZalandoTeamServiceSpec extends FunSpec with MockFactory with Matchers with
 
           it("should return a failure") {
             val teamService = setupTeamService()
-            (mockHttpClient.callJson _).expects(s"$teamMemberServiceUrl$username", Some(token), HttpMethods.GET)
+            (mockHttpClient.callJson _).expects(userTeamServiceUrlFor(username), Some(token), HttpMethods.GET)
               .returning(Future("""[zzz""".parseJson))
 
             intercept[Exception] {
@@ -84,7 +100,7 @@ class ZalandoTeamServiceSpec extends FunSpec with MockFactory with Matchers with
           it("should return a failure") {
             val teamService = setupTeamService()
             // missing team id
-            (mockHttpClient.callJson _).expects(s"$teamMemberServiceUrl$username", Some(token), HttpMethods.GET)
+            (mockHttpClient.callJson _).expects(userTeamServiceUrlFor(username), Some(token), HttpMethods.GET)
               .returning(Future("""[{"type":"official"}]""".parseJson))
 
             teamService.getForUsername(username, token).futureValue.isInstanceOf[ServiceResult.Failure] should be (true)
@@ -96,7 +112,7 @@ class ZalandoTeamServiceSpec extends FunSpec with MockFactory with Matchers with
           it("should return a failure") {
             val teamService = setupTeamService()
             // virtual team
-            (mockHttpClient.callJson _).expects(s"$teamMemberServiceUrl$username", Some(token), HttpMethods.GET)
+            (mockHttpClient.callJson _).expects(userTeamServiceUrlFor(username), Some(token), HttpMethods.GET)
               .returning(Future("""[{"id":"pathfinder","type":"virtual"}]""".parseJson))
 
             teamService.getForUsername(username, token).futureValue should be (ServiceResult.Failure(NotFound()))
@@ -107,13 +123,83 @@ class ZalandoTeamServiceSpec extends FunSpec with MockFactory with Matchers with
 
           it("should call the service only once on multiple invocations with the same user") {
             val teamService = setupTeamService()
-            (mockHttpClient.callJson _).expects(s"$teamMemberServiceUrl$username", Some(token), HttpMethods.GET)
+            (mockHttpClient.callJson _).expects(userTeamServiceUrlFor(username), Some(token), HttpMethods.GET)
               .returning(Future(teamJson.parseJson)).once
 
             val secondResult = teamService.getForUsername(username, token)
               .flatMap(_ => teamService.getForUsername(username, token))
               .futureValue
             secondResult should be (ServiceResult.Success(Team("pathfinder", Official)))
+          }
+        }
+      }
+    }
+
+    describe("#getForApplicationName") {
+      val token = "the-token"
+      val applicationName = "application"
+      val teamName = "TheTeam"
+      val teamJson = s"""{"team_id": "$teamName"}"""
+
+      describe("success") {
+
+        it("should return the team") {
+          val teamService = setupTeamService()
+          (mockHttpClient.callJson _).expects(applicationTeamServiceUrlFor(applicationName), Some(token), HttpMethods.GET)
+            .returning(Future(teamJson.parseJson))
+
+          teamService.getForApplication(applicationName, token).futureValue should be(ServiceResult.Success(Team(teamName, Official)))
+        }
+      }
+
+      describe("failure") {
+
+        describe("malformed json") {
+
+          it("should return a failure") {
+            val teamService = setupTeamService()
+            (mockHttpClient.callJson _).expects(applicationTeamServiceUrlFor(applicationName), Some(token), HttpMethods.GET)
+              .returning(Future("""[zzz""".parseJson))
+
+            intercept[Exception] {
+              teamService.getForApplication(applicationName, token).onFailure(throw new Exception())
+            }
+          }
+        }
+
+        describe("when the json isn't an object") {
+
+          it("should return a failure") {
+            val teamService = setupTeamService()
+            (mockHttpClient.callJson _).expects(applicationTeamServiceUrlFor(applicationName), Some(token), HttpMethods.GET)
+              .returning(Future("[]".parseJson))
+
+            teamService.getForApplication(applicationName, token).futureValue should be (ServiceResult.Failure(NotFound()))
+          }
+        }
+
+        describe("when there is no team for that application name") {
+
+          it("should return a failure") {
+            val teamService = setupTeamService()
+            (mockHttpClient.callJson _).expects(applicationTeamServiceUrlFor(applicationName), Some(token), HttpMethods.GET)
+              .returning(Future("{}".parseJson))
+
+            teamService.getForApplication(applicationName, token).futureValue should be (ServiceResult.Failure(NotFound()))
+          }
+        }
+
+        describe("caching") {
+
+          it("should call the service only once on multiple invocations with the same user") {
+            val teamService = setupTeamService()
+            (mockHttpClient.callJson _).expects(applicationTeamServiceUrlFor(applicationName), Some(token), HttpMethods.GET)
+              .returning(Future(teamJson.parseJson)).once
+
+            val secondResult = teamService.getForApplication(applicationName, token)
+              .flatMap(_ => teamService.getForApplication(applicationName, token))
+              .futureValue
+            secondResult should be (ServiceResult.Success(Team(teamName, Official)))
           }
         }
       }

@@ -50,7 +50,12 @@ trait OAuthDirectives {
 
     authenticatedUser.username match {
       case Some(username) =>
-        onComplete(teamService.getForUsername(username, token)) {
+        val teamFuture = authenticatedUser.realm match {
+          case Realms.SERVICES => teamService.getForApplication(username, token)
+          case _               => teamService.getForUsername(username, token)
+        }
+
+        onComplete(teamFuture) {
           case Success(teamResult) => teamResult match {
             case ServiceResult.Success(team) =>
               teamToRoute(team)
