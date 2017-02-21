@@ -30,7 +30,6 @@ class ZalandoTeamServiceSpec extends FunSpec with MockFactory with Matchers with
   def userTeamServiceUrlFor(username: String): String = userTeamServiceUrl + username
   def applicationTeamServiceUrlFor(applicationName: String): String = applicationTeamServiceUrl + applicationName
 
-
   def setupTeamService(adminTeams: Set[String] = Set("team_admin")): ZalandoTeamService = {
     (mockConfig.getString _)
       .expects("team.member.service.url")
