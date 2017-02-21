@@ -2,13 +2,14 @@ package org.zalando.spearheads.innkeeper.services.team
 
 import java.util.concurrent.TimeUnit
 
-import com.google.common.cache.CacheBuilder
+import com.google.common.cache.{Cache, CacheBuilder}
 import com.google.inject.Inject
 import org.slf4j.LoggerFactory
 import org.zalando.spearheads.innkeeper.services.ServiceResult
 import org.zalando.spearheads.innkeeper.services.ServiceResult.{Ex, NotFound, Result}
 import org.zalando.spearheads.innkeeper.services.team.TeamJsonProtocol._
 import org.zalando.spearheads.innkeeper.utils.{EnvConfig, HttpClient, TeamServiceClient}
+import spray.json.{JsObject, JsString}
 
 import scala.collection.immutable.Seq
 import scala.concurrent.{ExecutionContext, Future}
@@ -22,6 +23,8 @@ trait TeamService {
   def isAdminTeam(team: Team): Boolean
 
   def getForUsername(username: String, token: String): Future[Result[Team]]
+
+  def getForApplication(applicationName: String, token: String): Future[Result[Team]]
 }
 
 class ZalandoTeamService @Inject() (
@@ -30,28 +33,43 @@ class ZalandoTeamService @Inject() (
 
   private val logger = LoggerFactory.getLogger(this.getClass)
 
+  private val teamServiceUrl = config.getString("team.member.service.url")
+  private val applicationServiceUrl = config.getString("application.service.url")
+
   private val adminTeams = config.getStringSet("admin.teams")
 
-  private val cache = CacheBuilder.newBuilder()
-    .maximumSize(1000)
-    .expireAfterWrite(60, TimeUnit.MINUTES)
-    .build[String, Team]()
+  private val userTeamCache = buildCache()
+  private val applicationTeamCache = buildCache()
+
+  private def buildCache(): Cache[String, Team] = {
+    CacheBuilder.newBuilder()
+      .maximumSize(1000)
+      .expireAfterWrite(60, TimeUnit.MINUTES)
+      .build[String, Team]()
+  }
 
   override def getForUsername(username: String, token: String): Future[Result[Team]] = {
-    Option(cache.getIfPresent(username))
+    Option(userTeamCache.getIfPresent(username))
       .map(team => Future.successful(ServiceResult.Success(team)))
       .getOrElse { callTeamService(username, token) }
   }
 
+  override def getForApplication(applicationName: String, token: String): Future[Result[Team]] = {
+    Option(applicationTeamCache.getIfPresent(applicationName))
+      .map(team => Future.successful(ServiceResult.Success(team)))
+      .getOrElse { callApplicationService(applicationName, token) }
+  }
+
   private def callTeamService(username: String, token: String): Future[Result[Team]] = {
-    httpClient.callJson(url(username), Some(token)).map { json =>
+    val url = teamServiceUrl + username
+    httpClient.callJson(url, Some(token)).map { json =>
       Try {
         json.convertTo[Seq[Team]]
       } match {
         case Success(teams) =>
           teams.find(_.teamType == Official) match {
             case Some(team) =>
-              cache.put(username, team)
+              userTeamCache.put(username, team)
               ServiceResult.Success(team)
             case None =>
               logger.debug("No official team found for username: ", username)
@@ -64,7 +82,25 @@ class ZalandoTeamService @Inject() (
     }
   }
 
-  private def url(username: String) = config.getString("team.member.service.url") + username
+  private def callApplicationService(applicationName: String, token: String): Future[Result[Team]] = {
+    val url = applicationServiceUrl + applicationName
+    httpClient.callJson(url, Some(token)).map {
+      case jsObject: JsObject =>
+        jsObject.getFields("team_id").headOption match {
+          case Some(JsString(teamId)) =>
+            val team = Team(teamId, Official)
+            applicationTeamCache.put(applicationName, team)
+            ServiceResult.Success(team)
+
+          case _ =>
+            logger.debug("No team found for application: ", applicationName)
+            ServiceResult.Failure(NotFound())
+        }
+      case _ =>
+        logger.error("Application service unexpected response")
+        ServiceResult.Failure(NotFound())
+    }
+  }
 
   override def isAdminTeam(team: Team): Boolean = adminTeams.contains(team.name)
 
