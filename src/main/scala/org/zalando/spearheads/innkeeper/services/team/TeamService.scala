@@ -86,7 +86,7 @@ class ZalandoTeamService @Inject() (
     val url = applicationServiceUrl + applicationName
     httpClient.callJson(url, Some(token)).map {
       case jsObject: JsObject =>
-        jsObject.getFields("team_id").headOption match {
+        jsObject.getFields("owner").headOption match {
           case Some(JsString(teamId)) =>
             val team = Team(teamId, Official)
             applicationTeamCache.put(applicationName, team)

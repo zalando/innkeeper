@@ -138,7 +138,7 @@ class ZalandoTeamServiceSpec extends FunSpec with MockFactory with Matchers with
       val token = "the-token"
       val applicationName = "application"
       val teamName = "TheTeam"
-      val teamJson = s"""{"team_id": "$teamName"}"""
+      val teamJson = s"""{"owner": "$teamName"}"""
 
       describe("success") {
 
