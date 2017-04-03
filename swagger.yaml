@@ -73,7 +73,7 @@ paths:
           - routes.read
       summary: A list of available paths.
       parameters:
-        - name: team
+        - name: owned_by_team
           in: query
           type: string
           required: false
