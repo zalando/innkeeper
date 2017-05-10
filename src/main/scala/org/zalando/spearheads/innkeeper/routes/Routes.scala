@@ -47,7 +47,7 @@ class Routes @Inject() (
 
             path("hosts") {
               getHosts(authenticatedUser)
-            } ~ path("updated-routes" / Rest) { lastModifiedString =>
+            } ~ path("updated-routes" / Remaining) { lastModifiedString =>
               getUpdatedRoutes(authenticatedUser, lastModifiedString)
             } ~ path("current-routes") {
               getCurrentRoutes(authenticatedUser)
