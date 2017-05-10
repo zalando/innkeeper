@@ -10,7 +10,7 @@ version       := "0.4.21"
 
 mainClass in Compile := Some("org.zalando.spearheads.innkeeper.Innkeeper")
 
-scalaVersion := "2.11.8"
+scalaVersion := "2.11.11"
 
 scalacOptions := Seq("-unchecked", "-feature", "-deprecation", "-encoding", "utf8")
 
@@ -21,7 +21,8 @@ resolvers += "softprops-maven" at "http://dl.bintray.com/content/softprops/maven
 resolvers += "zalando-maven"   at "https://dl.bintray.com/zalando/maven"
 resolvers += "Flyway"          at "https://flywaydb.org/repo"
 
-val akkaV            = "2.4.4"
+val akkaV            = "2.4.11.2"
+val akkaHttpV        = "10.0.6"
 val scalaTestV       = "3.0.0-M15"
 val scalaMockV       = "3.2.2"
 val slickPgV         = "0.13.0"
@@ -34,14 +35,14 @@ libraryDependencies ++= List(
   "com.typesafe.slick"      %% "slick-hikaricp"                       % slickV exclude("com.zaxxer", "HikariCP-java6"),
 
   "com.typesafe.akka"       %% "akka-stream"                          % akkaV,
-  "com.typesafe.akka"       %% "akka-http-core"                       % akkaV,
-  "com.typesafe.akka"       %% "akka-http-spray-json-experimental"    % akkaV,
+  "com.typesafe.akka"       %% "akka-http"                            % akkaHttpV,
+  "com.typesafe.akka"       %% "akka-http-spray-json"                 % akkaHttpV,
 
   "com.typesafe.akka"       %% "akka-slf4j"                           % akkaV,
   "ch.qos.logback"           % "logback-classic"                      % "1.1.7",
 
-  "com.google.inject"        % "guice"                                % "4.0",
-  "net.codingwell"          %% "scala-guice"                          % "4.0.0",
+  "com.google.guava"         % "guava"                                % "21.0",
+  "net.codingwell"          %% "scala-guice"                          % "4.1.0" exclude("com.google.guava", "guava"),
   "org.postgresql"           % "postgresql"                           % "9.4-1206-jdbc42",
   "com.github.tminglei"     %% "slick-pg"                             % slickPgV,
   "com.github.tminglei"     %% "slick-pg_date2"                       % slickPgV,
@@ -49,7 +50,6 @@ libraryDependencies ++= List(
   "nl.grons"                %% "metrics-scala"                        % "3.5.2",
   "org.asynchttpclient"      % "async-http-client"                    % "2.0.10",
   "net.jodah"                % "failsafe"                             % "0.8.3",
-  "com.google.guava"         % "guava"                                % "21.0",
 
   "org.flywaydb"             % "flyway-core"                          % "4.0.3",
 
