@@ -20,14 +20,6 @@ trait RoutesRepo {
 
   def selectActiveRoutesData(currentTime: LocalDateTime): DatabasePublisher[RouteData]
 
-  /**
-   * Marks route as deleted.
-   *
-   * @param   id of the route to be marked as deleted
-   * @param   deletedBy optional name of the user who marked route to be deleted
-   * @param   dateTime optional timestamp that will be written into deleted_at column
-   * @return  future that contains operation success flag
-   */
   def delete(id: Long, deletedBy: Option[String] = None, dateTime: Option[LocalDateTime] = None): Future[Boolean]
 
   def update(id: Long, pathPatch: RoutePatch, updatedAt: LocalDateTime): Future[Option[(RouteRow, PathRow)]]
