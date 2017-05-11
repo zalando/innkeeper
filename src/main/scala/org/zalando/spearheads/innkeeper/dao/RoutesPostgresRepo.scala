@@ -223,20 +223,19 @@ class RoutesPostgresRepo @Inject() (
   private def matchesFilters(filters: Seq[QueryFilter], routesTable: RoutesTable, pathsTable: PathsTable): Rep[Boolean] = {
     filters.map {
       case RouteNameFilter(routeNames) =>
-        routeNames.map(routesTable.name === _)
+        routesTable.name.inSet(routeNames)
 
       case TeamFilter(teams) =>
-        teams.map(pathsTable.ownedByTeam === _)
+        pathsTable.ownedByTeam.inSet(teams)
 
       case PathUriFilter(pathUris) =>
-        pathUris.map(pathsTable.uri === _)
+        pathsTable.uri.inSet(pathUris)
 
       case PathIdFilter(pathIds) =>
-        pathIds.map(routesTable.pathId === _)
+        routesTable.pathId.inSet(pathIds)
 
-      case _ => Seq.empty
+      case _ => LiteralColumn(true)
     }
-      .flatMap(_.reduceOption(_ || _))
       .reduceOption(_ && _)
       .getOrElse(LiteralColumn(true))
   }
