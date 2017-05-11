@@ -382,5 +382,73 @@ class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers w
         routesRepo.delete(1).futureValue should be (false)
       }
     }
+
+    describe("#deleteFiltered") {
+      def testDeleteFiltered(filteredRoutes: Set[RouteRow], filters: Seq[QueryFilter]) = {
+        val result = routesRepo.deleteFiltered(filters, None).futureValue
+
+        val currentRouteNames = routesRepo.selectFiltered(Seq.empty).map(_._1.name)
+        val deletedRouteNames = getDeletedRouteNames.futureValue
+
+        result.toSet should be(filteredRoutes.flatMap(_.id))
+        result.exists(currentRouteNames.contains) should be(false)
+        deletedRouteNames.toSet should be(filteredRoutes.map(_.name))
+      }
+
+      it("should delete filtered by route name") {
+        insertRoute("R1")
+        val route2 = insertRoute("R2")
+        val route3 = insertRoute("R3")
+
+        val filters = Seq(RouteNameFilter(Seq("R2", "R3")))
+        val filteredRoutes = Set(route2, route3)
+
+        testDeleteFiltered(filteredRoutes, filters)
+      }
+
+      it("should delete filtered by team name") {
+        insertRoute("R1", ownedByTeam = "team-1")
+        val route2 = insertRoute("R2", ownedByTeam = "team-2")
+        val route3 = insertRoute("R3", ownedByTeam = "team-3")
+
+        val filters = Seq(TeamFilter(Seq("team-2", "team-3")))
+        val filteredRoutes = Set(route2, route3)
+
+        testDeleteFiltered(filteredRoutes, filters)
+      }
+
+      it("should delete filtered by path uri") {
+        insertRoute("R1")
+        val route2 = insertRoute("R2")
+        val route3 = insertRoute("R3")
+
+        val filters = Seq(PathUriFilter(Seq("/path-for-R2", "/path-for-R3")))
+        val filteredRoutes = Set(route2, route3)
+
+        testDeleteFiltered(filteredRoutes, filters)
+      }
+
+      it("should delete filtered by path id") {
+        insertRoute("R1")
+        val route2 = insertRoute("R2")
+        val route3 = insertRoute("R3")
+
+        val filters = Seq(PathIdFilter(Seq(route2.id, route3.id).flatten))
+        val filteredRoutes = Set(route2, route3)
+
+        testDeleteFiltered(filteredRoutes, filters)
+      }
+
+      it("should delete filtered by team and route name") {
+        insertRoute("R1", ownedByTeam = "team-1")
+        val route2 = insertRoute("R2", ownedByTeam = "team-2")
+        insertRoute("R3", ownedByTeam = "team-3")
+
+        val filters = Seq(RouteNameFilter(Seq("R2", "R3")), TeamFilter(Seq("team-1", "team-2")))
+        val filteredRoutes = Set(route2)
+
+        testDeleteFiltered(filteredRoutes, filters)
+      }
+    }
   }
 }

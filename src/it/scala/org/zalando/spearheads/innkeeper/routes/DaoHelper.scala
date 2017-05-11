@@ -5,11 +5,12 @@ import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Source
 import org.scalatest.concurrent.ScalaFutures
 import org.zalando.spearheads.innkeeper.dao.MyPostgresDriver.api._
-import org.zalando.spearheads.innkeeper.dao.{AuditsPostgresRepo, InnkeeperPostgresSchema, PathsPostgresRepo, RoutesPostgresRepo}
+import org.zalando.spearheads.innkeeper.dao._
 import org.zalando.spearheads.innkeeper.utils.EnvConfig
 import slick.backend.DatabasePublisher
+
 import scala.language.implicitConversions
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 import scala.collection.immutable.Seq
 
 trait DaoHelper extends ScalaFutures {
@@ -28,6 +29,8 @@ trait DaoHelper extends ScalaFutures {
     schema.dropSchema.futureValue
     schema.createSchema.futureValue
   }
+
+  def getDeletedRouteNames: Future[scala.Seq[String]] = db.run(DeletedRoutes.map(_.name).result)
 
   implicit def databasePublisherToList[T](databasePublisher: DatabasePublisher[T]): Seq[T] = {
     Source.fromPublisher(databasePublisher).runFold(Seq.empty[T]) {

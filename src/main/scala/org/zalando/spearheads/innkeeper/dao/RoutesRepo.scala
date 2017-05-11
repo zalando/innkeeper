@@ -21,6 +21,7 @@ trait RoutesRepo {
   def selectActiveRoutesData(currentTime: LocalDateTime): DatabasePublisher[RouteData]
 
   def delete(id: Long, deletedBy: Option[String] = None, dateTime: Option[LocalDateTime] = None): Future[Boolean]
+  def deleteFiltered(filters: Seq[QueryFilter], dateTime: Option[LocalDateTime]): Future[Seq[Long]]
 
   def update(id: Long, pathPatch: RoutePatch, updatedAt: LocalDateTime): Future[Option[(RouteRow, PathRow)]]
 }

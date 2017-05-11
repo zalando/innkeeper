@@ -212,6 +212,29 @@ class RoutesPostgresRepo @Inject() (
     }
   }
 
+  override def deleteFiltered(filters: Seq[QueryFilter], dateTime: Option[LocalDateTime]): Future[Seq[Long]] = {
+    logger.debug(s"deleting routes by $filters")
+
+    val deletedAt = dateTime.getOrElse(LocalDateTime.now())
+
+    val filteredRoutesQuery = for {
+      (routesTable, pathsTable) <- Routes join Paths on (_.pathId === _.id)
+      if matchesFilters(filters, routesTable, pathsTable)
+    } yield routesTable
+
+    val routeIdsQuery = filteredRoutesQuery.map(_.id)
+    val deletedRouteForInsertQuery = filteredRoutesQuery.map(routeRow => (routeRow.name, deletedAt))
+
+    val insertDeletedRouteQuery = DeletedRoutes.forceInsertQuery(deletedRouteForInsertQuery)
+    val deleteRouteQuery = Routes.filter(_.id.in(routeIdsQuery)).delete
+
+    for {
+      ids <- db.run(routeIdsQuery.result)
+      _ <- db.run(insertDeletedRouteQuery)
+      _ <- db.run(deleteRouteQuery)
+    } yield ids.to[collection.immutable.Seq]
+  }
+
   override def routeWithNameExists(name: String): Future[Boolean] = {
     logger.debug(s"route with name $name exists")
 
