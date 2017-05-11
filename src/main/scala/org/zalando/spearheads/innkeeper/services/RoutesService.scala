@@ -10,7 +10,6 @@ import org.zalando.spearheads.innkeeper.api.{Host, NewRoute, PathOut, RouteIn, R
 import org.zalando.spearheads.innkeeper.dao.{AuditType, AuditsRepo, Embed, HostsEmbed, PathRow, PathEmbed, QueryFilter, RouteRow, RoutesRepo}
 import org.zalando.spearheads.innkeeper.services.ServiceResult._
 import org.zalando.spearheads.innkeeper.utils.EnvConfig
-import slick.backend.DatabasePublisher
 import spray.json.{pimpAny, pimpString}
 import scala.collection.immutable.{Seq, Set}
 import scala.concurrent.{ExecutionContext, Future}
@@ -160,16 +159,6 @@ class DefaultRoutesService @Inject() (
     } else {
       None
     }
-  }
-
-  private def routeRowsStreamToRouteOutStream(streamOfRows: => DatabasePublisher[RouteRow]): Source[RouteOut, NotUsed] = {
-
-    Source.fromPublisher(streamOfRows.mapResult { routeRow =>
-      routeRow.id.map { id =>
-
-        routeRowToRoute(id, routeRow, None, None)
-      }
-    }).mapConcat(_.toList)
   }
 
   override def findById(id: Long, embed: Set[Embed]): Future[Result[RouteOut]] = {
