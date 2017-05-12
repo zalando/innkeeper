@@ -659,7 +659,8 @@ definitions:
       host_ids:
         type: array
         items:
-          type: string
+          type: integer
+          format: int64
       has_star:
         type: boolean
         description: the path will be serialized as a PathSubtree predicate
@@ -672,7 +673,7 @@ definitions:
     example: |
       {
         "uri": "/cart",
-        "host_ids": ["1", "2"]
+        "host_ids": [1, 2]
       }
   PathOut:
     required:
@@ -694,7 +695,8 @@ definitions:
       host_ids:
         type: array
         items:
-          type: string
+          type: integer
+          format: int64
       created_at:
         type: string
         format: date-time
@@ -710,7 +712,7 @@ definitions:
         "uri": "/cart",
         "has_star": false,
         "is_regex": false,
-        "host_ids": ["1", "2"],
+        "host_ids": [1, 2],
         "created_at": "1985-04-12T23:20:50.52Z"
       }
   PathPatch:
@@ -720,11 +722,12 @@ definitions:
       host_ids:
         type: array
         items:
-          type: string
+          type: integer
+          format: int64
     example: |
       {
         "owned_by_team": "coast",
-        "host_ids": ["1", "2"]
+        "host_ids": [1, 2]
       }
   Error:
     required:
