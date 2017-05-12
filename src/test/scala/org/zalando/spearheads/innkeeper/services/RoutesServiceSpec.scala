@@ -108,6 +108,23 @@ class RoutesServiceSpec extends FunSpec with Matchers with MockFactory with Scal
       }
     }
 
+    describe("#removeFiltered") {
+      val username = "username"
+
+      it("should remove a route") {
+        val filters = Seq.empty
+        val deletedRouteIdsResponse = Seq[Long](1, 2, 3)
+
+        (routesRepo.deleteFiltered _).expects(filters, None).returning(Future(deletedRouteIdsResponse))
+        deletedRouteIdsResponse.foreach { routeId =>
+          (auditsRepo.persistRouteLog _).expects(routeId, username, AuditType.Delete)
+        }
+
+        val result = routesService.removeFiltered(filters, username).futureValue
+        result should be(ServiceResult.Success(deletedRouteIdsResponse.size))
+      }
+    }
+
     describe("#findFiltered") {
 
       it ("should find the routes") {

@@ -92,12 +92,6 @@ object RoutesSpecsHelper {
 
   def getSlashRoute(id: Long, token: String = "", embed: Seq[String] = Seq.empty): HttpResponse = slashRoute(id, embed, token)
 
-  def deleteDeletedRoutes(deletedBefore: LocalDateTime, token: String = ""): HttpResponse =
-    deleteDeletedRoutes(RequestParameters.urlDateTimeFormatter.format(deletedBefore), token)
-
-  def deleteDeletedRoutes(deletedBefore: String, token: String): HttpResponse =
-    doDelete(s"$baseUri/deleted-routes/$deletedBefore", token)
-
   def getDeletedRoutes(deletedBefore: LocalDateTime, token: String = ""): HttpResponse =
     getDeletedRoutes(RequestParameters.urlDateTimeFormatter.format(deletedBefore), token)
 
@@ -108,6 +102,9 @@ object RoutesSpecsHelper {
     getUpdatedRoutes(RequestParameters.urlDateTimeFormatter.format(localDateTime), token)
 
   def deleteSlashRoute(id: Long, token: String = ""): HttpResponse = slashRoute(id, Seq.empty, token, HttpMethods.DELETE)
+
+  def deleteSlashRoutesByTeam(teams: Seq[String], token: String): HttpResponse =
+    makeRequest(routeByTeamUri(teams), token, HttpMethods.DELETE)
 
   def getUpdatedRoutes(localDateTime: String, token: String): HttpResponse = doGet(s"$baseUri/updated-routes/$localDateTime", token)
 
