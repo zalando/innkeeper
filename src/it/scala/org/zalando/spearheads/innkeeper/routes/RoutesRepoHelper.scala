@@ -71,14 +71,10 @@ object RoutesRepoHelper extends DaoHelper {
   }
 
   def deleteRoute(id: Long, dateTime: Option[LocalDateTime] = None): Boolean = {
-    deleteRoute(id, None, dateTime)
+    routesRepo.delete(id, None, dateTime).futureValue
   }
 
-  def deleteRoute(id: Long, deletedBy: Option[String], dateTime: Option[LocalDateTime]): Boolean = {
-    routesRepo.delete(id, deletedBy, dateTime).futureValue
-  }
-
-  def routeJson(method: String = "POST") =
+  def routeJson(method: String = "POST"): String =
     s"""{
         |  "predicates": [{
         |      "name": "method",

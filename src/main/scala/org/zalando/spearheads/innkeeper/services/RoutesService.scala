@@ -10,7 +10,6 @@ import org.zalando.spearheads.innkeeper.api.{Host, NewRoute, PathOut, RouteIn, R
 import org.zalando.spearheads.innkeeper.dao.{AuditType, AuditsRepo, Embed, HostsEmbed, PathRow, PathEmbed, QueryFilter, RouteRow, RoutesRepo}
 import org.zalando.spearheads.innkeeper.services.ServiceResult._
 import org.zalando.spearheads.innkeeper.utils.EnvConfig
-import slick.backend.DatabasePublisher
 import spray.json.{pimpAny, pimpString}
 import scala.collection.immutable.{Seq, Set}
 import scala.concurrent.{ExecutionContext, Future}
@@ -29,6 +28,11 @@ trait RoutesService {
     updatedAt: LocalDateTime = LocalDateTime.now()): Future[Result[RouteOut]]
 
   def remove(id: Long, deletedBy: String): Future[Result[Boolean]]
+
+  /**
+   * @return number of deleted routes
+   */
+  def removeFiltered(filters: Seq[QueryFilter], userName: String): Future[Result[Int]]
 
   def findFiltered(filters: Seq[QueryFilter], embed: Set[Embed]): Source[RouteOut, NotUsed]
 
@@ -128,10 +132,24 @@ class DefaultRoutesService @Inject() (
     }
   }
 
+  override def removeFiltered(filters: Seq[QueryFilter], userName: String): Future[Result[Int]] = {
+    val deleteResult = routesRepo.deleteFiltered(filters, None)
+
+    auditFilteredRouteDelete(deleteResult, userName)
+
+    deleteResult.map(it => Success(it.size))
+  }
+
   private def auditRouteDelete(deleteResult: Future[Boolean], id: Long, userName: String): Unit = {
     deleteResult.onSuccess {
       case true  => auditsRepo.persistRouteLog(id, userName, AuditType.Delete)
       case false =>
+    }
+  }
+
+  private def auditFilteredRouteDelete(deleteResult: Future[Seq[Long]], userName: String): Unit = {
+    deleteResult.onSuccess {
+      case ids => ids.foreach(id => auditsRepo.persistRouteLog(id, userName, AuditType.Delete))
     }
   }
 
@@ -160,16 +178,6 @@ class DefaultRoutesService @Inject() (
     } else {
       None
     }
-  }
-
-  private def routeRowsStreamToRouteOutStream(streamOfRows: => DatabasePublisher[RouteRow]): Source[RouteOut, NotUsed] = {
-
-    Source.fromPublisher(streamOfRows.mapResult { routeRow =>
-      routeRow.id.map { id =>
-
-        routeRowToRoute(id, routeRow, None, None)
-      }
-    }).mapConcat(_.toList)
   }
 
   override def findById(id: Long, embed: Set[Embed]): Future[Result[RouteOut]] = {

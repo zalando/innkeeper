@@ -212,6 +212,29 @@ class RoutesPostgresRepo @Inject() (
     }
   }
 
+  override def deleteFiltered(filters: Seq[QueryFilter], dateTime: Option[LocalDateTime]): Future[Seq[Long]] = {
+    logger.debug(s"deleting routes by $filters")
+
+    val deletedAt = dateTime.getOrElse(LocalDateTime.now())
+
+    val filteredRoutesQuery = for {
+      (routesTable, pathsTable) <- Routes join Paths on (_.pathId === _.id)
+      if matchesFilters(filters, routesTable, pathsTable)
+    } yield routesTable
+
+    val routeIdsQuery = filteredRoutesQuery.map(_.id)
+    val deletedRouteForInsertQuery = filteredRoutesQuery.map(routeRow => (routeRow.name, deletedAt))
+
+    val insertDeletedRouteQuery = DeletedRoutes.forceInsertQuery(deletedRouteForInsertQuery)
+    val deleteRouteQuery = Routes.filter(_.id.in(routeIdsQuery)).delete
+
+    for {
+      ids <- db.run(routeIdsQuery.result)
+      _ <- db.run(insertDeletedRouteQuery)
+      _ <- db.run(deleteRouteQuery)
+    } yield ids.to[collection.immutable.Seq]
+  }
+
   override def routeWithNameExists(name: String): Future[Boolean] = {
     logger.debug(s"route with name $name exists")
 
@@ -223,20 +246,19 @@ class RoutesPostgresRepo @Inject() (
   private def matchesFilters(filters: Seq[QueryFilter], routesTable: RoutesTable, pathsTable: PathsTable): Rep[Boolean] = {
     filters.map {
       case RouteNameFilter(routeNames) =>
-        routeNames.map(routesTable.name === _)
+        routesTable.name.inSet(routeNames)
 
       case TeamFilter(teams) =>
-        teams.map(pathsTable.ownedByTeam === _)
+        pathsTable.ownedByTeam.inSet(teams)
 
       case PathUriFilter(pathUris) =>
-        pathUris.map(pathsTable.uri === _)
+        pathsTable.uri.inSet(pathUris)
 
       case PathIdFilter(pathIds) =>
-        pathIds.map(routesTable.pathId === _)
+        routesTable.pathId.inSet(pathIds)
 
-      case _ => Seq.empty
+      case _ => LiteralColumn(true)
     }
-      .flatMap(_.reduceOption(_ || _))
       .reduceOption(_ && _)
       .getOrElse(LiteralColumn(true))
   }

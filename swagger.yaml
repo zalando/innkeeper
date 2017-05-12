@@ -244,6 +244,47 @@ paths:
           description: A processing or an unexpected error.
           schema:
             $ref: '#/definitions/Error'
+    delete:
+      security:
+        - company:
+          - routes.write
+      summary: Deletes paths based on the provided filters.
+      description: |
+        If the provided token is not an admin token, only routes belonging
+        to the team associated with the provided token are deleted.
+      parameters:
+        - name: name
+          in: query
+          description: The name of the route to filter for
+          required: false
+          type: string
+        - name: owned_by_team
+          in: query
+          description: The team name to filter for
+          required: false
+          type: string
+        - name: uri
+          in: query
+          description: The path uri to filter for
+          required: false
+          type: string
+        - name: path_id
+          in: query
+          description: The path id to filter for
+          required: false
+          type: integer
+          format: int64
+      responses:
+        '200':
+          description: The amount of routes that were deleted.
+        '403':
+          description: Happens in a case of insufficient permissions.
+          schema:
+            $ref: '#/definitions/Error'
+        default:
+          description: A processing or an unexpected error.
+          schema:
+            $ref: '#/definitions/Error'
   '/current-routes':
     get:
       security:
