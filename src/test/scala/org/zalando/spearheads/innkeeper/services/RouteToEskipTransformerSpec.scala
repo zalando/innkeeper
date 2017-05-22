@@ -24,7 +24,7 @@ class RouteToEskipTransformerSpec extends FunSpec with Matchers with MockFactory
       routeToEskipTransformer.transform(routeData) should be(expectedResult)
     }
 
-    it("should transform a route without an endpoint to an eskip route") {
+    it("should transform a missing endpoint to shunt") {
       initMocks()
       val routeWithoutEndpoint = newRoute.copy(endpoint = None)
       val contextWithRouteWithoutEndpoint = routeData.copy(routeJson = routeWithoutEndpoint.toJson.compactPrint)
@@ -33,13 +33,41 @@ class RouteToEskipTransformerSpec extends FunSpec with Matchers with MockFactory
         be(expectedResult.copy(endpoint = "<shunt>"))
     }
 
-    it("should transform a route with an empty endpoint to an eskip route") {
+    it("should transform an empty endpoint to shunt") {
       initMocks()
       val routeWithEmptyEndpoint = newRoute.copy(endpoint = Some(""))
       val contextWithRouteWithoutEndpoint = routeData.copy(routeJson = routeWithEmptyEndpoint.toJson.compactPrint)
 
       routeToEskipTransformer.transform(contextWithRouteWithoutEndpoint) should
         be(expectedResult.copy(endpoint = "<shunt>"))
+    }
+
+    it("should transform a shunt endpoint to unquoted shunt") {
+      initMocks()
+      val routeWithEmptyEndpoint = newRoute.copy(endpoint = Some("<shunt>"))
+      val contextWithRouteWithoutEndpoint = routeData.copy(routeJson = routeWithEmptyEndpoint.toJson.compactPrint)
+
+      routeToEskipTransformer.transform(contextWithRouteWithoutEndpoint) should
+        be(expectedResult.copy(endpoint = "<shunt>"))
+    }
+
+    it("should transform a loopback endpoint to unquoted loopback") {
+      initMocks()
+      val routeWithEmptyEndpoint = newRoute.copy(endpoint = Some("<loopback>"))
+      val contextWithRouteWithoutEndpoint = routeData.copy(routeJson = routeWithEmptyEndpoint.toJson.compactPrint)
+
+      routeToEskipTransformer.transform(contextWithRouteWithoutEndpoint) should
+        be(expectedResult.copy(endpoint = "<loopback>"))
+    }
+
+    it("should transform a regular endpoint to quoted endpoint") {
+      initMocks()
+      val endpoint = "https://localhost"
+      val routeWithEmptyEndpoint = newRoute.copy(endpoint = Some(endpoint))
+      val contextWithRouteWithoutEndpoint = routeData.copy(routeJson = routeWithEmptyEndpoint.toJson.compactPrint)
+
+      routeToEskipTransformer.transform(contextWithRouteWithoutEndpoint) should
+        be(expectedResult.copy(endpoint = '"' + endpoint + '"'))
     }
 
     it("should transform a route which has a star path to an eskip route") {

@@ -67,6 +67,8 @@ class DefaultRouteToEskipTransformer @Inject() (hostsService: HostsService, comm
   private def wrapString(value: String, wrapping: String): String = wrapping + value + wrapping
 
   private[this] def transformEndpoint(endpointOption: Option[String]) = endpointOption match {
+    case Some("<loopback>")                  => "<loopback>"
+    case Some("<shunt>")                     => "<shunt>"
     case Some(endpoint) if !endpoint.isEmpty => s""""$endpoint""""
     case _                                   => "<shunt>"
   }
