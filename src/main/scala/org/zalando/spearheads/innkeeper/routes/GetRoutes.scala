@@ -13,6 +13,9 @@ import org.zalando.spearheads.innkeeper.services.RoutesService
 import org.zalando.spearheads.innkeeper.api.JsonProtocols._
 import org.zalando.spearheads.innkeeper.dao.{PathIdFilter, PathUriFilter, QueryFilter, RouteNameFilter, TeamFilter}
 
+import scala.collection.immutable.Seq
+import scala.util.Try
+
 /**
  * @author dpersa
  */
@@ -33,32 +36,7 @@ class GetRoutes @Inject() (
 
           parameterMultiMap { parameterMultiMap =>
             extractEmbed(parameterMultiMap) { embed =>
-              val filters = parameterMultiMap.flatMap {
-                case ("name", routeNames) => Some[QueryFilter](
-                  RouteNameFilter(routeNames)
-                )
-                case ("owned_by_team", teams) => Some[QueryFilter](
-                  TeamFilter(teams)
-                )
-                case ("uri", pathUris) => Some[QueryFilter](
-                  PathUriFilter(pathUris)
-                )
-                case ("path_id", pathIdStrings) =>
-                  val pathIds = pathIdStrings.flatMap(idString => try {
-                    Some(idString.toLong)
-                  } catch {
-                    case e: NumberFormatException => None
-                  })
-
-                  if (pathIds.nonEmpty) {
-                    Some[QueryFilter](
-                      PathIdFilter(pathIds)
-                    )
-                  } else {
-                    None
-                  }
-                case _ => None
-              }.toList
+              val filters = extractFilters(parameterMultiMap)
 
               logger.debug(s"Filters $filters. Embed: $embed")
 
@@ -71,4 +49,29 @@ class GetRoutes @Inject() (
       }
     }
   }
+
+  private def extractFilters(parameterMultiMap: Map[String, Seq[String]]): List[QueryFilter] = {
+    parameterMultiMap.flatMap {
+      case ("name", routeNames) =>
+        Some(RouteNameFilter(routeNames))
+
+      case ("owned_by_team", teams) =>
+        Some(TeamFilter(teams))
+
+      case ("uri", pathUris) =>
+        Some(PathUriFilter(pathUris))
+
+      case ("path_id", pathIdStrings) =>
+        val pathIds = pathIdStrings.flatMap { pathIdString =>
+          Try(pathIdString.toLong).toOption
+        }
+
+        Some(pathIds)
+          .filter(_.nonEmpty)
+          .map(PathIdFilter)
+
+      case _ => None
+    }.toList
+  }
+
 }
