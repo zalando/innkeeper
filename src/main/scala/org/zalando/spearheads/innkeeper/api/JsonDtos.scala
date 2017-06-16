@@ -18,3 +18,5 @@ case class Error(
   detail: Option[String] = None)
 
 case class Host(id: Long, name: String)
+
+case class Pagination(offset: Int, limit: Int)

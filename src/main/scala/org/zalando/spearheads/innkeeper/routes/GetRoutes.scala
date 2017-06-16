@@ -4,7 +4,7 @@ import akka.http.scaladsl.server.Directives.{get, parameterMultiMap}
 import akka.http.scaladsl.server.Route
 import com.google.inject.Inject
 import org.slf4j.LoggerFactory
-import org.zalando.spearheads.innkeeper.RouteDirectives.{chunkedResponseOf, extractEmbed}
+import org.zalando.spearheads.innkeeper.RouteDirectives.{chunkedResponseOf, extractEmbed, extractPagination}
 import org.zalando.spearheads.innkeeper.api.{JsonService, RouteOut}
 import org.zalando.spearheads.innkeeper.metrics.RouteMetrics
 import org.zalando.spearheads.innkeeper.oauth.OAuthDirectives.hasOneOfTheScopes
@@ -36,12 +36,14 @@ class GetRoutes @Inject() (
 
           parameterMultiMap { parameterMultiMap =>
             extractEmbed(parameterMultiMap) { embed =>
-              val filters = extractFilters(parameterMultiMap)
+              extractPagination(parameterMultiMap) { pagination =>
+                val filters = extractFilters(parameterMultiMap)
 
-              logger.debug(s"Filters $filters. Embed: $embed")
+                logger.debug("Filters {}. Pagination {}. Embed: {}.", filters, pagination, embed)
 
-              chunkedResponseOf[RouteOut](jsonService) {
-                routesService.findFiltered(filters, embed)
+                chunkedResponseOf[RouteOut](jsonService) {
+                  routesService.findFiltered(filters, pagination, embed)
+                }
               }
             }
           }

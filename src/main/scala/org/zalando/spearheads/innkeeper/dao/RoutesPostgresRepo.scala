@@ -4,11 +4,12 @@ import java.time.LocalDateTime
 
 import com.google.inject.{Inject, Singleton}
 import org.slf4j.LoggerFactory
-import org.zalando.spearheads.innkeeper.api.{RouteChangeType, RoutePatch}
+import org.zalando.spearheads.innkeeper.api.{Pagination, RouteChangeType, RoutePatch}
 import org.zalando.spearheads.innkeeper.api.JsonProtocols._
 import org.zalando.spearheads.innkeeper.dao.MyPostgresDriver.api._
 import slick.backend.DatabasePublisher
 import spray.json.pimpAny
+
 import scala.collection.immutable.Seq
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -45,7 +46,7 @@ class RoutesPostgresRepo @Inject() (
     }.map(_.headOption)
   }
 
-  override def selectFiltered(filters: Seq[QueryFilter] = Seq.empty): DatabasePublisher[(RouteRow, PathRow)] = {
+  override def selectFiltered(filters: Seq[QueryFilter] = Seq.empty, pagination: Option[Pagination] = None): DatabasePublisher[(RouteRow, PathRow)] = {
     logger.debug(s"selectFiltered $filters")
 
     val query = for {
@@ -53,8 +54,17 @@ class RoutesPostgresRepo @Inject() (
       if matchesFilters(filters, routesTable, pathsTable)
     } yield (routesTable, pathsTable)
 
+    val paginatedQuery = pagination.map { pagination =>
+      query
+        .sortBy { case (routes, _) => routes.id }
+        .drop(pagination.offset)
+        .take(pagination.limit)
+    } getOrElse {
+      query
+    }
+
     db.stream {
-      query.result
+      paginatedQuery.result
     }
   }
 
