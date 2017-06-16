@@ -126,34 +126,43 @@ class RoutesServiceSpec extends FunSpec with Matchers with MockFactory with Scal
     }
 
     describe("#findFiltered") {
+      val filters = Seq(RouteNameFilter(Seq("the_route")))
+      val pagination = None
 
       it ("should find the routes") {
-        val filters = Seq(RouteNameFilter(Seq("the_route")))
-        (routesRepo.selectFiltered _).expects(filters).returning(FakeDatabasePublisher(Seq((routeRow, pathRow))))
+        (routesRepo.selectFiltered _)
+          .expects(filters, pagination)
+          .returning(FakeDatabasePublisher(Seq((routeRow, pathRow))))
 
-        val routeOut = routesService.findFiltered(Seq(RouteNameFilter(Seq("the_route"))), Set.empty)
+        val routeOut = routesService.findFiltered(filters, pagination, Set.empty)
           .runWith(Sink.head).futureValue
 
         verifyRoute(routeOut, None, None)
       }
 
       it ("should find the routes with embedded path") {
-        val filters = Seq(RouteNameFilter(Seq("the_route")))
-        (routesRepo.selectFiltered _).expects(filters).returning(FakeDatabasePublisher(Seq((routeRow, pathRow))))
-        (pathsService.pathRowToPath _).expects(pathId, pathRow).returning(pathOut)
+        (routesRepo.selectFiltered _)
+          .expects(filters, None)
+          .returning(FakeDatabasePublisher(Seq((routeRow, pathRow))))
+        (pathsService.pathRowToPath _)
+          .expects(pathId, pathRow)
+          .returning(pathOut)
 
-        val routeOut = routesService.findFiltered(Seq(RouteNameFilter(Seq("the_route"))), Set(PathEmbed))
+        val routeOut = routesService.findFiltered(filters, pagination, Set(PathEmbed))
           .runWith(Sink.head).futureValue
 
         verifyRoute(routeOut, Some(pathOut), None)
       }
 
       it ("should find the routes with embedded hosts") {
-        val filters = Seq(RouteNameFilter(Seq("the_route")))
-        (routesRepo.selectFiltered _).expects(filters).returning(FakeDatabasePublisher(Seq((routeRow, pathRow))))
-        (hostsService.getByIds _).expects(Set(hostId)).returning(Seq(host))
+        (routesRepo.selectFiltered _)
+          .expects(filters, None)
+          .returning(FakeDatabasePublisher(Seq((routeRow, pathRow))))
+        (hostsService.getByIds _)
+          .expects(Set(hostId))
+          .returning(Seq(host))
 
-        val routeOut = routesService.findFiltered(Seq(RouteNameFilter(Seq("the_route"))), Set(HostsEmbed))
+        val routeOut = routesService.findFiltered(filters, pagination, Set(HostsEmbed))
           .runWith(Sink.head).futureValue
 
         verifyRoute(routeOut, None, Some(Seq(host)))

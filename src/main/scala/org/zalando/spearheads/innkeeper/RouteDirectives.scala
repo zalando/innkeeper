@@ -14,9 +14,10 @@ import org.zalando.spearheads.innkeeper.api.validation.{Invalid, RouteValidation
 import org.zalando.spearheads.innkeeper.dao.{Embed, HostsEmbed, PathEmbed, UnknownEmbed}
 import org.zalando.spearheads.innkeeper.services.{PathsService, RoutesService, ServiceResult}
 import spray.json.JsonWriter
+
 import scala.concurrent.ExecutionContext
-import scala.util.Success
-import scala.collection.immutable.{Set, Seq}
+import scala.util.{Success, Try}
+import scala.collection.immutable.{Seq, Set}
 
 /**
  * @author dpersa
@@ -33,6 +34,24 @@ trait RouteDirectives {
             case _       => UnknownEmbed
           }
         }.getOrElse(Set.empty[Embed]).toSet))(ctx)
+      }
+    }
+
+  def extractPagination(parameterMultiMap: Map[String, Seq[String]]): Directive1[Option[Pagination]] =
+    Directive[Tuple1[Option[Pagination]]] { inner => ctx =>
+      {
+        val limit = parameterMultiMap.get("limit")
+          .flatMap(_.headOption)
+          .flatMap(s => Try(s.toInt).toOption)
+
+        def offset = parameterMultiMap.get("offset")
+          .flatMap(_.headOption)
+          .flatMap(s => Try(s.toInt).toOption)
+          .getOrElse(0)
+
+        val pagination = limit.map(l => Pagination(l, offset))
+
+        inner(Tuple1(pagination))(ctx)
       }
     }
 

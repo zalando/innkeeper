@@ -14,6 +14,8 @@ object RoutesSpecsHelper {
 
   private def routeUri(id: Long, embed: Seq[String] = Seq.empty) = s"$routesUri/$id${paramsToUri("embed", embed)}"
 
+  private def routesWithQueryParamsUri(params: Map[String, List[String]]) = routesUri + paramsToUri(params)
+
   private def routeWithEmbedUri(names: Seq[String]) = routesUri + paramsToUri("embed", names)
 
   private def routeByNameUri(names: Seq[String]) = routesUri + paramsToUri("name", names)
@@ -24,12 +26,22 @@ object RoutesSpecsHelper {
 
   private def routeByPathIdUri(pathIds: Seq[Long]) = routesUri + paramsToUri("path_id", pathIds.map(_.toString))
 
-  private def paramsToUri(key: String, params: Seq[String]) = {
-    if (params.nonEmpty) {
-      "?" + params.map(param => s"$key=$param").mkString("&")
-    } else {
-      ""
-    }
+  private def paramsToUri(key: String, params: Seq[String]): String = paramsToUri(Map(key -> params.toList))
+
+  private def paramsToUri(params: Map[String, List[String]]): String = {
+    val paramsString = params
+      .filter {
+        case (_, values) =>
+          values.nonEmpty
+      }
+      .flatMap {
+        case (name, values) =>
+          values.map(value => s"$name=$value")
+      }
+      .mkString("&")
+
+    if (paramsString.isEmpty) ""
+    else "?" + paramsString
   }
 
   private val currentRoutesUri = s"$baseUri/current-routes"
@@ -71,6 +83,8 @@ object RoutesSpecsHelper {
     postSlashRoutes(route(routeName, pathId))(token)
 
   def getSlashRoutes(token: String = ""): HttpResponse = doGet(routesUri, token)
+
+  def getSlashRoutesWithQueryParams(params: Map[String, List[String]], token: String): HttpResponse = doGet(routesWithQueryParamsUri(params), token)
 
   def getSlashRoutesWithEmbed(names: Seq[String], token: String): HttpResponse = doGet(routeWithEmbedUri(names), token)
 

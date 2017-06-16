@@ -69,6 +69,25 @@ class GetRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
         }
       }
 
+      describe("when providing pagination query params") {
+        it ("should return the paginated routes") {
+          insertRoute(name = "R1", pathHostIds = Seq(1L))
+          insertRoute(name = "R2", pathHostIds = Seq(1L))
+          insertRoute(name = "R3", pathHostIds = Seq(1L))
+
+          val queryParams = Map(
+            "offset" -> List("1"),
+            "limit" -> List("1")
+          )
+
+          val response = getSlashRoutesWithQueryParams(queryParams, token)
+          response.status should be(StatusCodes.OK)
+          val entity = entityString(response)
+          val routes = entity.parseJson.convertTo[Seq[RouteOut]]
+          routes.map(_.id).toSet should be(Set(2L))
+        }
+      }
+
       describe("when filtering the routes by name") {
 
         it("should return the correct routes") {

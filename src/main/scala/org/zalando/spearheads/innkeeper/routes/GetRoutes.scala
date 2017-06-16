@@ -4,7 +4,7 @@ import akka.http.scaladsl.server.Directives.{get, parameterMultiMap}
 import akka.http.scaladsl.server.Route
 import com.google.inject.Inject
 import org.slf4j.LoggerFactory
-import org.zalando.spearheads.innkeeper.RouteDirectives.{chunkedResponseOf, extractEmbed}
+import org.zalando.spearheads.innkeeper.RouteDirectives.{chunkedResponseOf, extractEmbed, extractPagination}
 import org.zalando.spearheads.innkeeper.api.{JsonService, RouteOut}
 import org.zalando.spearheads.innkeeper.metrics.RouteMetrics
 import org.zalando.spearheads.innkeeper.oauth.OAuthDirectives.hasOneOfTheScopes
@@ -12,6 +12,9 @@ import org.zalando.spearheads.innkeeper.oauth.{AuthenticatedUser, Scopes}
 import org.zalando.spearheads.innkeeper.services.RoutesService
 import org.zalando.spearheads.innkeeper.api.JsonProtocols._
 import org.zalando.spearheads.innkeeper.dao.{PathIdFilter, PathUriFilter, QueryFilter, RouteNameFilter, TeamFilter}
+
+import scala.collection.immutable.Seq
+import scala.util.Try
 
 /**
  * @author dpersa
@@ -33,37 +36,14 @@ class GetRoutes @Inject() (
 
           parameterMultiMap { parameterMultiMap =>
             extractEmbed(parameterMultiMap) { embed =>
-              val filters = parameterMultiMap.flatMap {
-                case ("name", routeNames) => Some[QueryFilter](
-                  RouteNameFilter(routeNames)
-                )
-                case ("owned_by_team", teams) => Some[QueryFilter](
-                  TeamFilter(teams)
-                )
-                case ("uri", pathUris) => Some[QueryFilter](
-                  PathUriFilter(pathUris)
-                )
-                case ("path_id", pathIdStrings) =>
-                  val pathIds = pathIdStrings.flatMap(idString => try {
-                    Some(idString.toLong)
-                  } catch {
-                    case e: NumberFormatException => None
-                  })
+              extractPagination(parameterMultiMap) { pagination =>
+                val filters = extractFilters(parameterMultiMap)
 
-                  if (pathIds.nonEmpty) {
-                    Some[QueryFilter](
-                      PathIdFilter(pathIds)
-                    )
-                  } else {
-                    None
-                  }
-                case _ => None
-              }.toList
+                logger.debug("Filters {}. Pagination {}. Embed: {}.", filters, pagination, embed)
 
-              logger.debug(s"Filters $filters. Embed: $embed")
-
-              chunkedResponseOf[RouteOut](jsonService) {
-                routesService.findFiltered(filters, embed)
+                chunkedResponseOf[RouteOut](jsonService) {
+                  routesService.findFiltered(filters, pagination, embed)
+                }
               }
             }
           }
@@ -71,4 +51,29 @@ class GetRoutes @Inject() (
       }
     }
   }
+
+  private def extractFilters(parameterMultiMap: Map[String, Seq[String]]): List[QueryFilter] = {
+    parameterMultiMap.flatMap {
+      case ("name", routeNames) =>
+        Some(RouteNameFilter(routeNames))
+
+      case ("owned_by_team", teams) =>
+        Some(TeamFilter(teams))
+
+      case ("uri", pathUris) =>
+        Some(PathUriFilter(pathUris))
+
+      case ("path_id", pathIdStrings) =>
+        val pathIds = pathIdStrings.flatMap { pathIdString =>
+          Try(pathIdString.toLong).toOption
+        }
+
+        Some(pathIds)
+          .filter(_.nonEmpty)
+          .map(PathIdFilter)
+
+      case _ => None
+    }.toList
+  }
+
 }
