@@ -10,8 +10,6 @@ import org.zalando.spearheads.innkeeper.routes.RoutesRepoHelper.{insertRoute, re
 import org.zalando.spearheads.innkeeper.routes.RoutesSpecsHelper._
 import spray.json._
 
-import scala.collection.immutable.Seq
-
 class DeleteRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
 
   describe("delete /routes") {
@@ -28,7 +26,8 @@ class DeleteRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
           insertRoute("R1")
           insertRoute("R2", ownedByTeam = token.teamName)
 
-          val response = deleteSlashRoutesByTeam(Seq(token.teamName), token)
+          val queryParams = Map("owned_by_team" -> List(token.teamName))
+          val response = deleteSlashRoutesWithQueryParams(queryParams, token)
           response.status should be(StatusCodes.OK)
           entityString(response) should be("1")
         }
@@ -42,7 +41,8 @@ class DeleteRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
           insertRoute("R1")
           insertRoute("R2", ownedByTeam = otherTeam)
 
-          val response = deleteSlashRoutesByTeam(Seq(otherTeam), token)
+          val queryParams = Map("owned_by_team" -> List(otherTeam))
+          val response = deleteSlashRoutesWithQueryParams(queryParams, token)
           response.status should be(StatusCodes.OK)
           entityString(response) should be("0")
         }
@@ -56,7 +56,8 @@ class DeleteRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
           insertRoute("R1")
           insertRoute("R2", ownedByTeam = otherOwningTeam)
 
-          val response = deleteSlashRoutesByTeam(Seq(otherOwningTeam), token)
+          val queryParams = Map("owned_by_team" -> List(otherOwningTeam))
+          val response = deleteSlashRoutesWithQueryParams(queryParams, token)
           response.status should be(StatusCodes.OK)
           entityString(response) should be("1")
         }
@@ -66,7 +67,7 @@ class DeleteRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
     describe("failure") {
       describe("when no token is provided") {
         it("should return the 401 Unauthorized status") {
-          val response = deleteSlashRoutesByTeam(Seq.empty, token = "")
+          val response = deleteSlashRoutesWithQueryParams(Map.empty, token = "")
           response.status should be(StatusCodes.Unauthorized)
         }
       }
@@ -75,7 +76,7 @@ class DeleteRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
         val token = INVALID_TOKEN
 
         it("should return the 403 Forbidden status") {
-          val response = deleteSlashRoutesByTeam(Seq.empty, token)
+          val response = deleteSlashRoutesWithQueryParams(Map.empty, token)
           response.status should be(StatusCodes.Forbidden)
           entityString(response).parseJson.convertTo[Error].errorType should be("AUTH3")
         }
@@ -85,7 +86,7 @@ class DeleteRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
         val token = READ_TOKEN
 
         it("should return the 403 Forbidden status") {
-          val response = deleteSlashRoutesByTeam(Seq.empty, token)
+          val response = deleteSlashRoutesWithQueryParams(Map.empty, token)
           response.status should be(StatusCodes.Forbidden)
           entityString(response).parseJson.convertTo[Error].errorType should be("AUTH1")
         }
