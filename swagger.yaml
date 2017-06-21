@@ -207,6 +207,16 @@ paths:
           description: The subresources to embed (path, hosts)
           required: false
           type: string
+        - name: limit
+          in: query
+          description: the limit for a paginated query
+          required: false
+          type: int64
+        - name: offset
+          in: query
+          description: the offset for a paginated query, if missing an limit is present it defaults to 0
+          required: false
+          type: int64
       responses:
         '200':
           description: An array of routes
