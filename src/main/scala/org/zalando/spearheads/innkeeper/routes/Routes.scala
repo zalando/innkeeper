@@ -38,31 +38,45 @@ class Routes @Inject() (
   private val logger = LoggerFactory.getLogger(this.getClass)
 
   val route: RequestContext => Future[RouteResult] =
-    handleRejections(rejectionHandler()) {
-      extractRequest { req =>
-        val reqDesc = s"${req.method.toString()} ${req.uri.path.toString()}"
+    extractMethod { requestMethod =>
+      extractUri { requestUri =>
+        extractClientIP { remoteAddress =>
+          mapResponse(response => {
+            logger.info(
+              "{} {} {} {}",
+              remoteAddress.toIP.map(_.toString()).getOrElse("no-remote-address").padTo(20, ' '),
+              response.status.intValue().toString,
+              requestMethod.value.padTo(7, ' '),
+              requestUri.path.toString()
+            )
+            response
+          }) {
+            handleRejections(rejectionHandler()) {
+              val reqDesc = s"${requestMethod.value} ${requestUri.path}"
+              authenticationToken(reqDesc) { token =>
+                authenticate(token, reqDesc) { authenticatedUser =>
+                  logger.debug(s"$reqDesc AuthenticatedUser: $authenticatedUser")
 
-        authenticationToken(reqDesc) { token =>
-          authenticate(token, reqDesc) { authenticatedUser =>
-            logger.debug(s"$reqDesc AuthenticatedUser: $authenticatedUser")
-
-            path("hosts") {
-              getHosts(authenticatedUser)
-            } ~ path("updated-routes" / Remaining) { lastModifiedString =>
-              getUpdatedRoutes(authenticatedUser, lastModifiedString)
-            } ~ path("current-routes") {
-              getCurrentRoutes(authenticatedUser)
-            } ~ path("routes") {
-              getRoutes(authenticatedUser) ~ postRoutes(authenticatedUser, token) ~ deleteRoutes(authenticatedUser, token)
-            } ~ path("routes" / LongNumber) { id =>
-              getRoute(authenticatedUser, id) ~ deleteRoute(authenticatedUser, id, token) ~ patchRoutes(authenticatedUser, token, id)
-            } ~ pathsRoutes(authenticatedUser, token)
-          }
-        } ~ path("status") {
-          complete("Ok")
-        } ~ path("metrics") {
-          complete {
-            metrics.metrics.metricRegistry.toJson
+                  path("hosts") {
+                    getHosts(authenticatedUser)
+                  } ~ path("updated-routes" / Remaining) { lastModifiedString =>
+                    getUpdatedRoutes(authenticatedUser, lastModifiedString)
+                  } ~ path("current-routes") {
+                    getCurrentRoutes(authenticatedUser)
+                  } ~ path("routes") {
+                    getRoutes(authenticatedUser) ~ postRoutes(authenticatedUser, token) ~ deleteRoutes(authenticatedUser, token)
+                  } ~ path("routes" / LongNumber) { id =>
+                    getRoute(authenticatedUser, id) ~ deleteRoute(authenticatedUser, id, token) ~ patchRoutes(authenticatedUser, token, id)
+                  } ~ pathsRoutes(authenticatedUser, token)
+                }
+              } ~ path("status") {
+                complete("Ok")
+              } ~ path("metrics") {
+                complete {
+                  metrics.metrics.metricRegistry.toJson
+                }
+              }
+            }
           }
         }
       }
