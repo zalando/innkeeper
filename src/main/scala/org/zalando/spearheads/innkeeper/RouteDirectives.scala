@@ -49,7 +49,7 @@ trait RouteDirectives {
           .flatMap(s => Try(s.toInt).toOption)
           .getOrElse(0)
 
-        val pagination = limit.map(l => Pagination(l, offset))
+        val pagination = limit.map(Pagination(offset, _))
 
         inner(Tuple1(pagination))(ctx)
       }
