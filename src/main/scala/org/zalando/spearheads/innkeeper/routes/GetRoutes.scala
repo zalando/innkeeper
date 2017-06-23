@@ -3,7 +3,7 @@ package org.zalando.spearheads.innkeeper.routes
 import akka.http.scaladsl.server.Directives.{get, parameterMultiMap}
 import akka.http.scaladsl.server.Route
 import com.google.inject.Inject
-import org.slf4j.LoggerFactory
+import com.typesafe.scalalogging.StrictLogging
 import org.zalando.spearheads.innkeeper.RouteDirectives.{chunkedResponseOf, extractEmbed, extractPagination}
 import org.zalando.spearheads.innkeeper.api.{JsonService, RouteOut}
 import org.zalando.spearheads.innkeeper.metrics.RouteMetrics
@@ -23,23 +23,21 @@ class GetRoutes @Inject() (
     routesService: RoutesService,
     jsonService: JsonService,
     metrics: RouteMetrics,
-    scopes: Scopes) {
-
-  private val logger = LoggerFactory.getLogger(this.getClass)
+    scopes: Scopes) extends StrictLogging {
 
   def apply(authenticatedUser: AuthenticatedUser): Route = {
     get {
       val reqDesc = "get /routes"
       hasOneOfTheScopes(authenticatedUser, reqDesc, scopes.READ, scopes.ADMIN) {
         metrics.getRoutes.time {
-          logger.info(s"try to $reqDesc")
+          logger.debug(reqDesc)
 
           parameterMultiMap { parameterMultiMap =>
             extractEmbed(parameterMultiMap) { embed =>
               extractPagination(parameterMultiMap) { pagination =>
                 val filters = extractFilters(parameterMultiMap)
 
-                logger.debug("Filters {}. Pagination {}. Embed: {}.", filters, pagination, embed)
+                logger.debug(s"$reqDesc filters $filters pagination $pagination embed $embed", filters, pagination, embed)
 
                 chunkedResponseOf[RouteOut](jsonService) {
                   routesService.findFiltered(filters, pagination, embed)

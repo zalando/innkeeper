@@ -4,7 +4,7 @@ import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import com.google.inject.Inject
-import org.slf4j.LoggerFactory
+import com.typesafe.scalalogging.StrictLogging
 import org.zalando.spearheads.innkeeper.Rejections._
 import org.zalando.spearheads.innkeeper.RouteDirectives._
 import org.zalando.spearheads.innkeeper.api.JsonProtocols._
@@ -24,23 +24,21 @@ class PatchPaths @Inject() (
     metrics: RouteMetrics,
     scopes: Scopes,
     implicit val teamService: TeamService,
-    implicit val executionContext: ExecutionContext) {
-
-  private val logger = LoggerFactory.getLogger(this.getClass)
+    implicit val executionContext: ExecutionContext) extends StrictLogging {
 
   def apply(authenticatedUser: AuthenticatedUser, token: String, id: Long): Route = {
     patch {
       val reqDesc = "patch /paths"
-      logger.info(s"try to $reqDesc")
+      logger.debug(reqDesc)
 
       entity(as[PathPatch]) { pathPatch =>
-        logger.info(s"We try to $reqDesc unmarshalled pathPatch $pathPatch")
+        logger.debug(s"$reqDesc pathPatch $pathPatch")
 
         team(authenticatedUser, token, reqDesc) { team =>
-          logger.debug(s"patch /paths team $team")
+          logger.debug(s"$reqDesc team $team")
 
           hasOneOfTheScopes(authenticatedUser, reqDesc, scopes.WRITE) {
-            logger.debug(s"patch /paths non-admin team $team")
+            logger.debug(s"$reqDesc non-admin team $team")
 
             findPath(id, pathsService, reqDesc)(executionContext) { path =>
               if (path.ownedByTeam.name != team.name) {
@@ -56,7 +54,7 @@ class PatchPaths @Inject() (
               }
             }
           } ~ (hasAdminAuthorization(authenticatedUser, team, reqDesc, scopes) & cancelRejections(classOf[IncorrectTeamRejection])) {
-            logger.debug(s"patch /paths admin team $team")
+            logger.debug(s"$reqDesc admin team $team")
 
             if (pathPatch.hostIds.exists(_.isEmpty)) {
               reject(EmptyPathHostIdsRejection(reqDesc))
@@ -76,7 +74,7 @@ class PatchPaths @Inject() (
       case Valid =>
         metrics.postPaths.time {
           val userName = authenticatedUser.username.getOrElse("")
-          logger.info(s"$reqDesc: $pathPatch")
+          logger.debug(s"$reqDesc pathPatch")
 
           onComplete(pathsService.patch(id, pathPatch, userName)) {
             case Success(ServiceResult.Success(pathOut)) => complete(pathOut)

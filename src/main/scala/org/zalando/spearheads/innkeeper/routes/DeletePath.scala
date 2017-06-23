@@ -4,7 +4,7 @@ import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import com.google.inject.Inject
-import org.slf4j.LoggerFactory
+import com.typesafe.scalalogging.StrictLogging
 import org.zalando.spearheads.innkeeper.Rejections._
 import org.zalando.spearheads.innkeeper.RouteDirectives._
 import org.zalando.spearheads.innkeeper.api.JsonProtocols._
@@ -23,20 +23,18 @@ class DeletePath @Inject() (
     metrics: RouteMetrics,
     scopes: Scopes,
     implicit val teamService: TeamService,
-    implicit val executionContext: ExecutionContext) {
-
-  private val logger = LoggerFactory.getLogger(this.getClass)
+    implicit val executionContext: ExecutionContext) extends StrictLogging {
 
   def apply(authenticatedUser: AuthenticatedUser, token: String, id: Long): Route = {
     delete {
-      val reqDesc = "delete /paths"
-      logger.info("try to {}", reqDesc)
+      val reqDesc = s"delete /paths/$id"
+      logger.debug(reqDesc)
 
       team(authenticatedUser, token, reqDesc) { team =>
-        logger.debug("delete /paths team {}", team)
+        logger.debug(s"$reqDesc team $team")
 
         username(authenticatedUser, reqDesc) { username =>
-          logger.debug("try to delete /paths/{} username found {}", id, username)
+          logger.debug(s"$reqDesc username found $username")
 
           hasOneOfTheScopes(authenticatedUser, reqDesc, scopes.WRITE) {
             findPath(id, pathsService, reqDesc)(executionContext) { path =>

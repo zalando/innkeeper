@@ -3,7 +3,7 @@ package org.zalando.spearheads.innkeeper.dao
 import java.time.LocalDateTime
 
 import com.google.inject.{Inject, Singleton}
-import org.slf4j.LoggerFactory
+import com.typesafe.scalalogging.StrictLogging
 import org.zalando.spearheads.innkeeper.api.{Pagination, RouteChangeType, RoutePatch}
 import org.zalando.spearheads.innkeeper.api.JsonProtocols._
 import org.zalando.spearheads.innkeeper.dao.MyPostgresDriver.api._
@@ -20,9 +20,7 @@ import scala.concurrent.{ExecutionContext, Future}
 class RoutesPostgresRepo @Inject() (
     db: Database,
     implicit val executionContext: ExecutionContext
-) extends RoutesRepo {
-
-  private val logger = LoggerFactory.getLogger(this.getClass)
+) extends RoutesRepo with StrictLogging {
 
   private lazy val insertRouteQuery = Routes returning Routes.map(_.id) into
     ((routeRow: RouteRow, id) => routeRow.copy(id = Some(id)))

@@ -3,7 +3,6 @@ package org.zalando.spearheads.innkeeper.routes
 import akka.http.scaladsl.server.Directives.{complete, get, parameterMultiMap}
 import akka.http.scaladsl.server.Route
 import com.google.inject.Inject
-import org.slf4j.LoggerFactory
 import org.zalando.spearheads.innkeeper.RouteDirectives.findRoute
 import org.zalando.spearheads.innkeeper.metrics.RouteMetrics
 import org.zalando.spearheads.innkeeper.oauth.OAuthDirectives.hasOneOfTheScopes
@@ -15,6 +14,7 @@ import scala.concurrent.ExecutionContext
 import org.zalando.spearheads.innkeeper.api.JsonProtocols._
 import spray.json.DefaultJsonProtocol._
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
+import com.typesafe.scalalogging.StrictLogging
 
 /**
  * @author dpersa
@@ -23,15 +23,13 @@ class GetRoute @Inject() (
     executionContext: ExecutionContext,
     routesService: RoutesService,
     metrics: RouteMetrics,
-    scopes: Scopes) {
-
-  private val logger = LoggerFactory.getLogger(this.getClass)
+    scopes: Scopes) extends StrictLogging {
 
   def apply(authenticatedUser: AuthenticatedUser, id: Long): Route = {
     get {
       val reqDesc = s"get /routes/${id}"
 
-      logger.info(s"try to $reqDesc")
+      logger.debug(reqDesc)
 
       hasOneOfTheScopes(authenticatedUser, reqDesc, scopes.READ, scopes.ADMIN) {
         metrics.getRoute.time {

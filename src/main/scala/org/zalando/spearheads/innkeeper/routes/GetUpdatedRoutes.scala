@@ -4,7 +4,7 @@ import akka.http.scaladsl.model.{HttpEntity, HttpResponse, MediaTypes}
 import akka.http.scaladsl.server.Directives.{complete, get, reject}
 import akka.http.scaladsl.server.Route
 import com.google.inject.Inject
-import org.slf4j.LoggerFactory
+import com.typesafe.scalalogging.StrictLogging
 import org.zalando.spearheads.innkeeper.Rejections.InvalidDateTimeRejection
 import org.zalando.spearheads.innkeeper.api.JsonService
 import org.zalando.spearheads.innkeeper.metrics.RouteMetrics
@@ -22,18 +22,16 @@ class GetUpdatedRoutes @Inject() (
     eskipRouteService: EskipRouteService,
     jsonService: JsonService,
     metrics: RouteMetrics,
-    scopes: Scopes) {
-
-  private val logger = LoggerFactory.getLogger(this.getClass)
+    scopes: Scopes) extends StrictLogging {
 
   def apply(authenticatedUser: AuthenticatedUser, lastModifiedString: String): Route = {
     get {
       val reqDesc = s"get /updated-routes/$lastModifiedString"
 
-      logger.info(s"try to $reqDesc")
+      logger.debug(reqDesc)
 
       dateTimeParameter(lastModifiedString) match {
-        case Some(lastModified) => {
+        case Some(lastModified) =>
           hasOneOfTheScopes(authenticatedUser, reqDesc, scopes.READ, scopes.ADMIN) {
             metrics.getUpdatedRoutes.time {
 
@@ -46,7 +44,7 @@ class GetUpdatedRoutes @Inject() (
               }
             }
           }
-        }
+
         case None => reject(InvalidDateTimeRejection(reqDesc))
       }
     }

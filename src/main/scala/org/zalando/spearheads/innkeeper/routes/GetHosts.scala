@@ -6,7 +6,7 @@ import akka.http.scaladsl.model.{HttpEntity, HttpResponse, MediaTypes}
 import akka.http.scaladsl.server.Directives.{complete, get}
 import akka.http.scaladsl.server.Route
 import akka.stream.scaladsl.Source
-import org.slf4j.LoggerFactory
+import com.typesafe.scalalogging.StrictLogging
 import org.zalando.spearheads.innkeeper.api.{Host, JsonService}
 import org.zalando.spearheads.innkeeper.metrics.RouteMetrics
 import org.zalando.spearheads.innkeeper.oauth.OAuthDirectives.hasOneOfTheScopes
@@ -17,20 +17,22 @@ import org.zalando.spearheads.innkeeper.api.JsonProtocols._
 /**
  * @author Alexey Venderov
  */
-class GetHosts @Inject() (hostsService: HostsService, jsonService: JsonService, metrics: RouteMetrics, scopes: Scopes) {
-
-  private val logger = LoggerFactory.getLogger(this.getClass)
+class GetHosts @Inject() (
+    hostsService: HostsService,
+    jsonService: JsonService,
+    metrics: RouteMetrics,
+    scopes: Scopes) extends StrictLogging {
 
   def apply(authenticatedUser: AuthenticatedUser): Route = {
     get {
-      val requestDescription = "GET /hosts"
+      val reqDesc = "GET /hosts"
 
-      hasOneOfTheScopes(authenticatedUser, requestDescription, scopes.READ, scopes.ADMIN) {
+      hasOneOfTheScopes(authenticatedUser, reqDesc, scopes.READ, scopes.ADMIN) {
         metrics.getHosts.time {
-          logger.info(s"try to $requestDescription")
+          logger.debug(reqDesc)
 
           val jsonSource = jsonService.sourceToJsonSource {
-            Source.fromIterator(() => hostsService.getHosts.iterator).map { host =>
+            Source.fromIterator(() => hostsService.getHosts().iterator).map { host =>
               Host(host._2, host._1)
             }
           }

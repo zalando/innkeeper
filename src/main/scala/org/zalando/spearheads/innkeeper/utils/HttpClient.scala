@@ -3,15 +3,15 @@ package org.zalando.spearheads.innkeeper.utils
 import akka.http.scaladsl.model.{HttpMethod, HttpMethods}
 import org.asynchttpclient.{AsyncCompletionHandler, DefaultAsyncHttpClient, RequestBuilder, Response}
 import org.asynchttpclient.uri.Uri
-import org.slf4j.LoggerFactory
 import spray.json.{JsValue, pimpString}
 
 import scala.concurrent.Promise
 import scala.concurrent.Future
 import scala.util.Try
-import java.util.concurrent.{CompletableFuture, Future => JFuture}
+import java.util.concurrent.{Future => JFuture}
 
 import com.google.inject.Inject
+import com.typesafe.scalalogging.StrictLogging
 import net.jodah.failsafe.{CircuitBreaker, CircuitBreakerOpenException}
 
 trait HttpClient {
@@ -24,9 +24,7 @@ trait HttpClient {
 
 class AsyncHttpClient @Inject() (
     asyncClient: DefaultAsyncHttpClient,
-    circuitBreaker: CircuitBreaker) extends HttpClient {
-
-  private val logger = LoggerFactory.getLogger(this.getClass)
+    circuitBreaker: CircuitBreaker) extends HttpClient with StrictLogging {
 
   override def callJson(uri: String, token: Option[String], method: HttpMethod): Future[JsValue] = {
 
@@ -48,8 +46,10 @@ class AsyncHttpClient @Inject() (
         requestBuilder.build(),
         new AsyncCompletionHandler[JsValue] {
           override def onCompleted(response: Response): JsValue = {
-            logger.debug(s"HTTP request with uri=$uri method=$method and " +
-              s"headers=${response.getHeaders} responds with: ${response.getResponseBody}")
+            logger.debug(
+              "HTTP request with uri={} method={} and headers={} responds with: {}",
+              uri, method, response.getHeaders, response.getResponseBody
+            )
             circuitBreaker.recordSuccess()
             response.getResponseBody.parseJson
           }

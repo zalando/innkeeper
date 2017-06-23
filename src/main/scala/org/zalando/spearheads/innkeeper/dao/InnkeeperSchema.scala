@@ -1,10 +1,10 @@
 package org.zalando.spearheads.innkeeper.dao
 
 import com.google.inject.{Inject, Singleton}
+import com.typesafe.scalalogging.StrictLogging
 import org.flywaydb.core.Flyway
 import org.flywaydb.core.api.FlywayException
 import org.postgresql.ds.PGSimpleDataSource
-import org.slf4j.LoggerFactory
 import slick.jdbc.meta.MTable
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -22,9 +22,7 @@ class InnkeeperPostgresSchema @Inject() (
     db: Database,
     config: EnvConfig,
     implicit val executionContext: ExecutionContext
-) extends InnkeeperSchema {
-
-  private val logger = LoggerFactory.getLogger(this.getClass)
+) extends InnkeeperSchema with StrictLogging {
 
   private val tables = Seq(
     Paths,

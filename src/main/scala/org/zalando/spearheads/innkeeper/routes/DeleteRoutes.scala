@@ -3,14 +3,13 @@ package org.zalando.spearheads.innkeeper.routes
 import akka.http.scaladsl.server.Directives.{_enhanceRouteWithConcatenation, complete, delete, onComplete, parameterMultiMap, reject}
 import akka.http.scaladsl.server.Route
 import com.google.inject.Inject
-import org.slf4j.LoggerFactory
-import org.zalando.spearheads.innkeeper.Rejections.{InternalServerErrorRejection, RouteNotFoundRejection}
+import com.typesafe.scalalogging.StrictLogging
+import org.zalando.spearheads.innkeeper.Rejections.InternalServerErrorRejection
 import org.zalando.spearheads.innkeeper.dao._
 import org.zalando.spearheads.innkeeper.metrics.RouteMetrics
 import org.zalando.spearheads.innkeeper.oauth.OAuthDirectives._
 import org.zalando.spearheads.innkeeper.oauth.{AuthenticatedUser, Scopes}
 import org.zalando.spearheads.innkeeper.services.{RoutesService, ServiceResult}
-import org.zalando.spearheads.innkeeper.services.ServiceResult.NotFound
 import org.zalando.spearheads.innkeeper.services.team.TeamService
 
 import scala.collection.immutable.Seq
@@ -22,9 +21,7 @@ class DeleteRoutes @Inject() (
     metrics: RouteMetrics,
     scopes: Scopes,
     implicit val teamService: TeamService,
-    implicit val executionContext: ExecutionContext) {
-
-  private val logger = LoggerFactory.getLogger(this.getClass)
+    implicit val executionContext: ExecutionContext) extends StrictLogging {
 
   def apply(authenticatedUser: AuthenticatedUser, token: String): Route = {
     delete {
@@ -32,13 +29,13 @@ class DeleteRoutes @Inject() (
 
       hasOneOfTheScopes(authenticatedUser, reqDesc, scopes.WRITE, scopes.ADMIN) {
         metrics.deleteRoutes.time {
-          logger.info(s"try to $reqDesc")
+          logger.debug(reqDesc)
 
           team(authenticatedUser, token, reqDesc) { team =>
-            logger.debug("try to delete /routes team found {}", team)
+            logger.debug(s"$reqDesc team found $team")
 
             username(authenticatedUser, reqDesc) { username =>
-              logger.debug("try to delete /routes username found {}", username)
+              logger.debug(s"$reqDesc username found $username")
 
               parameterMultiMap { parameterMultiMap =>
                 val filters: List[QueryFilter] = parameterMultiMap.flatMap {
@@ -60,7 +57,7 @@ class DeleteRoutes @Inject() (
                   case _ => None
                 }.toList
 
-                logger.debug(s"Delete route filters $filters")
+                logger.debug(s"$reqDesc filters $filters")
 
                 hasAdminAuthorization(authenticatedUser, team, reqDesc, scopes)(teamService) {
                   deleteRoutes(filters, username, reqDesc)
@@ -85,7 +82,7 @@ class DeleteRoutes @Inject() (
         case Success(ServiceResult.Success(amount)) => complete(amount.toString)
         case Success(_)                             => reject(InternalServerErrorRejection(reqDesc))
         case Failure(exception) =>
-          logger.error("shit hit the fan", exception)
+          logger.error("unexpected error while deleting routes", exception)
           reject(InternalServerErrorRejection(reqDesc))
       }
     }

@@ -4,7 +4,7 @@ import java.util.concurrent.TimeUnit
 
 import com.google.common.cache.{Cache, CacheBuilder}
 import com.google.inject.Inject
-import org.slf4j.LoggerFactory
+import com.typesafe.scalalogging.StrictLogging
 import org.zalando.spearheads.innkeeper.services.ServiceResult
 import org.zalando.spearheads.innkeeper.services.ServiceResult.{Ex, NotFound, Result}
 import org.zalando.spearheads.innkeeper.services.team.TeamJsonProtocol._
@@ -29,9 +29,7 @@ trait TeamService {
 
 class ZalandoTeamService @Inject() (
     config: EnvConfig,
-    @TeamServiceClient() httpClient: HttpClient)(implicit val executionContext: ExecutionContext) extends TeamService {
-
-  private val logger = LoggerFactory.getLogger(this.getClass)
+    @TeamServiceClient() httpClient: HttpClient)(implicit val executionContext: ExecutionContext) extends TeamService with StrictLogging {
 
   private val teamServiceUrl = config.getString("team.member.service.url")
   private val applicationServiceUrl = config.getString("application.service.url")
@@ -72,11 +70,11 @@ class ZalandoTeamService @Inject() (
               userTeamCache.put(username, team)
               ServiceResult.Success(team)
             case None =>
-              logger.debug("No official team found for username: ", username)
+              logger.debug("No official team found for username: {}", username)
               ServiceResult.Failure(NotFound())
           }
         case Failure(ex) =>
-          logger.error(s"TeamService unmarshalling failed with exception $ex")
+          logger.error("TeamService unmarshalling failed with exception", ex)
           ServiceResult.Failure(Ex(ex))
       }
     }
