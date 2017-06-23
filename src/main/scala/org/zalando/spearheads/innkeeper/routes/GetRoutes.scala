@@ -6,7 +6,6 @@ import com.google.inject.Inject
 import com.typesafe.scalalogging.StrictLogging
 import org.zalando.spearheads.innkeeper.RouteDirectives.{chunkedResponseOf, extractEmbed, extractPagination}
 import org.zalando.spearheads.innkeeper.api.{JsonService, RouteOut}
-import org.zalando.spearheads.innkeeper.metrics.RouteMetrics
 import org.zalando.spearheads.innkeeper.oauth.OAuthDirectives.hasOneOfTheScopes
 import org.zalando.spearheads.innkeeper.oauth.{AuthenticatedUser, Scopes}
 import org.zalando.spearheads.innkeeper.services.RoutesService
@@ -22,26 +21,23 @@ import scala.util.Try
 class GetRoutes @Inject() (
     routesService: RoutesService,
     jsonService: JsonService,
-    metrics: RouteMetrics,
     scopes: Scopes) extends StrictLogging {
 
   def apply(authenticatedUser: AuthenticatedUser): Route = {
     get {
       val reqDesc = "get /routes"
       hasOneOfTheScopes(authenticatedUser, reqDesc, scopes.READ, scopes.ADMIN) {
-        metrics.getRoutes.time {
-          logger.debug(reqDesc)
+        logger.debug(reqDesc)
 
-          parameterMultiMap { parameterMultiMap =>
-            extractEmbed(parameterMultiMap) { embed =>
-              extractPagination(parameterMultiMap) { pagination =>
-                val filters = extractFilters(parameterMultiMap)
+        parameterMultiMap { parameterMultiMap =>
+          extractEmbed(parameterMultiMap) { embed =>
+            extractPagination(parameterMultiMap) { pagination =>
+              val filters = extractFilters(parameterMultiMap)
 
-                logger.debug(s"$reqDesc filters $filters pagination $pagination embed $embed", filters, pagination, embed)
+              logger.debug(s"$reqDesc filters $filters pagination $pagination embed $embed", filters, pagination, embed)
 
-                chunkedResponseOf[RouteOut](jsonService) {
-                  routesService.findFiltered(filters, pagination, embed)
-                }
+              chunkedResponseOf[RouteOut](jsonService) {
+                routesService.findFiltered(filters, pagination, embed)
               }
             }
           }

@@ -8,7 +8,6 @@ import akka.http.scaladsl.server.Route
 import akka.stream.scaladsl.Source
 import com.typesafe.scalalogging.StrictLogging
 import org.zalando.spearheads.innkeeper.api.{Host, JsonService}
-import org.zalando.spearheads.innkeeper.metrics.RouteMetrics
 import org.zalando.spearheads.innkeeper.oauth.OAuthDirectives.hasOneOfTheScopes
 import org.zalando.spearheads.innkeeper.oauth.{AuthenticatedUser, Scopes}
 import org.zalando.spearheads.innkeeper.services.HostsService
@@ -20,7 +19,6 @@ import org.zalando.spearheads.innkeeper.api.JsonProtocols._
 class GetHosts @Inject() (
     hostsService: HostsService,
     jsonService: JsonService,
-    metrics: RouteMetrics,
     scopes: Scopes) extends StrictLogging {
 
   def apply(authenticatedUser: AuthenticatedUser): Route = {
@@ -28,18 +26,16 @@ class GetHosts @Inject() (
       val reqDesc = "GET /hosts"
 
       hasOneOfTheScopes(authenticatedUser, reqDesc, scopes.READ, scopes.ADMIN) {
-        metrics.getHosts.time {
-          logger.debug(reqDesc)
+        logger.debug(reqDesc)
 
-          val jsonSource = jsonService.sourceToJsonSource {
-            Source.fromIterator(() => hostsService.getHosts().iterator).map { host =>
-              Host(host._2, host._1)
-            }
+        val jsonSource = jsonService.sourceToJsonSource {
+          Source.fromIterator(() => hostsService.getHosts().iterator).map { host =>
+            Host(host._2, host._1)
           }
+        }
 
-          complete {
-            HttpResponse(entity = HttpEntity.Chunked(MediaTypes.`application/json`, jsonSource))
-          }
+        complete {
+          HttpResponse(entity = HttpEntity.Chunked(MediaTypes.`application/json`, jsonSource))
         }
       }
     }

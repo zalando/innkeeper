@@ -7,7 +7,6 @@ import com.google.inject.Inject
 import com.typesafe.scalalogging.StrictLogging
 import org.zalando.spearheads.innkeeper.Rejections.InvalidDateTimeRejection
 import org.zalando.spearheads.innkeeper.api.JsonService
-import org.zalando.spearheads.innkeeper.metrics.RouteMetrics
 import org.zalando.spearheads.innkeeper.oauth.OAuthDirectives.hasOneOfTheScopes
 import org.zalando.spearheads.innkeeper.oauth.{AuthenticatedUser, Scopes}
 import org.zalando.spearheads.innkeeper.api.JsonProtocols._
@@ -21,7 +20,6 @@ import org.zalando.spearheads.innkeeper.services.EskipRouteService
 class GetUpdatedRoutes @Inject() (
     eskipRouteService: EskipRouteService,
     jsonService: JsonService,
-    metrics: RouteMetrics,
     scopes: Scopes) extends StrictLogging {
 
   def apply(authenticatedUser: AuthenticatedUser, lastModifiedString: String): Route = {
@@ -33,15 +31,13 @@ class GetUpdatedRoutes @Inject() (
       dateTimeParameter(lastModifiedString) match {
         case Some(lastModified) =>
           hasOneOfTheScopes(authenticatedUser, reqDesc, scopes.READ, scopes.ADMIN) {
-            metrics.getUpdatedRoutes.time {
 
-              val chunkedStreamSource = jsonService.sourceToJsonSource {
-                eskipRouteService.findModifiedSince(lastModified)
-              }
+            val chunkedStreamSource = jsonService.sourceToJsonSource {
+              eskipRouteService.findModifiedSince(lastModified)
+            }
 
-              complete {
-                HttpResponse(entity = HttpEntity.Chunked(MediaTypes.`application/json`, chunkedStreamSource))
-              }
+            complete {
+              HttpResponse(entity = HttpEntity.Chunked(MediaTypes.`application/json`, chunkedStreamSource))
             }
           }
 

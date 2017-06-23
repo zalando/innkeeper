@@ -9,7 +9,6 @@ import org.zalando.spearheads.innkeeper.Rejections.{DuplicatePathUriHostRejectio
 import org.zalando.spearheads.innkeeper.ValidationDirectives
 import org.zalando.spearheads.innkeeper.api.JsonProtocols._
 import org.zalando.spearheads.innkeeper.api.{PathIn, TeamName, UserName}
-import org.zalando.spearheads.innkeeper.metrics.RouteMetrics
 import org.zalando.spearheads.innkeeper.oauth.OAuthDirectives._
 import org.zalando.spearheads.innkeeper.oauth.{AuthenticatedUser, Scopes}
 import org.zalando.spearheads.innkeeper.services.ServiceResult.DuplicatePathUriHost
@@ -21,7 +20,6 @@ import scala.util.Success
 
 class PostPaths @Inject() (
     pathsService: PathsService,
-    metrics: RouteMetrics,
     scopes: Scopes,
     validationDirectives: ValidationDirectives,
     implicit val teamService: TeamService,
@@ -65,13 +63,11 @@ class PostPaths @Inject() (
   }
 
   private def savePathRoute(path: PathIn, ownedByTeam: TeamName, createdBy: UserName, reqDesc: String): Route = {
-    metrics.postPaths.time {
-      logger.debug(s"$reqDesc savePath")
-      onComplete(pathsService.create(path, ownedByTeam, createdBy)) {
-        case Success(ServiceResult.Success(pathOut))                 => complete(pathOut)
-        case Success(ServiceResult.Failure(DuplicatePathUriHost(_))) => reject(DuplicatePathUriHostRejection(reqDesc))
-        case _                                                       => reject
-      }
+    logger.debug(s"$reqDesc savePath")
+    onComplete(pathsService.create(path, ownedByTeam, createdBy)) {
+      case Success(ServiceResult.Success(pathOut))                 => complete(pathOut)
+      case Success(ServiceResult.Failure(DuplicatePathUriHost(_))) => reject(DuplicatePathUriHostRejection(reqDesc))
+      case _                                                       => reject
     }
   }
 }

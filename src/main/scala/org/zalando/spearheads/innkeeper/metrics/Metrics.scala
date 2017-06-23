@@ -1,44 +1,44 @@
 package org.zalando.spearheads.innkeeper.metrics
 
+import java.util.concurrent.TimeUnit
+
 import com.codahale.metrics.MetricRegistry
 import com.google.inject.{Inject, Singleton}
-import nl.grons.metrics.scala.{MetricName, InstrumentedBuilder}
 
 /**
  * @author dpersa
  */
 @Singleton
-class Metrics @Inject() (val metricRegistry: MetricRegistry) extends InstrumentedBuilder {
+class Metrics @Inject() (val metricRegistry: MetricRegistry) {
 
-  override lazy val metricBaseName = MetricName("zmon.response")
+  private val non2xxResponses = metricRegistry.timer("zmon.response.NON2XX.ALL.responses")
 
-}
+  def updateTimer(statusCode: Int, method: String, path: String, duration: Long): Unit = {
+    if (statusCode < 200 || statusCode >= 300) {
+      non2xxResponses.update(duration, TimeUnit.MILLISECONDS)
+    } else {
+      getPathName(path).foreach { pathName =>
+        val metricName = s"zmon.response.$statusCode.$method.$pathName"
+        metricRegistry.timer(metricName).update(duration, TimeUnit.MILLISECONDS)
+      }
+    }
+  }
 
-class RouteMetrics @Inject() (val metrics: Metrics) {
+  private def getPathName(path: String): Option[String] = {
+    val pathParts = path
+      .split("/")
+      .filter(_.nonEmpty)
 
-  // routes
-  val getUpdatedRoutes = metrics.metrics.timer("200.GET.updated-routes")
-  val getRoutes = metrics.metrics.timer("200.GET.routes")
-  val getCurrentRoutes = metrics.metrics.timer("200.GET.current-routes")
-  val postRoutes = metrics.metrics.timer("201.POST.routes")
-  val deleteRoute = metrics.metrics.timer("200.DELETE.route")
-  val deleteRoutes = metrics.metrics.timer("200.DELETE.routes")
-  val getRoute = metrics.metrics.timer("200.GET.route")
-  val getDeletedRoutes = metrics.metrics.timer("200.GET.deleted-routes")
-  val deleteDeletedRoutes = metrics.metrics.timer("200.DELETE.deleted-routes")
-  val patchRoutes = metrics.metrics.timer("200.PATCH.routes")
-
-  // paths
-  val getPaths = metrics.metrics.timer("200.GET.paths")
-  val getPath = metrics.metrics.timer("200.GET.path")
-  val postPaths = metrics.metrics.timer("201.POST.paths")
-  val patchPaths = metrics.metrics.timer("200.PATCH.paths")
-  val deletePath = metrics.metrics.timer("200.DELETE.paths")
-
-  // hosts
-  val getHosts = metrics.metrics.timer("200.GET.hosts")
-
-  // other
-  val non2xxResponses = metrics.metrics.timer("NON2XX.ALL.responses")
-
+    pathParts.headOption.map { firstPart =>
+      if (pathParts.length > 1) {
+        firstPart match {
+          case "routes" => "route"
+          case "paths"  => "path"
+          case _        => firstPart
+        }
+      } else {
+        firstPart
+      }
+    }
+  }
 }

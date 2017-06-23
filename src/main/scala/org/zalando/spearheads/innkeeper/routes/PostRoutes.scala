@@ -8,7 +8,6 @@ import com.typesafe.scalalogging.StrictLogging
 import org.zalando.spearheads.innkeeper.Rejections.{DuplicateRouteNameRejection, IncorrectTeamRejection, UnmarshallRejection}
 import org.zalando.spearheads.innkeeper.RouteDirectives.isValidRoute
 import org.zalando.spearheads.innkeeper.api.{RouteIn, UserName}
-import org.zalando.spearheads.innkeeper.metrics.RouteMetrics
 import org.zalando.spearheads.innkeeper.oauth.OAuthDirectives.{hasAdminAuthorization, hasOneOfTheScopes, routeTeamAuthorization, team}
 import org.zalando.spearheads.innkeeper.oauth.{AuthenticatedUser, Scopes}
 import org.zalando.spearheads.innkeeper.services.{PathsService, RoutesService, ServiceResult}
@@ -24,7 +23,6 @@ import scala.util.Success
 class PostRoutes @Inject() (
     routesService: RoutesService,
     pathsService: PathsService,
-    metrics: RouteMetrics,
     scopes: Scopes,
     implicit val routeValidationService: RouteValidationService,
     implicit val teamService: TeamService,
@@ -46,13 +44,11 @@ class PostRoutes @Inject() (
               (hasAdminAuthorization(authenticatedUser, team, reqDesc, scopes) & cancelRejections(classOf[IncorrectTeamRejection]))
             ) {
                 isValidRoute(route, path, reqDesc)(routeValidationService) {
-                  metrics.postRoutes.time {
-                    logger.debug(s"$reqDesc saveRoute")
-                    onComplete(routesService.create(route, UserName(authenticatedUser.username))) {
-                      case Success(ServiceResult.Success(route))                 => complete(route)
-                      case Success(ServiceResult.Failure(DuplicateRouteName(_))) => reject(DuplicateRouteNameRejection(reqDesc))
-                      case _                                                     => reject
-                    }
+                  logger.debug(s"$reqDesc saveRoute")
+                  onComplete(routesService.create(route, UserName(authenticatedUser.username))) {
+                    case Success(ServiceResult.Success(route))                 => complete(route)
+                    case Success(ServiceResult.Failure(DuplicateRouteName(_))) => reject(DuplicateRouteNameRejection(reqDesc))
+                    case _                                                     => reject
                   }
 
                 }

@@ -5,7 +5,6 @@ import akka.http.scaladsl.server.Route
 import com.google.inject.Inject
 import org.zalando.spearheads.innkeeper.api.JsonProtocols._
 import org.zalando.spearheads.innkeeper.RouteDirectives.findPath
-import org.zalando.spearheads.innkeeper.metrics.RouteMetrics
 import org.zalando.spearheads.innkeeper.oauth.OAuthDirectives.hasOneOfTheScopes
 import org.zalando.spearheads.innkeeper.oauth.{AuthenticatedUser, Scopes}
 import org.zalando.spearheads.innkeeper.services.PathsService
@@ -18,7 +17,6 @@ import scala.concurrent.ExecutionContext
 class GetPath @Inject() (
     executionContext: ExecutionContext,
     pathsService: PathsService,
-    metrics: RouteMetrics,
     scopes: Scopes) extends StrictLogging {
 
   def apply(authenticatedUser: AuthenticatedUser, id: Long): Route = {
@@ -28,10 +26,8 @@ class GetPath @Inject() (
       logger.debug(reqDesc)
 
       hasOneOfTheScopes(authenticatedUser, reqDesc, scopes.READ, scopes.ADMIN) {
-        metrics.getPath.time {
-          findPath(id, pathsService, reqDesc)(executionContext) { path =>
-            complete(path.toJson)
-          }
+        findPath(id, pathsService, reqDesc)(executionContext) { path =>
+          complete(path.toJson)
         }
       }
     }

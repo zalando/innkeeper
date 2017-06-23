@@ -9,6 +9,5 @@ class MetricsModule extends AbstractModule with ScalaModule {
   override def configure() {
     bind[MetricRegistry].asEagerSingleton()
     bind[Metrics].asEagerSingleton()
-    bind[RouteMetrics].asEagerSingleton()
   }
 }
