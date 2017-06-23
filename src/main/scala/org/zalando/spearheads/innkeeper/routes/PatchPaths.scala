@@ -10,7 +10,6 @@ import org.zalando.spearheads.innkeeper.RouteDirectives._
 import org.zalando.spearheads.innkeeper.api.JsonProtocols._
 import org.zalando.spearheads.innkeeper.api.PathPatch
 import org.zalando.spearheads.innkeeper.api.validation.{Invalid, Valid}
-import org.zalando.spearheads.innkeeper.metrics.RouteMetrics
 import org.zalando.spearheads.innkeeper.oauth.OAuthDirectives._
 import org.zalando.spearheads.innkeeper.oauth.{AuthenticatedUser, Scopes}
 import org.zalando.spearheads.innkeeper.services.team.TeamService
@@ -21,7 +20,6 @@ import scala.util.Success
 
 class PatchPaths @Inject() (
     pathsService: PathsService,
-    metrics: RouteMetrics,
     scopes: Scopes,
     implicit val teamService: TeamService,
     implicit val executionContext: ExecutionContext) extends StrictLogging {
@@ -72,14 +70,12 @@ class PatchPaths @Inject() (
   private def patchPathRoute(id: Long, pathPatch: PathPatch, authenticatedUser: AuthenticatedUser, reqDesc: String): Route = {
     onSuccess(pathsService.isPathPatchValid(id, pathPatch)) {
       case Valid =>
-        metrics.postPaths.time {
-          val userName = authenticatedUser.username.getOrElse("")
-          logger.debug(s"$reqDesc pathPatch")
+        val userName = authenticatedUser.username.getOrElse("")
+        logger.debug(s"$reqDesc pathPatch")
 
-          onComplete(pathsService.patch(id, pathPatch, userName)) {
-            case Success(ServiceResult.Success(pathOut)) => complete(pathOut)
-            case _                                       => reject
-          }
+        onComplete(pathsService.patch(id, pathPatch, userName)) {
+          case Success(ServiceResult.Success(pathOut)) => complete(pathOut)
+          case _                                       => reject
         }
 
       case Invalid(message) =>

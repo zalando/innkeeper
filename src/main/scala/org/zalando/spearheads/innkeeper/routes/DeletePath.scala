@@ -8,7 +8,6 @@ import com.typesafe.scalalogging.StrictLogging
 import org.zalando.spearheads.innkeeper.Rejections._
 import org.zalando.spearheads.innkeeper.RouteDirectives._
 import org.zalando.spearheads.innkeeper.api.JsonProtocols._
-import org.zalando.spearheads.innkeeper.metrics.RouteMetrics
 import org.zalando.spearheads.innkeeper.oauth.OAuthDirectives._
 import org.zalando.spearheads.innkeeper.oauth.{AuthenticatedUser, Scopes}
 import org.zalando.spearheads.innkeeper.services.ServiceResult.{NotFound, PathHasRoutes}
@@ -20,7 +19,6 @@ import scala.util.{Failure, Success}
 
 class DeletePath @Inject() (
     pathsService: PathsService,
-    metrics: RouteMetrics,
     scopes: Scopes,
     implicit val teamService: TeamService,
     implicit val executionContext: ExecutionContext) extends StrictLogging {
@@ -55,18 +53,16 @@ class DeletePath @Inject() (
   }
 
   private def deletePath(id: Long, deletedBy: String, reqDesc: String) = {
-    metrics.deletePath.time {
-      logger.debug(s"$reqDesc deletePath($id)")
+    logger.debug(s"$reqDesc deletePath($id)")
 
-      onComplete(pathsService.remove(id, deletedBy)) {
-        case Success(ServiceResult.Success(_))                => complete("")
-        case Success(ServiceResult.Failure(PathHasRoutes(_))) => reject(PathHasRoutesRejection(reqDesc))
-        case Success(ServiceResult.Failure(NotFound(_)))      => reject(PathNotFoundRejection(reqDesc))
-        case Success(_)                                       => reject(PathNotFoundRejection(reqDesc))
-        case Failure(exception) =>
-          logger.error("unexpected exception", exception)
-          reject(InternalServerErrorRejection(reqDesc))
-      }
+    onComplete(pathsService.remove(id, deletedBy)) {
+      case Success(ServiceResult.Success(_))                => complete("")
+      case Success(ServiceResult.Failure(PathHasRoutes(_))) => reject(PathHasRoutesRejection(reqDesc))
+      case Success(ServiceResult.Failure(NotFound(_)))      => reject(PathNotFoundRejection(reqDesc))
+      case Success(_)                                       => reject(PathNotFoundRejection(reqDesc))
+      case Failure(exception) =>
+        logger.error("unexpected exception", exception)
+        reject(InternalServerErrorRejection(reqDesc))
     }
   }
 }

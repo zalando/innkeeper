@@ -10,7 +10,6 @@ import org.zalando.spearheads.innkeeper.RouteDirectives.{findPathByRouteId, isVa
 import org.zalando.spearheads.innkeeper.api.JsonProtocols._
 import org.zalando.spearheads.innkeeper.api.RoutePatch
 import org.zalando.spearheads.innkeeper.api.validation.RouteValidationService
-import org.zalando.spearheads.innkeeper.metrics.RouteMetrics
 import org.zalando.spearheads.innkeeper.oauth.OAuthDirectives._
 import org.zalando.spearheads.innkeeper.oauth.{AuthenticatedUser, Scopes}
 import org.zalando.spearheads.innkeeper.services.team.TeamService
@@ -22,7 +21,6 @@ import scala.util.Success
 class PatchRoutes @Inject() (
     routeService: RoutesService,
     pathsService: PathsService,
-    metrics: RouteMetrics,
     scopes: Scopes,
     implicit val routeValidationService: RouteValidationService,
     implicit val teamService: TeamService,
@@ -58,14 +56,12 @@ class PatchRoutes @Inject() (
   }
 
   private def patchRouteRoute(id: Long, routePatch: RoutePatch, authenticatedUser: AuthenticatedUser, reqDesc: String): Route = {
-    metrics.postRoutes.time {
-      val userName = authenticatedUser.username.getOrElse("")
-      logger.debug(s"$reqDesc: routePatch")
+    val userName = authenticatedUser.username.getOrElse("")
+    logger.debug(s"$reqDesc: routePatch")
 
-      onComplete(routeService.patch(id, routePatch, userName)) {
-        case Success(ServiceResult.Success(routeOut)) => complete(routeOut)
-        case _                                        => reject
-      }
+    onComplete(routeService.patch(id, routePatch, userName)) {
+      case Success(ServiceResult.Success(routeOut)) => complete(routeOut)
+      case _                                        => reject
     }
   }
 }

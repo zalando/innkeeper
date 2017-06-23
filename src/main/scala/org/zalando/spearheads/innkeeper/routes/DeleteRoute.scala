@@ -6,7 +6,6 @@ import com.google.inject.Inject
 import com.typesafe.scalalogging.StrictLogging
 import org.zalando.spearheads.innkeeper.Rejections.{IncorrectTeamRejection, InternalServerErrorRejection, RouteNotFoundRejection}
 import org.zalando.spearheads.innkeeper.RouteDirectives.findPathByRouteId
-import org.zalando.spearheads.innkeeper.metrics.RouteMetrics
 import org.zalando.spearheads.innkeeper.oauth.OAuthDirectives.{hasAdminAuthorization, hasOneOfTheScopes, routeTeamAuthorization, team, username}
 import org.zalando.spearheads.innkeeper.oauth.{AuthenticatedUser, Scopes}
 import org.zalando.spearheads.innkeeper.services.ServiceResult.NotFound
@@ -22,7 +21,6 @@ import scala.util.{Failure, Success}
 class DeleteRoute @Inject() (
     routesService: RoutesService,
     pathsService: PathsService,
-    metrics: RouteMetrics,
     scopes: Scopes,
     implicit val teamService: TeamService,
     implicit val executionContext: ExecutionContext) extends StrictLogging {
@@ -54,17 +52,15 @@ class DeleteRoute @Inject() (
   }
 
   private def deleteRoute(id: Long, deletedBy: String, reqDesc: String) = {
-    metrics.deleteRoute.time {
-      logger.debug(s"$reqDesc deleteRoute($id)")
+    logger.debug(s"$reqDesc deleteRoute($id)")
 
-      onComplete(routesService.remove(id, deletedBy)) {
-        case Success(ServiceResult.Success(_))           => complete("")
-        case Success(ServiceResult.Failure(NotFound(_))) => reject(RouteNotFoundRejection(reqDesc))
-        case Success(_)                                  => reject(RouteNotFoundRejection(reqDesc))
-        case Failure(exception) =>
-          logger.error("unexpected error while deleting route", exception)
-          reject(InternalServerErrorRejection(reqDesc))
-      }
+    onComplete(routesService.remove(id, deletedBy)) {
+      case Success(ServiceResult.Success(_))           => complete("")
+      case Success(ServiceResult.Failure(NotFound(_))) => reject(RouteNotFoundRejection(reqDesc))
+      case Success(_)                                  => reject(RouteNotFoundRejection(reqDesc))
+      case Failure(exception) =>
+        logger.error("unexpected error while deleting route", exception)
+        reject(InternalServerErrorRejection(reqDesc))
     }
   }
 }

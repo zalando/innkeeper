@@ -7,7 +7,7 @@ import com.google.inject.{Inject, Singleton}
 import com.typesafe.scalalogging.StrictLogging
 import org.zalando.spearheads.innkeeper.InnkeeperRejectionHandler
 import org.zalando.spearheads.innkeeper.metrics.MetricRegistryJsonProtocol._
-import org.zalando.spearheads.innkeeper.metrics.RouteMetrics
+import org.zalando.spearheads.innkeeper.metrics.Metrics
 import org.zalando.spearheads.innkeeper.oauth.OAuthDirectives._
 import org.zalando.spearheads.innkeeper.oauth._
 import spray.json.pimpAny
@@ -30,49 +30,55 @@ class Routes @Inject() (
     getHosts: GetHosts,
     pathsRoutes: PathsRoutes,
     rejectionHandler: InnkeeperRejectionHandler,
-    metrics: RouteMetrics)(
+    metrics: Metrics)(
     implicit
     val authService: AuthService,
     implicit val executionContext: ExecutionContext) extends StrictLogging {
 
   val route: RequestContext => Future[RouteResult] =
-    extractMethod { requestMethod =>
-      extractUri { requestUri =>
-        extractClientIP { remoteAddress =>
-          mapResponse(response => {
-            logger.info(
-              "{} {} {} {}",
-              remoteAddress.toIP.map(_.toString()).getOrElse("no-remote-address").padTo(20, ' '),
-              response.status.intValue().toString,
-              requestMethod.value.padTo(7, ' '),
-              requestUri.path.toString()
-            )
-            response
-          }) {
-            handleRejections(rejectionHandler()) {
-              val reqDesc = s"${requestMethod.value} ${requestUri.path}"
-              authenticationToken(reqDesc) { token =>
-                authenticate(token, reqDesc) { authenticatedUser =>
-                  logger.debug(s"$reqDesc AuthenticatedUser: $authenticatedUser")
+    extractRequestContext { requestContext =>
+      val requestStartTime = System.currentTimeMillis()
+      val requestMethod = requestContext.request.method.value
+      val requestPath = requestContext.request.uri.path.toString()
+      extractClientIP { remoteAddress =>
+        mapResponse(response => {
+          val requestDuration = System.currentTimeMillis() - requestStartTime
+          val statusCode = response.status.intValue()
+          metrics.updateTimer(statusCode, requestMethod, requestPath, requestDuration)
+          logger.info(
+            "{} {} {} {} {} {}",
+            remoteAddress.toIP.map(_.toString()).getOrElse("no-remote-address"),
+            requestMethod,
+            requestContext.request.uri.path.toString() + requestContext.request.uri.rawQueryString.map('?' + _).getOrElse(""),
+            requestContext.request.protocol.value,
+            statusCode.toString,
+            requestDuration.toString
+          )
+          response
+        }) {
+          handleRejections(rejectionHandler()) {
+            val reqDesc = s"$requestMethod $requestPath"
+            authenticationToken(reqDesc) { token =>
+              authenticate(token, reqDesc) { authenticatedUser =>
+                logger.debug(s"$reqDesc AuthenticatedUser: $authenticatedUser")
 
-                  path("hosts") {
-                    getHosts(authenticatedUser)
-                  } ~ path("updated-routes" / Remaining) { lastModifiedString =>
-                    getUpdatedRoutes(authenticatedUser, lastModifiedString)
-                  } ~ path("current-routes") {
-                    getCurrentRoutes(authenticatedUser)
-                  } ~ path("routes") {
-                    getRoutes(authenticatedUser) ~ postRoutes(authenticatedUser, token) ~ deleteRoutes(authenticatedUser, token)
-                  } ~ path("routes" / LongNumber) { id =>
-                    getRoute(authenticatedUser, id) ~ deleteRoute(authenticatedUser, id, token) ~ patchRoutes(authenticatedUser, token, id)
-                  } ~ pathsRoutes(authenticatedUser, token)
-                }
-              } ~ path("status") {
-                complete("Ok")
-              } ~ path("metrics") {
-                complete {
-                  metrics.metrics.metricRegistry.toJson
-                }
+                path("hosts") {
+                  getHosts(authenticatedUser)
+                } ~ path("updated-routes" / Remaining) { lastModifiedString =>
+                  getUpdatedRoutes(authenticatedUser, lastModifiedString)
+                } ~ path("current-routes") {
+                  getCurrentRoutes(authenticatedUser)
+                } ~ path("routes") {
+                  getRoutes(authenticatedUser) ~ postRoutes(authenticatedUser, token) ~ deleteRoutes(authenticatedUser, token)
+                } ~ path("routes" / LongNumber) { id =>
+                  getRoute(authenticatedUser, id) ~ deleteRoute(authenticatedUser, id, token) ~ patchRoutes(authenticatedUser, token, id)
+                } ~ pathsRoutes(authenticatedUser, token)
+              }
+            } ~ path("status") {
+              complete("Ok")
+            } ~ path("metrics") {
+              complete {
+                metrics.metricRegistry.toJson
               }
             }
           }
