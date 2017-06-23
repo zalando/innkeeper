@@ -1,9 +1,11 @@
-X-Zalando-Team: "keystone"
-X-Zalando-Type: "code"
+X-Zalando-Team: keystone
+X-Zalando-Type: code
+
 approvals:
-  groups:
-    zalando:
-      minimum: 2
-      from:
-        orgs:
-          - "zalando"
+  groups:
+    zalando:
+      minimum: 2
+      from:
+        orgs:
+          - zalando
+
