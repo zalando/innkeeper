@@ -1,7 +1,7 @@
 package org.zalando.spearheads.innkeeper.dao
 
 import javax.inject.Inject
-import org.slf4j.LoggerFactory
+import com.typesafe.scalalogging.StrictLogging
 import org.zalando.spearheads.innkeeper.utils.EnvConfig
 import scala.collection.JavaConverters._
 import scala.collection.immutable.Map
@@ -11,10 +11,8 @@ trait HostsRepo {
   def getHosts(): Map[String, Long]
 }
 
-class ConfigFileHostsRepo @Inject() (config: EnvConfig) extends HostsRepo {
-  private val logger = LoggerFactory.getLogger(this.getClass)
-
-  override lazy val getHosts = {
+class ConfigFileHostsRepo @Inject() (config: EnvConfig) extends HostsRepo with StrictLogging {
+  override lazy val getHosts: Map[String, Long] = {
     logger.debug("loading hosts from the configuration...")
 
     val hosts = config.getObject("hosts").asScala

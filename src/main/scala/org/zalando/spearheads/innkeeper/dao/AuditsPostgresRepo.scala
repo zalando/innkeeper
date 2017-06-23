@@ -3,7 +3,7 @@ package org.zalando.spearheads.innkeeper.dao
 import java.time.LocalDateTime
 
 import com.google.inject.{Inject, Singleton}
-import org.slf4j.LoggerFactory
+import com.typesafe.scalalogging.StrictLogging
 import org.zalando.spearheads.innkeeper.dao.MyPostgresDriver.api._
 import slick.backend.DatabasePublisher
 
@@ -13,12 +13,10 @@ import scala.concurrent.ExecutionContext
 class AuditsPostgresRepo @Inject() (
     db: Database,
     implicit val executionContext: ExecutionContext
-) extends AuditsRepo {
+) extends AuditsRepo with StrictLogging {
 
   private val ROUTE_ENTITY_NAME = "Route"
   private val PATH_ENTITY_NAME = "Path"
-
-  private val logger = LoggerFactory.getLogger(this.getClass)
 
   override def selectAll: DatabasePublisher[AuditRow] = {
     logger.debug("selectAll Audits")
@@ -28,7 +26,7 @@ class AuditsPostgresRepo @Inject() (
     }
   }
 
-  override def persistRouteLog(id: Long, userId: String, auditType: AuditType) = {
+  override def persistRouteLog(id: Long, userId: String, auditType: AuditType): Unit = {
     logger.debug(s"persistRouteLog id=$id user=$userId auditType=${auditType.value}")
 
     auditType match {
@@ -37,7 +35,7 @@ class AuditsPostgresRepo @Inject() (
     }
   }
 
-  override def persistPathLog(id: Long, userId: String, auditType: AuditType) = {
+  override def persistPathLog(id: Long, userId: String, auditType: AuditType): Unit = {
     logger.debug(s"persistRouteLog id=$id user=$userId auditType=${auditType.value}")
 
     auditType match {

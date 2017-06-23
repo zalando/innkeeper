@@ -3,7 +3,7 @@ package org.zalando.spearheads.innkeeper.routes
 import akka.http.scaladsl.server.Directives.{cancelRejections, complete, delete, onComplete, reject}
 import akka.http.scaladsl.server.Route
 import com.google.inject.Inject
-import org.slf4j.LoggerFactory
+import com.typesafe.scalalogging.StrictLogging
 import org.zalando.spearheads.innkeeper.Rejections.{IncorrectTeamRejection, InternalServerErrorRejection, RouteNotFoundRejection}
 import org.zalando.spearheads.innkeeper.RouteDirectives.findPathByRouteId
 import org.zalando.spearheads.innkeeper.metrics.RouteMetrics
@@ -25,24 +25,22 @@ class DeleteRoute @Inject() (
     metrics: RouteMetrics,
     scopes: Scopes,
     implicit val teamService: TeamService,
-    implicit val executionContext: ExecutionContext) {
-
-  private val logger = LoggerFactory.getLogger(this.getClass)
+    implicit val executionContext: ExecutionContext) extends StrictLogging {
 
   def apply(authenticatedUser: AuthenticatedUser, id: Long, token: String): Route = {
     delete {
       val reqDesc = s"delete /routes/$id"
 
-      logger.info(s"try to $reqDesc")
+      logger.debug(reqDesc)
 
       findPathByRouteId(id, pathsService, "delete /routes/{}")(executionContext) { path =>
-        logger.debug(s"try to delete /routes/$id path found $path")
+        logger.debug(s"$reqDesc path found $path")
 
         team(authenticatedUser, token, reqDesc) { team =>
-          logger.debug("try to delete /routes/{} team found {}", id, team)
+          logger.debug(s"$reqDesc team found $team")
 
           username(authenticatedUser, reqDesc) { username =>
-            logger.debug("try to delete /routes/{} username found {}", id, username)
+            logger.debug(s"$reqDesc username found $username")
 
             ((routeTeamAuthorization(team, path.ownedByTeam, reqDesc) & hasOneOfTheScopes(authenticatedUser, reqDesc, scopes.WRITE)) |
               (hasAdminAuthorization(authenticatedUser, team, reqDesc, scopes) & cancelRejections(classOf[IncorrectTeamRejection]))
@@ -64,7 +62,7 @@ class DeleteRoute @Inject() (
         case Success(ServiceResult.Failure(NotFound(_))) => reject(RouteNotFoundRejection(reqDesc))
         case Success(_)                                  => reject(RouteNotFoundRejection(reqDesc))
         case Failure(exception) =>
-          logger.error("shit hit the fan", exception)
+          logger.error("unexpected error while deleting route", exception)
           reject(InternalServerErrorRejection(reqDesc))
       }
     }

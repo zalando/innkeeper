@@ -1,40 +1,35 @@
 package org.zalando.spearheads.innkeeper
 
-import akka.http.scaladsl.model.{HttpRequest, StatusCodes}
-import akka.http.scaladsl.server.AuthenticationFailedRejection.{CredentialsRejected, CredentialsMissing}
+import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Directives._
-import akka.http.scaladsl.server.{Rejection, AuthenticationFailedRejection, AuthorizationFailedRejection, MethodRejection, RejectionHandler}
+import akka.http.scaladsl.server.{MethodRejection, RejectionHandler}
 import com.google.inject.{Inject, Singleton}
-import org.slf4j.LoggerFactory
 import org.zalando.spearheads.innkeeper.api.Error
 import org.zalando.spearheads.innkeeper.api.JsonProtocols.errorFormat
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
+import com.typesafe.scalalogging.StrictLogging
 import org.zalando.spearheads.innkeeper.metrics.RouteMetrics
 
 /**
  * @author dpersa
  */
 @Singleton
-class InnkeeperRejectionHandler @Inject() (metrics: RouteMetrics) {
-
-  private val logger = LoggerFactory.getLogger(this.getClass)
+class InnkeeperRejectionHandler @Inject() (metrics: RouteMetrics) extends StrictLogging {
 
   def apply(): RejectionHandler =
     RejectionHandler.newBuilder()
       .handle {
-        case rejection: InnkeeperRejection => {
-
+        case rejection: InnkeeperRejection =>
           metrics.non2xxResponses.time {
 
             extractRequest { req =>
-              logger.error(s"The request ${rejection.requestDescription} was rejected: ${rejection} entity: ${req.entity.toString}")
+              logger.error(s"The request ${rejection.requestDescription} was rejected: $rejection entity: ${req.entity.toString}")
               complete(
                 rejection.statusCode,
                 Error(rejection.statusCode.intValue, rejection.message, rejection.code)
               )
             }
           }
-        }
       }.handleAll[MethodRejection] { methodRejections =>
         val names = methodRejections.map(_.supported.name)
         metrics.non2xxResponses.time {
@@ -50,8 +45,6 @@ class InnkeeperRejectionHandler @Inject() (metrics: RouteMetrics) {
         }
       }.handleNotFound {
         metrics.non2xxResponses.time {
-          logger.error("Resource not found")
-
           complete(
             StatusCodes.NotFound,
             Error(StatusCodes.NotFound.intValue, "Resource not found", "RENF")

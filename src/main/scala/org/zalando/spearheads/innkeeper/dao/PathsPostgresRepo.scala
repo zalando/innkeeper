@@ -3,7 +3,7 @@ package org.zalando.spearheads.innkeeper.dao
 import java.time.LocalDateTime
 
 import com.google.inject.{Inject, Singleton}
-import org.slf4j.LoggerFactory
+import com.typesafe.scalalogging.StrictLogging
 import org.zalando.spearheads.innkeeper.api.{PathIn, PathPatch}
 import org.zalando.spearheads.innkeeper.dao.MyPostgresDriver.api._
 import slick.backend.DatabasePublisher
@@ -15,15 +15,13 @@ import scala.concurrent.{ExecutionContext, Future}
 class PathsPostgresRepo @Inject() (
     db: Database,
     implicit val executionContext: ExecutionContext
-) extends PathsRepo {
-
-  private val logger = LoggerFactory.getLogger(this.getClass)
+) extends PathsRepo with StrictLogging {
 
   private lazy val insertPathQuery = Paths returning Paths.map(_.id) into
     ((pathRow: PathRow, id) => pathRow.copy(id = Some(id)))
 
   override def insert(path: PathRow): Future[PathRow] = {
-    logger.debug(s"insert route $path")
+    logger.debug(s"insert path $path")
 
     db.run {
       insertPathQuery += path
@@ -53,7 +51,7 @@ class PathsPostgresRepo @Inject() (
     ownedByTeamOption: Option[String] = None,
     uriOption: Option[String] = None): DatabasePublisher[PathRow] = {
 
-    logger.debug(s"selectByTeamOrUri $ownedByTeamOption $uriOption")
+    logger.debug(s"selectByTeamAndUri $ownedByTeamOption $uriOption")
 
     val query = Paths.filter { pathsTable =>
       val filters = Seq(
@@ -141,7 +139,7 @@ class PathsPostgresRepo @Inject() (
 
   override def delete(id: Long, deletedByOpt: Option[String]): Future[Boolean] = {
     val deletedBy = deletedByOpt.getOrElse("unknown")
-    logger.debug("delete path with id {} by {}", id, deletedBy)
+    logger.debug(s"delete path with id $id by $deletedBy")
 
     val deleteQuery = Paths.filter(_.id === id).delete
 

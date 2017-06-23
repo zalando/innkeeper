@@ -4,7 +4,7 @@ import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import com.google.inject.Inject
-import org.slf4j.LoggerFactory
+import com.typesafe.scalalogging.StrictLogging
 import org.zalando.spearheads.innkeeper.Rejections.{DuplicateRouteNameRejection, IncorrectTeamRejection, UnmarshallRejection}
 import org.zalando.spearheads.innkeeper.RouteDirectives.isValidRoute
 import org.zalando.spearheads.innkeeper.api.{RouteIn, UserName}
@@ -28,21 +28,19 @@ class PostRoutes @Inject() (
     scopes: Scopes,
     implicit val routeValidationService: RouteValidationService,
     implicit val teamService: TeamService,
-    implicit val executionContext: ExecutionContext) {
-
-  private val logger = LoggerFactory.getLogger(this.getClass)
+    implicit val executionContext: ExecutionContext) extends StrictLogging {
 
   def apply(authenticatedUser: AuthenticatedUser, token: String): Route = {
     post {
       val reqDesc = "post /routes"
-      logger.info(s"try to $reqDesc")
+      logger.debug(reqDesc)
       entity(as[RouteIn]) { route =>
-        logger.info(s"We Try to $reqDesc unmarshalled route $route")
+        logger.debug(s"$reqDesc route $route")
         team(authenticatedUser, token, "path") { team =>
-          logger.debug(s"post /routes team $team")
+          logger.debug(s"$reqDesc team $team")
 
           findPath(route.pathId, pathsService, reqDesc)(executionContext) { path =>
-            logger.debug(s"post /routes path $path")
+            logger.debug(s"$reqDesc path $path")
 
             ((routeTeamAuthorization(team, path.ownedByTeam, reqDesc) & hasOneOfTheScopes(authenticatedUser, reqDesc, scopes.WRITE)) |
               (hasAdminAuthorization(authenticatedUser, team, reqDesc, scopes) & cancelRejections(classOf[IncorrectTeamRejection]))

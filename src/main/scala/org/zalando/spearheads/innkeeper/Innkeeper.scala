@@ -1,8 +1,8 @@
 package org.zalando.spearheads.innkeeper
 
 import com.google.inject.{Guice, Injector}
+import com.typesafe.scalalogging.StrictLogging
 import net.codingwell.scalaguice.InjectorExtensions._
-import org.slf4j.LoggerFactory
 import org.zalando.spearheads.innkeeper.api.validation.ValidationModule
 import org.zalando.spearheads.innkeeper.api.{AkkaHttp, AkkaHttpModule, AkkaModule}
 import org.zalando.spearheads.innkeeper.dao.{DbModule, InnkeeperSchema}
@@ -14,11 +14,9 @@ import org.zalando.spearheads.innkeeper.utils.{ConfigModule, EnvConfig}
 /**
  * @author dpersa
  */
-object Innkeeper extends App {
+object Innkeeper extends App with StrictLogging {
 
   import org.zalando.spearheads.innkeeper.utils.UtilsModule
-
-  private val logger = LoggerFactory.getLogger(this.getClass)
 
   private val injector: Injector = Guice.createInjector(
     new ConfigModule(),
