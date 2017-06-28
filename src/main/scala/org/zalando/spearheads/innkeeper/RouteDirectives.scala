@@ -1,5 +1,7 @@
 package org.zalando.spearheads.innkeeper
 
+import java.time.LocalDateTime
+
 import akka.NotUsed
 import akka.http.scaladsl.model.HttpEntity.ChunkStreamPart
 import akka.http.scaladsl.model.{HttpEntity, HttpResponse, MediaTypes}
@@ -86,6 +88,15 @@ trait RouteDirectives {
           case _                                                         => reject(InternalServerErrorRejection(requestDescription))(ctx)
         }
       }
+    }
+
+  def getLastUpdate(routesService: RoutesService, requestDescription: String)(implicit executionContext: ExecutionContext): Directive1[Option[LocalDateTime]] =
+    Directive[Tuple1[Option[LocalDateTime]]] { inner => ctx => {
+      routesService.getLastUpdate.fast.transformWith {
+        case Success(lastUpdate) => inner(Tuple1(lastUpdate))(ctx)
+        case _                   => reject(InternalServerErrorRejection(requestDescription))(ctx)
+      }
+    }
     }
 
   def chunkedResponseOf[T](jsonService: JsonService)(source: Source[T, NotUsed])(implicit jsonWriter: JsonWriter[T]) = {

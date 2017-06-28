@@ -150,4 +150,10 @@ object Rejections {
     def message: String = s"A star path must match the configured patterns:\n${patterns.mkString("\n")}"
     def code: String = "SPP"
   }
+
+  case class CurrentRoutesTimestampRejection(requestDescription: String) extends Rejection with InnkeeperRejection {
+    def statusCode: StatusCode = StatusCodes.BadRequest
+    def message: String = "A paginated request for current routes should include the snapshot-timestamp for non zero offset."
+    def code: String = "CRT"
+  }
 }

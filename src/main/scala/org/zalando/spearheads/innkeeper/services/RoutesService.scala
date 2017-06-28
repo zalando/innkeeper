@@ -39,6 +39,8 @@ trait RoutesService {
 
   def findById(id: Long, embed: Set[Embed]): Future[Result[RouteOut]]
 
+  def getLastUpdate: Future[Option[LocalDateTime]]
+
 }
 
 class DefaultRoutesService @Inject() (
@@ -216,4 +218,6 @@ class DefaultRoutesService @Inject() (
       path = path,
       hosts = hosts)
   }
+
+  override def getLastUpdate: Future[Option[LocalDateTime]] = routesRepo.getLastUpdate
 }

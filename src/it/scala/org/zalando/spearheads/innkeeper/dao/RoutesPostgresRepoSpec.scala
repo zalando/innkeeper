@@ -361,7 +361,10 @@ class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers w
         deleteRoute(4)
         insertRoute("R5", createdAt = createdAt)
 
-        val routesWithPaths = routesRepo.selectActiveRoutesData(LocalDateTime.now())
+        val routesWithPaths = routesRepo.selectActiveRoutesData(
+          currentTime = LocalDateTime.now(),
+          pagination = None
+        )
 
         routesWithPaths.size should be (2)
 
@@ -380,7 +383,8 @@ class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers w
         )
 
         val result = routesRepo.selectActiveRoutesData(
-          currentTime = createdAt.plusDays(1L)
+          currentTime = createdAt.plusDays(1L),
+          pagination = None
         )
 
         result.size should be (1)
