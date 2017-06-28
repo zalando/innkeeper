@@ -93,6 +93,7 @@ class GetCurrentRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
 
         response.status should be(StatusCodes.OK)
         response.headers.map(_.name()) should contain("X-Snapshot-Timestamp")
+        response.headers.map(_.name()) should contain("X-Last-Update")
 
         val entity = entityString(response)
         val routes = entity.parseJson.convertTo[Seq[EskipRouteWrapper]]
@@ -115,6 +116,7 @@ class GetCurrentRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
 
         response.status should be(StatusCodes.OK)
         response.headers.map(_.name()) should contain("X-Snapshot-Timestamp")
+        response.headers.map(_.name()) should contain("X-Last-Update")
 
         val entity = entityString(response)
         val routes = entity.parseJson.convertTo[Seq[EskipRouteWrapper]]

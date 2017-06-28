@@ -328,4 +328,15 @@ class RoutesPostgresRepo @Inject() (
       selectById(id)
     }
   }
+
+  override def getLastUpdate: Future[Option[LocalDateTime]] = {
+    val query = Routes.map(_.updatedAt)
+      .unionAll(Paths.map(_.updatedAt))
+      .unionAll(DeletedRoutes.map(_.deletedAt))
+      .max
+
+    db.run {
+      query.result
+    }
+  }
 }

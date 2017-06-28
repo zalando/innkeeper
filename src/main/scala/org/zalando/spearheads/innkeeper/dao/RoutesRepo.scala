@@ -25,4 +25,6 @@ trait RoutesRepo {
   def deleteFiltered(filters: Seq[QueryFilter], dateTime: Option[LocalDateTime]): Future[Seq[Long]]
 
   def update(id: Long, pathPatch: RoutePatch, updatedAt: LocalDateTime): Future[Option[(RouteRow, PathRow)]]
+
+  def getLastUpdate: Future[Option[LocalDateTime]]
 }
