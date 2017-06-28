@@ -20,8 +20,8 @@ class EskipRouteService @Inject() (routesRepo: RoutesRepo, routeToEskipTransform
     }
   }
 
-  def currentEskipRoutes(currentTime: LocalDateTime = LocalDateTime.now()): Source[EskipRouteWrapper, NotUsed] = {
-    val publisher = routesRepo.selectActiveRoutesData(currentTime).mapResult { routeData =>
+  def currentEskipRoutes(currentTime: LocalDateTime, pagination: Option[Pagination]): Source[EskipRouteWrapper, NotUsed] = {
+    val publisher = routesRepo.selectActiveRoutesData(currentTime, pagination).mapResult { routeData =>
       EskipRouteWrapper(
         routeChangeType = RouteChangeType.Create,
         name = RouteName(routeData.name),

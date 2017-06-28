@@ -19,7 +19,7 @@ trait RoutesRepo {
   def selectModifiedSince(since: LocalDateTime, currentTime: LocalDateTime): DatabasePublisher[ModifiedRoute]
   def routeWithNameExists(name: String): Future[Boolean]
 
-  def selectActiveRoutesData(currentTime: LocalDateTime): DatabasePublisher[RouteData]
+  def selectActiveRoutesData(currentTime: LocalDateTime, pagination: Option[Pagination]): DatabasePublisher[RouteData]
 
   def delete(id: Long, deletedBy: Option[String] = None, dateTime: Option[LocalDateTime] = None): Future[Boolean]
   def deleteFiltered(filters: Seq[QueryFilter], dateTime: Option[LocalDateTime]): Future[Seq[Long]]

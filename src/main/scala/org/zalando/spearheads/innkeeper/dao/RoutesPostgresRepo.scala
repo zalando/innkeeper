@@ -170,7 +170,7 @@ class RoutesPostgresRepo @Inject() (
     routesQuery.unionAll(deletedRoutesQuery)
   }
 
-  override def selectActiveRoutesData(currentTime: LocalDateTime): DatabasePublisher[RouteData] = {
+  override def selectActiveRoutesData(currentTime: LocalDateTime, pagination: Option[Pagination]): DatabasePublisher[RouteData] = {
     logger.debug(s"selectActiveRoutesWithPath for currentTime: $currentTime")
 
     val query = for {
@@ -178,8 +178,17 @@ class RoutesPostgresRepo @Inject() (
       if routeIsActive(currentTime, routeRow)
     } yield (routeRow, pathRow)
 
+    val paginatedQuery = pagination.map { pagination =>
+      query
+        .sortBy { case (routes, _) => routes.id }
+        .drop(pagination.offset)
+        .take(pagination.limit)
+    } getOrElse {
+      query
+    }
+
     db.stream {
-      query.result
+      paginatedQuery.result
     }.mapResult {
       case (routeRow, pathRow) =>
         RouteData(

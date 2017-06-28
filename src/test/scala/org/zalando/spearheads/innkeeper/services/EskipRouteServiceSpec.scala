@@ -32,16 +32,17 @@ class EskipRouteServiceSpec extends FunSpec with Matchers with MockFactory with 
       describe("when the common filters are enabled") {
 
         it ("should return the correct current routes") {
+          val pagination = None
 
           (routesRepo.selectActiveRoutesData _)
-            .expects(currentTime)
+            .expects(currentTime, pagination)
             .returning(FakeDatabasePublisher(Seq(routeData)))
 
           (routeToEskipTransformer.transform _)
             .expects(routeData)
             .returning(eskipRoute)
 
-          val result = eskipRouteService.currentEskipRoutes(currentTime)
+          val result = eskipRouteService.currentEskipRoutes(currentTime, pagination)
             .runWith(Sink.head).futureValue
 
           verifyRoute(result)
@@ -50,8 +51,10 @@ class EskipRouteServiceSpec extends FunSpec with Matchers with MockFactory with 
 
       describe("when the common filters are not enabled") {
         it ("should return the correct current routes") {
+          val pagination = None
+
           (routesRepo.selectActiveRoutesData _)
-            .expects(currentTime)
+            .expects(currentTime, pagination)
             .returning(FakeDatabasePublisher(Seq(routeData.copy(usesCommonFilters = false))))
 
           val eskipRouteWithoutCommonFilters =
@@ -63,7 +66,7 @@ class EskipRouteServiceSpec extends FunSpec with Matchers with MockFactory with 
             .expects(routeData.copy(usesCommonFilters = false))
             .returning(eskipRouteWithoutCommonFilters)
 
-          val result = eskipRouteService.currentEskipRoutes(currentTime)
+          val result = eskipRouteService.currentEskipRoutes(currentTime, pagination)
             .runWith(Sink.head).futureValue
 
           result.name should be(RouteName(routeName))

@@ -7,7 +7,7 @@ import org.scalatest.{BeforeAndAfter, FunSpec, Matchers}
 import org.zalando.spearheads.innkeeper.api.{Error, EskipRouteWrapper}
 import org.zalando.spearheads.innkeeper.api.JsonProtocols._
 import org.zalando.spearheads.innkeeper.routes.AcceptanceSpecToken.{INVALID_TOKEN, READ_TOKEN, WRITE_TOKEN}
-import org.zalando.spearheads.innkeeper.routes.AcceptanceSpecsHelper._
+import org.zalando.spearheads.innkeeper.routes.AcceptanceSpecsHelper.entityString
 import org.zalando.spearheads.innkeeper.routes.RoutesRepoHelper.{deleteRoute, insertRoute, recreateSchema}
 import org.zalando.spearheads.innkeeper.routes.RoutesSpecsHelper._
 import spray.json.DefaultJsonProtocol._
@@ -15,8 +15,7 @@ import spray.json.pimpString
 
 class GetCurrentRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
 
-  val routesRepo = RoutesRepoHelper.routesRepo
-  val referenceTime: LocalDateTime = LocalDateTime.now()
+  private val referenceTime = LocalDateTime.now()
 
   describe("get /current-routes") {
     describe("success") {
@@ -78,6 +77,50 @@ class GetCurrentRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
 
         routes.map(_.name.name).toSet should be (Set("R2"))
       }
+
+      it("should return the paginated routes for offset=0 without snapshot-timestamp") {
+        val createdAt = referenceTime.minusDays(1)
+        val activateAt = createdAt
+        insertRoute("R1", createdAt = createdAt, activateAt = activateAt)
+        insertRoute("R2", createdAt = createdAt, activateAt = activateAt)
+        insertRoute("R3", createdAt = createdAt, activateAt = activateAt)
+
+        val queryParams = Map(
+          "offset" -> List("0"),
+          "limit" -> List("2")
+        )
+        val response = doGetRequest(token, "/current-routes", queryParams)
+
+        response.status should be(StatusCodes.OK)
+        response.headers.map(_.name()) should contain("X-Snapshot-Timestamp")
+
+        val entity = entityString(response)
+        val routes = entity.parseJson.convertTo[Seq[EskipRouteWrapper]]
+
+        routes.map(_.name.name).toSet should be (Set("R1", "R2"))
+      }
+
+      it("should return the paginated routes for offset=1 with snapshot-timestamp") {
+        val createdAt = referenceTime.minusDays(1)
+        val activateAt = createdAt
+        insertRoute("R1", createdAt = createdAt, activateAt = activateAt)
+        insertRoute("R2", createdAt = createdAt, activateAt = activateAt)
+
+        val queryParams = Map(
+          "offset" -> List("1"),
+          "limit" -> List("2"),
+          "snapshot-timestamp" -> List(referenceTime.toString)
+        )
+        val response = doGetRequest(token, "/current-routes", queryParams)
+
+        response.status should be(StatusCodes.OK)
+        response.headers.map(_.name()) should contain("X-Snapshot-Timestamp")
+
+        val entity = entityString(response)
+        val routes = entity.parseJson.convertTo[Seq[EskipRouteWrapper]]
+
+        routes.map(_.name.name).toSet should be (Set("R2"))
+      }
     }
 
     describe("failure") {
@@ -108,6 +151,21 @@ class GetCurrentRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
             response.status should be(StatusCodes.Forbidden)
             entityString(response).parseJson.convertTo[Error].errorType should be("AUTH1")
           }
+        }
+
+        it("should return the 400 status for offset=1 without snapshot-timestamp") {
+          val createdAt = referenceTime.minusDays(1)
+          val activateAt = createdAt
+          insertRoute("R1", createdAt = createdAt, activateAt = activateAt)
+          insertRoute("R2", createdAt = createdAt, activateAt = activateAt)
+
+          val queryParams = Map(
+            "offset" -> List("1"),
+            "limit" -> List("2")
+          )
+          val response = doGetRequest(READ_TOKEN, "/current-routes", queryParams)
+
+          response.status should be(StatusCodes.BadRequest)
         }
       }
     }

@@ -38,6 +38,9 @@ object RoutesSpecsHelper {
 
   private val currentRoutesUri = s"$baseUri/current-routes"
 
+  def doGetRequest(token: String, path: String, params: Map[String, List[String]] = Map.empty): HttpResponse =
+    doGet(baseUri + path + paramsToUri(params), token)
+
   def postSlashRoutes(route: String)(token: String): HttpResponse = {
 
     val entity = HttpEntity(ContentType(MediaTypes.`application/json`), route)
