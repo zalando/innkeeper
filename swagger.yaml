@@ -301,6 +301,26 @@ paths:
         - company:
           - routes.read
       summary: Returns the list of all the active routes.
+      parameters:
+        - name: snapshot-timestamp
+          in: query
+          description: |
+            the timestamp to use for computing the snapshot
+            it is mandatory if offset is present and greater than zero
+          required: false
+          type: string
+          format: date-time
+        - name: limit
+          in: query
+          description: the limit for a paginated query
+          required: false
+          type: int64
+        - name: offset
+          in: query
+          description: |
+            the offset for a paginated query, if missing an limit is present it defaults to 0
+          required: false
+          type: int64
       responses:
         '200':
           description: An array of routes
@@ -308,6 +328,17 @@ paths:
             type: array
             items:
               $ref: '#/definitions/RouteOut'
+          headers:
+            X-Snapshot-Timestamp:
+              type: string
+              format: date-time
+              description: |
+                The timestamp used for computing the snapshot.
+            X-Last-Update:
+              type: string
+              format: date-time
+              description: |
+                The timestamp for the last update to the routes (create, update, delete).
         default:
           description: A processing or an unexpected error.
           schema:
