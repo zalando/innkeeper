@@ -59,6 +59,8 @@ class RoutesTable(tag: Tag)
 
   def nameIndex = index("ROUTES_NAME_IDX", name, unique = true)
   def createdAtIndex = index("ROUTES_CREATED_AT_IDX", createdAt)
+  def updatedAtIndex = index("ROUTES_UPDATED_AT_IDX", updatedAt)
+  def activateAtIndex = index("ROUTES_ACTIVATE_AT_IDX", activateAt)
   def disabledAtIndex = index("ROUTES_DISABLED_AT_IDX", disableAt)
 
   lazy val pathFk = foreignKey("route_path_fk", pathId, Paths)(_.id)

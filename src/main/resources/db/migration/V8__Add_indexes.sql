@@ -1,0 +1,6 @@
+create index "DELETED_ROUTES_DELETED_AT_IDX" on "DELETED_ROUTES" ("DELETED_AT");
+
+create index "PATHS_UPDATED_AT_IDX" on "PATHS" ("UPDATED_AT");
+
+create index "ROUTES_UPDATED_AT_IDX" on "ROUTES" ("UPDATED_AT");
+create index "ROUTES_ACTIVATE_AT_IDX" on "ROUTES" ("ACTIVATE_AT");
