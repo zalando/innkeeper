@@ -28,6 +28,7 @@ class PathsTable(tag: Tag) extends Table[PathRow](tag, "PATHS") {
   def hasStar = column[Boolean]("HAS_STAR")
   def isRegex = column[Boolean]("IS_REGEX")
 
+  def updatedAtIndex = index("PATHS_UPDATED_AT_IDX", updatedAt)
   def ownedByTeamIndex = index("PATH_OWNED_BY_TEAM_IDX", ownedByTeam)
 
   def * = // scalastyle:ignore

@@ -12,5 +12,7 @@ class DeletedRoutesTable(tag: Tag)
   def name = column[String]("NAME")
   def deletedAt = column[LocalDateTime]("DELETED_AT")
 
+  def deletedAtIndex = index("DELETED_ROUTES_DELETED_AT_IDX", deletedAt)
+
   def * = (name, deletedAt)
 }
