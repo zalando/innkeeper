@@ -35,24 +35,7 @@ class DeleteRoutes @Inject() (
             logger.debug(s"$reqDesc username found $username")
 
             parameterMultiMap { parameterMultiMap =>
-              val filters: List[QueryFilter] = parameterMultiMap.flatMap {
-                case ("name", routeNames)     => Some(RouteNameFilter(routeNames))
-                case ("owned_by_team", teams) => Some(TeamFilter(teams))
-                case ("uri", pathUris)        => Some(PathUriFilter(pathUris))
-                case ("path_id", pathIdStrings) =>
-                  val pathIds = pathIdStrings.flatMap(idString => try {
-                    Some(idString.toLong)
-                  } catch {
-                    case e: NumberFormatException => None
-                  })
-
-                  if (pathIds.nonEmpty) {
-                    Some(PathIdFilter(pathIds))
-                  } else {
-                    None
-                  }
-                case _ => None
-              }.toList
+              val filters = extractFiltersFrom(parameterMultiMap)
 
               logger.debug(s"$reqDesc filters $filters")
 
@@ -68,6 +51,27 @@ class DeleteRoutes @Inject() (
         }
       }
     }
+  }
+
+  private def extractFiltersFrom(parameterMultiMap: Map[String, List[String]]): List[QueryFilter] = {
+    parameterMultiMap.flatMap {
+      case ("name", routeNames)     => Some(RouteNameFilter(routeNames))
+      case ("owned_by_team", teams) => Some(TeamFilter(teams))
+      case ("uri", pathUris)        => Some(PathUriFilter(pathUris))
+      case ("path_id", pathIdStrings) =>
+        val pathIds = pathIdStrings.flatMap(idString => try {
+          Some(idString.toLong)
+        } catch {
+          case e: NumberFormatException => None
+        })
+
+        if (pathIds.nonEmpty) {
+          Some(PathIdFilter(pathIds))
+        } else {
+          None
+        }
+      case _ => None
+    }.toList
   }
 
   private def deleteRoutes(filters: List[QueryFilter], userName: String, reqDesc: String) = {
