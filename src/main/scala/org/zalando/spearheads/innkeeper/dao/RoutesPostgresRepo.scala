@@ -274,6 +274,9 @@ class RoutesPostgresRepo @Inject() (
       case PathIdFilter(pathIds) =>
         routesTable.pathId.inSet(pathIds)
 
+      case RouteIdFilter(routeIds) =>
+        routesTable.id.inSet(routeIds)
+
       case _ => LiteralColumn(true)
     }
       .reduceOption(_ && _)

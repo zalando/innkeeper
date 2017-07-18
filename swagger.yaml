@@ -202,6 +202,12 @@ paths:
           required: false
           type: integer
           format: int64
+        - name: id
+          in: query
+          description: The route id to filter for
+          required: false
+          type: integer
+          format: int64
         - name: embed
           in: query
           description: The subresources to embed (path, hosts)
@@ -281,6 +287,12 @@ paths:
         - name: path_id
           in: query
           description: The path id to filter for
+          required: false
+          type: integer
+          format: int64
+        - name: id
+          in: query
+          description: The route id to filter for
           required: false
           type: integer
           format: int64
