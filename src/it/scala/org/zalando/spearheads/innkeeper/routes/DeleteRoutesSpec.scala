@@ -31,6 +31,15 @@ class DeleteRoutesSpec extends FunSpec with BeforeAndAfter with Matchers {
           response.status should be(StatusCodes.OK)
           entityString(response) should be("1")
         }
+
+        it("should delete the route when providing the filter in the request body") {
+          insertRoute("R1")
+          insertRoute("R2", ownedByTeam = token.teamName)
+
+          val response = deleteSlashRoutes(Map.empty, s"""{"owned_by_team":["${token.teamName}"]}""", token)
+          response.status should be(StatusCodes.OK)
+          entityString(response) should be("1")
+        }
       }
 
       describe("when a token with the write scope is provided it should not delete other team routes") {
