@@ -6,7 +6,7 @@ import scalariform.formatter.preferences.{SpacesAroundMultiImports, PreserveSpac
 
 name := """innkeeper"""
 organization  := "org.zalando.spearheads"
-version       := "0.4.27"
+version       := "0.4.28"
 
 mainClass in Compile := Some("org.zalando.spearheads.innkeeper.Innkeeper")
 
