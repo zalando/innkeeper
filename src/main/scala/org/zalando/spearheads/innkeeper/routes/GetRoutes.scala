@@ -57,6 +57,9 @@ class GetRoutes @Inject() (
       case ("uri", pathUris) =>
         Some(PathUriFilter(pathUris))
 
+      case ("description", descriptions) =>
+        Some(DescriptionFilter(descriptions))
+
       case ("path_id", idStrings) =>
         val ids = idStrings.flatMap { idString =>
           Try(idString.toLong).toOption

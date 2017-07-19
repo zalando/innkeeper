@@ -196,6 +196,11 @@ paths:
           description: The path uri to filter for
           required: false
           type: string
+        - name: description
+          in: query
+          description: The route description to filter for
+          required: false
+          type: string
         - name: path_id
           in: query
           description: The path id to filter for
@@ -282,6 +287,11 @@ paths:
         - name: uri
           in: query
           description: The path uri to filter for
+          required: false
+          type: string
+        - name: description
+          in: query
+          description: The route description to filter for
           required: false
           type: string
         - name: path_id

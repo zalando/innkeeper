@@ -109,9 +109,18 @@ class DeleteRoutes @Inject() (
 
   private def extractFiltersFrom(parameterMultiMap: Map[String, List[String]]): List[QueryFilter] = {
     parameterMultiMap.flatMap {
-      case ("name", routeNames)     => Some(RouteNameFilter(routeNames))
-      case ("owned_by_team", teams) => Some(TeamFilter(teams))
-      case ("uri", pathUris)        => Some(PathUriFilter(pathUris))
+      case ("name", routeNames) =>
+        Some(RouteNameFilter(routeNames))
+
+      case ("owned_by_team", teams) =>
+        Some(TeamFilter(teams))
+
+      case ("uri", pathUris) =>
+        Some(PathUriFilter(pathUris))
+
+      case ("description", descriptions) =>
+        Some(DescriptionFilter(descriptions))
+
       case ("path_id", idStrings) =>
         val ids = idStrings.flatMap { idString =>
           Try(idString.toLong).toOption

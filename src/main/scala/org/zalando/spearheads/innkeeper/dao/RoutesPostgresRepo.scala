@@ -277,7 +277,10 @@ class RoutesPostgresRepo @Inject() (
       case RouteIdFilter(routeIds) =>
         routesTable.id.inSet(routeIds)
 
-      case _ => LiteralColumn(true)
+      case DescriptionFilter(descriptions) =>
+        routesTable.description
+          .inSet(descriptions)
+          .getOrElse(LiteralColumn(false))
     }
       .reduceOption(_ && _)
       .getOrElse(LiteralColumn(true))

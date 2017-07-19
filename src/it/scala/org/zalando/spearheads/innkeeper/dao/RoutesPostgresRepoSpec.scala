@@ -306,6 +306,17 @@ class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers w
         result.flatMap(_._1.id).toSet should be (Set(route2, route3).flatMap(_.id))
       }
 
+      it("should filter by description") {
+        insertRoute("R1", description = "aaa")
+        val route2 = insertRoute("R2", description = "bbb")
+        val route3 = insertRoute("R3", description = "bbb")
+
+        val filters = Seq(DescriptionFilter(List("bbb")))
+        val result: Seq[(RouteRow, PathRow)] = routesRepo.selectFiltered(filters)
+
+        result.flatMap(_._1.id).toSet should be (Set(route2, route3).flatMap(_.id))
+      }
+
       it("should filter by team and route name") {
         insertRoute("R1", ownedByTeam = "team-1")
         val route2 = insertRoute("R2", ownedByTeam = "team-2")
@@ -484,6 +495,17 @@ class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers w
         val route3 = insertRoute("R3")
 
         val filters = Seq(PathIdFilter(Seq(route2, route3).flatMap(_.id)))
+        val filteredRoutes = Set(route2, route3)
+
+        testDeleteFiltered(filteredRoutes, filters)
+      }
+
+      it("should delete filtered by description") {
+        insertRoute("R1", description = "aaa")
+        val route2 = insertRoute("R2", description = "bbb")
+        val route3 = insertRoute("R3", description = "bbb")
+
+        val filters = Seq(DescriptionFilter(List("bbb")))
         val filteredRoutes = Set(route2, route3)
 
         testDeleteFiltered(filteredRoutes, filters)
