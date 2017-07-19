@@ -99,6 +99,22 @@ object RoutesSpecsHelper {
   def deleteSlashRoutesWithQueryParams(params: Map[String, List[String]], token: String): HttpResponse =
     makeRequest(routesWithQueryParamsUri(params), token, HttpMethods.DELETE)
 
+  def deleteSlashRoutes(params: Map[String, List[String]], jsonBody: String, token: String): HttpResponse = {
+
+    val entity = HttpEntity(ContentType(MediaTypes.`application/json`), jsonBody)
+
+    val headers = Seq[HttpHeader](Authorization(OAuth2BearerToken(token)))
+
+    val request = HttpRequest(
+      method = HttpMethods.DELETE,
+      uri = routesWithQueryParamsUri(params),
+      entity = entity,
+      headers = headers)
+
+    val futureResponse = Http().singleRequest(request)
+    futureResponse.futureValue
+  }
+
   def getUpdatedRoutes(localDateTime: String, token: String): HttpResponse = doGet(s"$baseUri/updated-routes/$localDateTime", token)
 
   private def slashRoute(

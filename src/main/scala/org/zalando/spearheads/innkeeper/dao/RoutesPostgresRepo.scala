@@ -268,13 +268,27 @@ class RoutesPostgresRepo @Inject() (
       case TeamFilter(teams) =>
         pathsTable.ownedByTeam.inSet(teams)
 
-      case PathUriFilter(pathUris) =>
-        pathsTable.uri.inSet(pathUris)
-
       case PathIdFilter(pathIds) =>
         routesTable.pathId.inSet(pathIds)
 
-      case _ => LiteralColumn(true)
+      case RouteIdFilter(routeIds) =>
+        routesTable.id.inSet(routeIds)
+
+      case PathUriFilter(pathUris) =>
+        pathUris
+          .map(uri => pathsTable.uri.like(s"%$uri%"))
+          .reduceOption(_ || _)
+          .getOrElse(LiteralColumn(true))
+
+      case DescriptionFilter(descriptions) =>
+        descriptions
+          .map { description =>
+            routesTable.description
+              .like(s"%$description%")
+              .getOrElse(LiteralColumn(false))
+          }
+          .reduceOption(_ || _)
+          .getOrElse(LiteralColumn(true))
     }
       .reduceOption(_ && _)
       .getOrElse(LiteralColumn(true))
