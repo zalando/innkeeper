@@ -284,6 +284,17 @@ class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers w
         result.flatMap(_._1.id).toSet should be (Set(route2.id, route3.id).flatten)
       }
 
+      it("should filter by partial path uri") {
+        insertRoute("R1")
+        val route2 = insertRoute("R2")
+        val route3 = insertRoute("R3")
+
+        val filters = Seq(PathUriFilter(Seq("R2", "R3")))
+        val result: Seq[(RouteRow, PathRow)] = routesRepo.selectFiltered(filters)
+
+        result.flatMap(_._1.id).toSet should be (Set(route2.id, route3.id).flatten)
+      }
+
       it("should filter by path id") {
         insertRoute("R1")
         val route2 = insertRoute("R2")
@@ -308,10 +319,10 @@ class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers w
 
       it("should filter by description") {
         insertRoute("R1", description = "aaa")
-        val route2 = insertRoute("R2", description = "bbb")
-        val route3 = insertRoute("R3", description = "bbb")
+        val route2 = insertRoute("R2", description = "bba")
+        val route3 = insertRoute("R3", description = "bbc")
 
-        val filters = Seq(DescriptionFilter(List("bbb")))
+        val filters = Seq(DescriptionFilter(List("b")))
         val result: Seq[(RouteRow, PathRow)] = routesRepo.selectFiltered(filters)
 
         result.flatMap(_._1.id).toSet should be (Set(route2, route3).flatMap(_.id))
@@ -502,10 +513,10 @@ class RoutesPostgresRepoSpec extends FunSpec with BeforeAndAfter with Matchers w
 
       it("should delete filtered by description") {
         insertRoute("R1", description = "aaa")
-        val route2 = insertRoute("R2", description = "bbb")
-        val route3 = insertRoute("R3", description = "bbb")
+        val route2 = insertRoute("R2", description = "bba")
+        val route3 = insertRoute("R3", description = "bbc")
 
-        val filters = Seq(DescriptionFilter(List("bbb")))
+        val filters = Seq(DescriptionFilter(List("b")))
         val filteredRoutes = Set(route2, route3)
 
         testDeleteFiltered(filteredRoutes, filters)
