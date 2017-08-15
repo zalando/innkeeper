@@ -209,17 +209,6 @@ class ZalandoTeamServiceSpec extends FunSpec with MockFactory with Matchers with
               .futureValue
             secondResult should be (ServiceResult.Success(Team(teamName, Official)))
           }
-
-          it("should call the service only once on multiple invocations with the same user (owner field)") {
-            val teamService = setupTeamService()
-            (mockHttpClient.callJson _).expects(applicationTeamServiceUrlFor(applicationName), Some(token), HttpMethods.GET)
-              .returning(Future(teamJson2.parseJson)).once
-
-            val secondResult = teamService.getForApplication(applicationName, token)
-              .flatMap(_ => teamService.getForApplication(applicationName, token))
-              .futureValue
-            secondResult should be (ServiceResult.Success(Team(teamName, Official)))
-          }
         }
       }
     }
