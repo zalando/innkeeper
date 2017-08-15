@@ -81,10 +81,12 @@ class ZalandoTeamService @Inject() (
   }
 
   private def callApplicationService(applicationName: String, token: String): Future[Result[Team]] = {
-    val url = applicationServiceUrl + applicationName
+    val normalizedApplicationName =
+      if (applicationName.startsWith("stups_")) applicationName.substring("stups_".length) else applicationName
+    val url = applicationServiceUrl + normalizedApplicationName
     httpClient.callJson(url, Some(token)).map {
       case jsObject: JsObject =>
-        jsObject.getFields("owner").headOption match {
+        jsObject.getFields("team_id").headOption match {
           case Some(JsString(teamId)) =>
             val team = Team(teamId, Official)
             applicationTeamCache.put(applicationName, team)
