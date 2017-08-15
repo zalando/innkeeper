@@ -138,14 +138,23 @@ class ZalandoTeamServiceSpec extends FunSpec with MockFactory with Matchers with
       val token = "the-token"
       val applicationName = "application"
       val teamName = "TheTeam"
-      val teamJson = s"""{"owner": "$teamName"}"""
+      val teamJson = s"""{"team_id": "$teamName"}"""
+      val teamJson2 = s"""{"owner": "$teamName"}"""
 
       describe("success") {
 
-        it("should return the team") {
+        it("should return the team from the team_id field") {
           val teamService = setupTeamService()
           (mockHttpClient.callJson _).expects(applicationTeamServiceUrlFor(applicationName), Some(token), HttpMethods.GET)
             .returning(Future(teamJson.parseJson))
+
+          teamService.getForApplication(applicationName, token).futureValue should be(ServiceResult.Success(Team(teamName, Official)))
+        }
+
+        it("should return the team from the owner field") {
+          val teamService = setupTeamService()
+          (mockHttpClient.callJson _).expects(applicationTeamServiceUrlFor(applicationName), Some(token), HttpMethods.GET)
+            .returning(Future(teamJson2.parseJson))
 
           teamService.getForApplication(applicationName, token).futureValue should be(ServiceResult.Success(Team(teamName, Official)))
         }
@@ -190,10 +199,21 @@ class ZalandoTeamServiceSpec extends FunSpec with MockFactory with Matchers with
 
         describe("caching") {
 
-          it("should call the service only once on multiple invocations with the same user") {
+          it("should call the service only once on multiple invocations with the same user (team_id field)") {
             val teamService = setupTeamService()
             (mockHttpClient.callJson _).expects(applicationTeamServiceUrlFor(applicationName), Some(token), HttpMethods.GET)
               .returning(Future(teamJson.parseJson)).once
+
+            val secondResult = teamService.getForApplication(applicationName, token)
+              .flatMap(_ => teamService.getForApplication(applicationName, token))
+              .futureValue
+            secondResult should be (ServiceResult.Success(Team(teamName, Official)))
+          }
+
+          it("should call the service only once on multiple invocations with the same user (owner field)") {
+            val teamService = setupTeamService()
+            (mockHttpClient.callJson _).expects(applicationTeamServiceUrlFor(applicationName), Some(token), HttpMethods.GET)
+              .returning(Future(teamJson2.parseJson)).once
 
             val secondResult = teamService.getForApplication(applicationName, token)
               .flatMap(_ => teamService.getForApplication(applicationName, token))
