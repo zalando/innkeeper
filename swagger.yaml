@@ -222,12 +222,14 @@ paths:
           in: query
           description: the limit for a paginated query
           required: false
-          type: int64
+          type: integer
+          format: int64
         - name: offset
           in: query
           description: the offset for a paginated query, if missing an limit is present it defaults to 0
           required: false
-          type: int64
+          type: integer
+          format: int64
       responses:
         '200':
           description: An array of routes
@@ -336,13 +338,15 @@ paths:
           in: query
           description: the limit for a paginated query
           required: false
-          type: int64
+          type: integer
+          format: int64
         - name: offset
           in: query
           description: |
             the offset for a paginated query, if missing an limit is present it defaults to 0
           required: false
-          type: int64
+          type: integer
+          format: int64
       responses:
         '200':
           description: An array of routes
