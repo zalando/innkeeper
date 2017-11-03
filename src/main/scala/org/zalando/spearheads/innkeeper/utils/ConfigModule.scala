@@ -11,12 +11,13 @@ object ConfigModule {
     override def get() = {
       val configFilePath = Option(System.getProperty("config.file"))
 
-      val defaultConfig = ConfigFactory.load()
+      val defaultConfig = ConfigFactory.load().resolve()
 
       configFilePath.map { filePath =>
         ConfigFactory
           .parseFile(new File(filePath))
           .withFallback(defaultConfig)
+          .resolve()
       }.getOrElse(defaultConfig)
     }
   }
